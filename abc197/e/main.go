@@ -3,12 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 )
 
-var sc = bufio.NewScanner(os.Stdin)
-var wtr = bufio.NewWriter(os.Stdout)
+var sc = bufio.newscanner(os.stdin)
+var wtr = bufio.newwriter(os.stdout)
 
 func nextInt() int {
 	sc.Scan()
