@@ -42,55 +42,61 @@ func main() {
 	n := ni()
 	m := ni()
 
-	vMap := make(map[int]map[string][]int)
-	searchedMap := make(map[int]map[int]struct{})
-	for i := 1; i <= n; i++ {
-		vMap[i] = make(map[string][]int)
-		searchedMap[i] = make(map[int]struct{})
+	vMap := make([][][]int, n, n)
+	searchedMap := make([][]bool, n)
+	for i := 0; i < n; i++ {
+		vMap[i] = make([][]int, 26, 26)
+		searchedMap[i] = make([]bool, n)
 	}
 	for i := 0; i < m; i++ {
-		a := ni()
-		b := ni()
-		c := ns()
+		a := ni() - 1
+		b := ni() - 1
+		c := int([]rune(ns())[0]) - 97
 
 		vMap[a][c] = append(vMap[a][c], b)
 		vMap[b][c] = append(vMap[b][c], a)
 	}
 
 	posL := [][2]int{
-		{1, n},
+		{0, n - 1},
 	}
+	i := 0
 
 Loop:
-	for i := 0; i < 10000000; i++ {
+	for {
 		newPosL := [][2]int{}
 		for _, pos := range posL {
 			for c, v := range vMap[pos[0]] {
 				for _, sd := range v {
-					if ev, ok := vMap[pos[1]][c]; ok {
-						for _, ed := range ev {
-							if sd == ed {
-								o = (i + 1) * 2
-								break Loop
-							}
+					for _, ed := range vMap[pos[1]][c] {
+						if !searchedMap[sd][ed] {
 							if sd == pos[1] && ed == pos[0] {
 								o = i*2 + 1
 								break Loop
 							}
-							if _, ok := searchedMap[sd][ed]; !ok {
-								newPos := [2]int{sd, ed}
-								newPosL = append(newPosL, newPos)
+							if sd == ed {
+								tmp := (i + 1) * 2
+								if o == -1 {
+									o = tmp
+								}
 							}
+							newPos := [2]int{sd, ed}
+							newPosL = append(newPosL, newPos)
+							searchedMap[sd][ed] = true
 						}
 					}
 				}
 			}
-			searchedMap[pos[0]][pos[1]] = struct{}{}
+			searchedMap[pos[0]][pos[1]] = true
+		}
+		if o != -1 {
+			break
 		}
 		if len(newPosL) == 0 {
 			break
 		}
 		posL = newPosL
+		i++
 	}
 
 	fmt.Fprintln(wtr, o)
