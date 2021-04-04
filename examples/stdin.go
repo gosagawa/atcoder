@@ -55,6 +55,15 @@ func ni() int {
 	return i
 }
 
+func nf() float64 {
+	sc.Scan()
+	f, e := strconv.ParseFloat(sc.Text(), 64)
+	if e != nil {
+		panic(e)
+	}
+	return f
+}
+
 func ns() string {
 	sc.Scan()
 	return sc.Text()
