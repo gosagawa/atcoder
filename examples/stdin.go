@@ -3,39 +3,23 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 )
 
 var sc = bufio.NewScanner(os.Stdin)
 var wtr = bufio.NewWriter(os.Stdout)
 
-func init() {
-	sc.Split(bufio.ScanWords)
-}
-
-func ni() int {
-	sc.Scan()
-	i, e := strconv.Atoi(sc.Text())
-	if e != nil {
-		panic(e)
-	}
-	return i
-}
-
-func ns() string {
-	sc.Scan()
-	return sc.Text()
-}
-
 func main() {
 
 	if len(os.Args) > 1 && os.Args[1] == "i" {
-		f, e := os.Open("./input")
+		b, e := ioutil.ReadFile("./input")
 		if e != nil {
 			panic(e)
 		}
-		sc = bufio.NewScanner(f)
+		sc = bufio.NewScanner(strings.NewReader(strings.Replace(string(b), " ", "\n", -1)))
 	}
 
 	// defaut
@@ -56,4 +40,22 @@ func main() {
 	fmt.Fprintln(wtr, "Hello")
 	fmt.Fprintln(wtr, "World")
 	_ = wtr.Flush()
+}
+
+func init() {
+	sc.Split(bufio.ScanWords)
+}
+
+func ni() int {
+	sc.Scan()
+	i, e := strconv.Atoi(sc.Text())
+	if e != nil {
+		panic(e)
+	}
+	return i
+}
+
+func ns() string {
+	sc.Scan()
+	return sc.Text()
 }
