@@ -21,6 +21,7 @@ func main() {
 		}
 		sc = bufio.NewScanner(strings.NewReader(strings.Replace(string(b), " ", "\n", -1)))
 	}
+	sc.Buffer(make([]byte, 10000), 2000000)
 
 	slen, s := stouis(ns())
 	tlen, t := stouis(ns())
@@ -88,7 +89,7 @@ func maxdistance(sl, tl []uint64, ss, ts int) int {
 
 	d := ts
 	var k uint64 = 1
-	var sActive uint64 = sl[0]
+	var sActive uint64
 	allc := ss - ts + 1
 	var checkerC, slcounter int
 
@@ -98,19 +99,29 @@ func maxdistance(sl, tl []uint64, ss, ts int) int {
 
 	activeChecker := 1
 	for si := 0; si < ss; si++ {
+		if si%64 == 0 {
+			sActive = sl[slcounter]
+			slcounter++
+		}
 		if si < allc {
-			checker[checkerC] = tl[0]
+			checkerd[checkerC] = 0
+			checkeri[checkerC] = 0
 		}
 		for c := 0; c < activeChecker; c++ {
+			if checkeri[c] == ts {
+				continue
+			}
+
+			if checkeri[c]%64 == 0 {
+				nextI := checkeri[c] / 64
+				checker[c] = tl[nextI]
+			}
+
 			if checker[c]&k != sActive&k {
 				checkerd[c]++
 			}
-			if checkeri[c]%64 == 63 {
-				nextI := checker[c] % 64
-				checker[c] = tl[nextI]
-			} else {
-				checker[c] >>= 1
-			}
+
+			checker[c] >>= 1
 			checkeri[c]++
 		}
 		/*
@@ -134,17 +145,10 @@ func maxdistance(sl, tl []uint64, ss, ts int) int {
 			activeChecker++
 		}
 
-		if si%64 == 63 {
-			slcounter++
-			sActive = sl[slcounter]
-		} else {
-			sActive >>= 1
-		}
+		sActive >>= 1
 
 		if si%ts == ts-1 {
 			checkerC = 0
-			checkerd[0] = 0
-			checkeri[0] = 0
 		} else {
 			checkerC++
 		}
