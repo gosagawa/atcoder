@@ -17,17 +17,17 @@ var wtr = bufio.NewWriter(os.Stdout)
 
 func main() {
 
-	f, err := os.Create("cpu.pprof")
-	if err != nil {
-		panic(err)
-	}
-
-	if err := pprof.StartCPUProfile(f); err != nil {
-		panic(err)
-	}
-	defer pprof.StopCPUProfile()
-
 	if len(os.Args) > 1 && os.Args[1] == "i" {
+		f, err := os.Create("cpu.pprof")
+		if err != nil {
+			panic(err)
+		}
+
+		if err := pprof.StartCPUProfile(f); err != nil {
+			panic(err)
+		}
+		defer pprof.StopCPUProfile()
+
 		b, e := ioutil.ReadFile("./input")
 		if e != nil {
 			panic(e)
@@ -42,49 +42,82 @@ func main() {
 	tlen := len(t)
 
 	tuintlistlen := (tlen-1)/64 + 1
-	tuintlist := make([]uint64, tuintlistlen, tuintlistlen)
-	tuintindex := -1
-	for i, c := range t {
-		if i%64 == 0 {
-			tuintindex++
-		}
 
-		d := c - '0'
-		tuintlist[tuintindex] *= uint64(2)
-		n1 := tuintlist[tuintindex] + uint64(d)
-		tuintlist[tuintindex] = n1
-	}
 	alllen := slen - tlen + 1
-	suintalllist := make([][]uint64, alllen, alllen)
-	suintalllistindex := make([]int, alllen, alllen)
-	suintalllistcounter := make([]int, alllen, alllen)
-	for ai := 0; ai < alllen; ai++ {
-		suintalllist[ai] = make([]uint64, tuintlistlen, tuintlistlen)
-		suintalllistindex[ai] = -1
-		suintalllistcounter[ai] = 0
-	}
 	bktree := &BKTree{}
-	for i, c := range s {
+	tuintlist := convertUint(t, tuintlistlen)
+	/*
+		suintalllist := make([][]uint64, alllen, alllen)
+		suintalllistindex := make([]int, alllen, alllen)
+		suintalllistcounter := make([]int, alllen, alllen)
 		for ai := 0; ai < alllen; ai++ {
-			if 0 <= i-ai && i-ai < tlen {
-				if suintalllistcounter[ai]%64 == 0 {
-					suintalllistindex[ai]++
-				}
-				suintindex := suintalllistindex[ai]
-				d := c - '0'
-				suintalllist[ai][suintindex] *= uint64(2)
-				n1 := suintalllist[ai][suintindex] + uint64(d)
-				suintalllist[ai][suintindex] = n1
-				suintalllistcounter[ai]++
-				if i-ai == tlen-1 {
-					bktree.Add(suintalllist[ai])
+			suintalllist[ai] = make([]uint64, tuintlistlen, tuintlistlen)
+			suintalllistindex[ai] = -1
+			suintalllistcounter[ai] = 0
+		}
+			for i, c := range s {
+				for ai := 0; ai < alllen; ai++ {
+					if 0 <= i-ai && i-ai < tlen {
+						if suintalllistcounter[ai]%64 == 0 {
+							suintalllistindex[ai]++
+						}
+						suintindex := suintalllistindex[ai]
+						d := c - '0'
+						suintalllist[ai][suintindex] *= uint64(2)
+						n1 := suintalllist[ai][suintindex] + uint64(d)
+						suintalllist[ai][suintindex] = n1
+						suintalllistcounter[ai]++
+						if i-ai == tlen-1 {
+							bktree.Add(suintalllist[ai])
+						}
+					}
 				}
 			}
+	*/
+	/*
+		saved := make(map[string]struct{})
+		for ai := 0; ai < alllen; ai++ {
+			sub := s[ai : ai+tlen]
+			s := string(sub)
+			if _, ok := saved[s]; !ok {
+				tuintindex := -1
+				suintlist := make([]uint64, tuintlistlen, tuintlistlen)
+				for i, c := range sub {
+					if i%64 == 0 {
+						tuintindex++
+					}
+
+					d := c - '0'
+					suintlist[tuintindex] *= uint64(2)
+					n1 := suintlist[tuintindex] + uint64(d)
+					suintlist[tuintindex] = n1
+				}
+				bktree.Add(suintlist)
+				saved[s] = struct{}{}
+			}
 		}
+	*/
+	for ai := 0; ai < alllen; ai++ {
+		bktree.Add(convertUint(s[ai:ai+tlen], tuintlistlen))
 	}
 
 	fmt.Println(bktree.Search(tuintlist))
 	_ = wtr.Flush()
+}
+func convertUint(b []byte, uintlen int) []uint64 {
+	uintindex := -1
+	uintlist := make([]uint64, uintlen, uintlen)
+	for i, c := range b {
+		if i%64 == 0 {
+			uintindex++
+		}
+
+		d := c - '0'
+		uintlist[uintindex] *= uint64(2)
+		n1 := uintlist[uintindex] + uint64(d)
+		uintlist[uintindex] = n1
+	}
+	return uintlist
 }
 
 func init() {
