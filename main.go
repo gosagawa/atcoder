@@ -14,6 +14,8 @@ import (
 
 var sc = bufio.NewScanner(os.Stdin)
 var wtr = bufio.NewWriter(os.Stdout)
+var tuintlist []uint64
+var o int
 
 func main() {
 
@@ -38,76 +40,67 @@ func main() {
 
 	s := nb()
 	t := nb()
-	slen := len(s)
 	tlen := len(t)
 
 	tuintlistlen := (tlen-1)/64 + 1
 
-	alllen := slen - tlen + 1
-	bktree := &BKTree{}
-	tuintlist := convertUint(t, tuintlistlen)
-	/*
-		suintalllist := make([][]uint64, alllen, alllen)
-		suintalllistindex := make([]int, alllen, alllen)
-		suintalllistcounter := make([]int, alllen, alllen)
-		for ai := 0; ai < alllen; ai++ {
-			suintalllist[ai] = make([]uint64, tuintlistlen, tuintlistlen)
-			suintalllistindex[ai] = -1
-			suintalllistcounter[ai] = 0
-		}
-			for i, c := range s {
-				for ai := 0; ai < alllen; ai++ {
-					if 0 <= i-ai && i-ai < tlen {
-						if suintalllistcounter[ai]%64 == 0 {
-							suintalllistindex[ai]++
-						}
-						suintindex := suintalllistindex[ai]
-						d := c - '0'
-						suintalllist[ai][suintindex] *= uint64(2)
-						n1 := suintalllist[ai][suintindex] + uint64(d)
-						suintalllist[ai][suintindex] = n1
-						suintalllistcounter[ai]++
-						if i-ai == tlen-1 {
-							bktree.Add(suintalllist[ai])
-						}
-					}
-				}
-			}
-	*/
-	/*
-		saved := make(map[string]struct{})
-		for ai := 0; ai < alllen; ai++ {
-			sub := s[ai : ai+tlen]
-			s := string(sub)
-			if _, ok := saved[s]; !ok {
-				tuintindex := -1
-				suintlist := make([]uint64, tuintlistlen, tuintlistlen)
-				for i, c := range sub {
-					if i%64 == 0 {
-						tuintindex++
-					}
+	tuintlist = convertUintList(t, tuintlistlen)
+	baseuintlist := convertUintList(s[0:tlen], tuintlistlen)
+	o = tlen
 
-					d := c - '0'
-					suintlist[tuintindex] *= uint64(2)
-					n1 := suintlist[tuintindex] + uint64(d)
-					suintlist[tuintindex] = n1
-				}
-				bktree.Add(suintlist)
-				saved[s] = struct{}{}
-			}
+	um := NewUintMap()
+	tmpum := NewUintMap()
+	for i, v := range baseuintlist {
+		if i == 0 {
+			tmpum = um.AddChild(v)
+			continue
 		}
-	*/
+		tmpum = tmpum.AddChild(v)
+	}
+	o = tmpum.GetDistanse()
+
+	slen := len(s)
+	alllen := slen - tlen + 1
 	for ai := 0; ai < alllen; ai++ {
-		bktree.Add(convertUint(s[ai:ai+tlen], tuintlistlen))
+		check(um, s[ai:ai+tlen])
 	}
 
-	fmt.Println(bktree.Search(tuintlist))
+	fmt.Println(o)
 	_ = wtr.Flush()
 }
-func convertUint(b []byte, uintlen int) []uint64 {
+
+func check(um *UintMap, b []byte) {
+
+	hasNext := len(b) > 64
+	if hasNext {
+		newum := um.AddChild(convertUint(b[:64]))
+		if newum != nil {
+			check(newum, b[64:])
+		}
+		return
+	}
+	newum := um.AddChild(convertUint(b))
+	if newum != nil && newum.GetDistanse() < o {
+		o = newum.GetDistanse()
+	}
+
+}
+func convertUint(b []byte) uint64 {
+	var ui uint64
+	for _, c := range b {
+		d := c - '0'
+		ui *= uint64(2)
+		n1 := ui + uint64(d)
+		ui = n1
+	}
+	return ui
+}
+
+func convertUintList(b []byte, uintlen int) []uint64 {
 	uintindex := -1
 	uintlist := make([]uint64, uintlen, uintlen)
 	for i, c := range b {
+
 		if i%64 == 0 {
 			uintindex++
 		}
@@ -152,17 +145,40 @@ func nb() []byte {
 	return sc.Bytes()
 }
 
-func distance(a, b uint64) int {
+type UintMap struct {
+	distanse   int
+	generation int
+	childlen   map[int]*UintMap
+}
 
-	d := 0
-	var k uint64 = 1
-	for i := 0; i < 64; i++ {
-		if a&k != b&k {
-			d++
-		}
-		k <<= 1
+func NewUintMap() *UintMap {
+	return &UintMap{
+		childlen: make(map[int]*UintMap),
 	}
-	return d
+}
+
+func (um *UintMap) AddChild(ui uint64) *UintMap {
+	i := int(ui)
+	if v, ok := um.childlen[i]; ok {
+		return v
+	}
+	distanse := um.Distance(ui)
+	if distanse > o {
+		return nil
+	}
+	newum := NewUintMap()
+	newum.generation = um.generation + 1
+	newum.distanse = distanse
+	um.childlen[i] = newum
+	return newum
+}
+
+func (um *UintMap) GetDistanse() int {
+	return um.distanse
+}
+
+func (um *UintMap) Distance(ui uint64) int {
+	return bits.OnesCount64(ui^tuintlist[um.generation]) + um.distanse
 }
 
 type BKTree struct {
