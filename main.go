@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
-	"math/bits"
+	"math/cmplx"
 	"os"
 	"runtime/pprof"
 	"strconv"
 	"strings"
+
+	"github.com/mjibson/go-dsp/fft"
 )
 
 var sc = bufio.NewScanner(os.Stdin)
 var wtr = bufio.NewWriter(os.Stdout)
-var tuintlist []uint64
 var o int
 
 func main() {
@@ -40,77 +41,107 @@ func main() {
 
 	s := nb()
 	t := nb()
-	tlen := len(t)
-
-	tuintlistlen := (tlen-1)/64 + 1
-
-	tuintlist = convertUintList(t, tuintlistlen)
-	baseuintlist := convertUintList(s[0:tlen], tuintlistlen)
-	o = tlen
-
-	um := NewUintMap()
-	tmpum := NewUintMap()
-	for i, v := range baseuintlist {
-		if i == 0 {
-			tmpum = um.AddChild(v)
-			continue
-		}
-		tmpum = tmpum.AddChild(v)
-	}
-	o = tmpum.GetDistanse()
-
+	sil1, sil2 := convertSlice(s, false)
+	til1, til2 := convertSlice(t, true)
 	slen := len(s)
-	alllen := slen - tlen + 1
-	for ai := 0; ai < alllen; ai++ {
-		check(um, s[ai:ai+tlen])
+	tlen := len(t)
+	o := tlen
+
+	res1 := convolve(sil1, til2)
+	res2 := convolve(sil2, til1)
+	for i := tlen - 1; i < slen; i++ {
+		res := res1[i] + res2[i]
+		if res < o {
+			o = res
+		}
 	}
 
 	fmt.Println(o)
 	_ = wtr.Flush()
 }
 
-func check(um *UintMap, b []byte) {
-
-	hasNext := len(b) > 64
-	if hasNext {
-		newum := um.AddChild(convertUint(b[:64]))
-		if newum != nil {
-			check(newum, b[64:])
+func convolve(f, g []complex128) []int {
+	sz := 1
+	lenf := len(f)
+	leng := len(g)
+	alllen := lenf + leng
+	res := make([]int, alllen)
+	if lenf+leng < 60 {
+		for i := 0; i < lenf; i++ {
+			for j := 0; j < leng; j++ {
+				res[i+j] += int(real(f[i])) * int(real(g[j]))
+			}
 		}
+		return res
+	}
+
+	for sz < lenf+leng {
+		sz *= 2
+	}
+	nf := make([]complex128, sz, sz)
+	for i, v := range f {
+		nf[i] = v
+	}
+	ng := make([]complex128, sz, sz)
+	for i, v := range g {
+		ng[i] = v
+	}
+	nf = fft.FFT(nf)
+	ng = fft.FFT(ng)
+
+	for i := 0; i < sz; i++ {
+		nf[i] *= ng[i]
+	}
+	nf = fft.IFFT(nf)
+
+	for i := 0; i < alllen; i++ {
+		res[i] = int(real(nf[i]))
+	}
+	return res
+}
+
+func dft(f []complex128, inverse int) {
+	sz := len(f)
+	if sz == 1 {
 		return
 	}
-	newum := um.AddChild(convertUint(b))
-	if newum != nil && newum.GetDistanse() < o {
-		o = newum.GetDistanse()
-	}
+	hsz := sz / 2
 
-}
-func convertUint(b []byte) uint64 {
-	var ui uint64
-	for _, c := range b {
-		d := c - '0'
-		ui *= uint64(2)
-		n1 := ui + uint64(d)
-		ui = n1
+	veca := make([]complex128, hsz, hsz)
+	vecb := make([]complex128, hsz, hsz)
+	for i := 0; i < hsz; i++ {
+		veca[i] = f[2*i]
+		vecb[i] = f[2*i+1]
 	}
-	return ui
+	dft(veca, inverse)
+	dft(vecb, inverse)
+
+	var now complex128 = 1
+	var zeta complex128 = cmplx.Rect(1.0, float64(inverse)*2*math.Pi/float64(sz))
+
+	for i := 0; i < hsz; i++ {
+		f[i] = veca[i%hsz] + now*vecb[i%hsz]
+		now *= zeta
+	}
 }
 
-func convertUintList(b []byte, uintlen int) []uint64 {
-	uintindex := -1
-	uintlist := make([]uint64, uintlen, uintlen)
+func convertSlice(b []byte, r bool) ([]complex128, []complex128) {
+	bl := len(b)
+	res1 := make([]complex128, bl, bl)
+	res2 := make([]complex128, bl, bl)
+
 	for i, c := range b {
-
-		if i%64 == 0 {
-			uintindex++
+		index := i
+		if r {
+			index = bl - i - 1
 		}
-
-		d := c - '0'
-		uintlist[uintindex] *= uint64(2)
-		n1 := uintlist[uintindex] + uint64(d)
-		uintlist[uintindex] = n1
+		if c == '0' {
+			res1[index] = complex(1.0, 0)
+		} else {
+			res2[index] = complex(1.0, 0)
+		}
 	}
-	return uintlist
+	return res1, res2
 }
 
 func init() {
@@ -143,119 +174,4 @@ func ns() string {
 func nb() []byte {
 	sc.Scan()
 	return sc.Bytes()
-}
-
-type UintMap struct {
-	distanse   int
-	generation int
-	childlen   map[int]*UintMap
-}
-
-func NewUintMap() *UintMap {
-	return &UintMap{
-		childlen: make(map[int]*UintMap),
-	}
-}
-
-func (um *UintMap) AddChild(ui uint64) *UintMap {
-	i := int(ui)
-	if v, ok := um.childlen[i]; ok {
-		return v
-	}
-	distanse := um.Distance(ui)
-	if distanse > o {
-		return nil
-	}
-	newum := NewUintMap()
-	newum.generation = um.generation + 1
-	newum.distanse = distanse
-	um.childlen[i] = newum
-	return newum
-}
-
-func (um *UintMap) GetDistanse() int {
-	return um.distanse
-}
-
-func (um *UintMap) Distance(ui uint64) int {
-	return bits.OnesCount64(ui^tuintlist[um.generation]) + um.distanse
-}
-
-type BKTree struct {
-	root *node
-}
-
-type node struct {
-	entry    hashValue
-	children []struct {
-		distance int
-		node     *node
-	}
-}
-
-func (n *node) addChild(e hashValue) {
-	newnode := &node{entry: e}
-loop:
-	d := n.entry.Distance(e)
-	for _, c := range n.children {
-		if c.distance == d {
-			n = c.node
-			goto loop
-		}
-	}
-	n.children = append(n.children, struct {
-		distance int
-		node     *node
-	}{d, newnode})
-}
-
-func (bk *BKTree) Add(entry hashValue) {
-	if bk.root == nil {
-		bk.root = &node{
-			entry: entry,
-		}
-		return
-	}
-	bk.root.addChild(entry)
-}
-
-type hashValue []uint64
-
-func (h hashValue) Distance(e hashValue) int {
-	a := []uint64(h)
-	b := []uint64(e)
-
-	d := 0
-	for i, v := range a {
-		d += bits.OnesCount64(v ^ b[i])
-	}
-	return d
-}
-
-func (bk *BKTree) Search(needle hashValue) int {
-
-	result := 1000000
-	for i := 0; i <= 100000; i++ {
-		tolerance := int(math.Pow(2, float64(i)))
-		candidates := []*node{bk.root}
-		for len(candidates) != 0 {
-			c := candidates[len(candidates)-1]
-			candidates = candidates[:len(candidates)-1]
-			d := c.entry.Distance(needle)
-			if d <= tolerance && d < result {
-				result = d
-			}
-
-			low, high := d-tolerance, d+tolerance
-			for _, c := range c.children {
-				if low <= c.distance && c.distance <= high {
-					candidates = append(candidates, c.node)
-				}
-			}
-		}
-		if result != 1000000 {
-			break
-		}
-	}
-	return result
 }
