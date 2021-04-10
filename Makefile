@@ -9,3 +9,6 @@ runwi:
 base:
 	cp -i _examples/stdin.go ./main.go
 
+move:
+	./movefile.sh
+
