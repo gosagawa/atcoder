@@ -7,5 +7,5 @@ runwi:
 	go run main.go
 
 base:
-	cp -i examples/stdin.go ./main.go
+	cp -i _examples/stdin.go ./main.go
 
