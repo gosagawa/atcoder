@@ -7,7 +7,7 @@ runwi:
 	go run main.go
 
 base:
-	cp -i _examples/stdin.go ./main.go
+	cp -i _template/main.go ./main.go
 
 move:
 	./movefile.sh

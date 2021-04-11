@@ -22,23 +22,23 @@ func main() {
 		sc = bufio.NewScanner(strings.NewReader(strings.Replace(string(b), " ", "\n", -1)))
 	}
 
-	// defaut
 	a := ni()
 	b := ni()
 	c := ni()
 	s := ns()
-	fmt.Printf("%d %s\n", a+b+c, s)
+	o := 0
+	_ = a
+	_ = b
+	_ = c
+	_ = s
 
-	// get with loop
 	n := ni()
-	nums := make([]int, n)
+	ns := make([]int, n)
 	for i := 0; i < n; i++ {
-		nums[i] = ni()
+		ns[i] = ni()
 	}
 
-	// output
-	fmt.Fprintln(wtr, "Hello")
-	fmt.Fprintln(wtr, "World")
+	fmt.Fprintln(wtr, o)
 	_ = wtr.Flush()
 }
 
