@@ -38,7 +38,7 @@ func main() {
 		ns[i] = ni()
 	}
 
-	fmt.Fprintln(wtr, o)
+	out(o)
 	_ = wtr.Flush()
 }
 
@@ -67,4 +67,8 @@ func nf() float64 {
 func ns() string {
 	sc.Scan()
 	return sc.Text()
+}
+
+func out(v interface{}) {
+	fmt.Fprintln(wtr, v)
 }
