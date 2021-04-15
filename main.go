@@ -23,22 +23,16 @@ func main() {
 	}
 
 	n := ni()
-	cs := make([]int, n)
+	cs := make([]int, n, n)
 	for i := 0; i < n; i++ {
 		cs[i] = ni()
 	}
-	m := make(map[int][]int)
+	m := make([][]int, n, n)
 	for i := 0; i < n-1; i++ {
 		a := ni()
 		b := ni()
-		if a > b {
-			a, b = b, a
-		}
-		if _, ok := m[a]; !ok {
-			m[a] = []int{b}
-		} else {
-			m[a] = append(m[a], b)
-		}
+		m[a-1] = append(m[a-1], b)
+		m[b-1] = append(m[b-1], a)
 	}
 	tree := NewTree(m, cs)
 
@@ -65,14 +59,14 @@ type node struct {
 	children []*node
 }
 
-func NewTree(m map[int][]int, cs []int) *Tree {
+func NewTree(m [][]int, cs []int) *Tree {
 	cm := make(map[int]struct{})
 	cm[cs[0]] = struct{}{}
 	goods := make([]bool, len(cs), len(cs))
 	goods[0] = true
 	rootnode := &node{key: 1, c: cs[1], cm: cm}
-	for _, v := range m[1] {
-		rootnode.children = append(rootnode.children, newNode(m, cs, cm, v, goods))
+	for _, v := range m[0] {
+		rootnode.children = append(rootnode.children, newNode(m, cs, cm, 1, v, goods))
 	}
 	tree := &Tree{
 		root:  rootnode,
@@ -81,7 +75,12 @@ func NewTree(m map[int][]int, cs []int) *Tree {
 	return tree
 }
 
-func newNode(m map[int][]int, cs []int, cm map[int]struct{}, key int, goods []bool) *node {
+func newNode(m [][]int, cs []int, cm map[int]struct{}, parentKey, key int, goods []bool) *node {
+	/*
+		out(key)
+		out(cm)
+		out(cs[key-1])
+	*/
 	if _, ok := cm[cs[key-1]]; !ok {
 		goods[key-1] = true
 	}
@@ -91,11 +90,11 @@ func newNode(m map[int][]int, cs []int, cm map[int]struct{}, key int, goods []bo
 		newCm[v] = struct{}{}
 	}
 	node := &node{key: key}
-	if _, ok := m[key]; !ok {
-		return node
-	}
-	for _, v := range m[key] {
-		node.children = append(node.children, newNode(m, cs, newCm, v, goods))
+	for _, v := range m[key-1] {
+		if v == parentKey {
+			continue
+		}
+		node.children = append(node.children, newNode(m, cs, newCm, key, v, goods))
 	}
 	return node
 }
