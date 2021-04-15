@@ -24,8 +24,15 @@ func main() {
 
 	n := ni()
 	cs := make([]int, n, n)
+	cm := make(map[int]int)
+	cCount := 0
 	for i := 0; i < n; i++ {
-		cs[i] = ni()
+		c := ni()
+		if _, ok := cm[c]; !ok {
+			cm[c] = cCount
+			cCount++
+		}
+		cs[i] = cm[c]
 	}
 	m := make([][]int, n, n)
 	for i := 0; i < n-1; i++ {
@@ -34,7 +41,7 @@ func main() {
 		m[a-1] = append(m[a-1], b)
 		m[b-1] = append(m[b-1], a)
 	}
-	tree := NewTree(m, cs)
+	tree := NewTree(m, cs, n, cCount)
 
 	for i, v := range tree.Goods {
 		if v {
@@ -48,53 +55,52 @@ func main() {
 }
 
 type Tree struct {
-	root  *node
 	Goods []bool
 }
 
 type node struct {
-	key      int
-	c        int
-	cm       map[int]struct{}
-	children []*node
+	key int
+	c   int
+	cm  map[int]struct{}
 }
 
-func NewTree(m [][]int, cs []int) *Tree {
-	cm := make(map[int]struct{})
-	cm[cs[0]] = struct{}{}
-	goods := make([]bool, len(cs), len(cs))
+func NewTree(m [][]int, cs []int, n int, cn int) *Tree {
+
+	cm := make([]bool, cn, cn)
+	cm[cs[0]] = true
+	goods := make([]bool, n, n)
 	goods[0] = true
-	rootnode := &node{key: 1, c: cs[1], cm: cm}
 	for _, v := range m[0] {
-		rootnode.children = append(rootnode.children, newNode(m, cs, cm, 1, v, goods))
+		newNode(m, cs, cm, 1, v, goods)
 	}
 	tree := &Tree{
-		root:  rootnode,
 		Goods: goods,
 	}
 	return tree
 }
 
-func newNode(m [][]int, cs []int, cm map[int]struct{}, parentKey, key int, goods []bool) *node {
+func newNode(m [][]int, cs []int, cm []bool, parentKey, key int, goods []bool) *node {
 	/*
+		out("---------------")
 		out(key)
 		out(cm)
 		out(cs[key-1])
 	*/
-	if _, ok := cm[cs[key-1]]; !ok {
+
+	if !cm[cs[key-1]] {
 		goods[key-1] = true
+		cm[cs[key-1]] = true
+		defer func() {
+			cm[cs[key-1]] = false
+		}()
 	}
-	newCm := make(map[int]struct{})
-	newCm[cs[key-1]] = struct{}{}
-	for v := range cm {
-		newCm[v] = struct{}{}
-	}
+
 	node := &node{key: key}
 	for _, v := range m[key-1] {
 		if v == parentKey {
 			continue
 		}
-		node.children = append(node.children, newNode(m, cs, newCm, key, v, goods))
+		newNode(m, cs, cm, key, v, goods)
 	}
 	return node
 }
