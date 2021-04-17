@@ -72,7 +72,7 @@ func out(v interface{}) {
 }
 
 func flush() {
-	_, e := fmt.Fprintln(wtr, v)
+	e := wtr.Flush()
 	if e != nil {
 		panic(e)
 	}
