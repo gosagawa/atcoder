@@ -14,6 +14,8 @@ var wtr = bufio.NewWriter(os.Stdout)
 
 func main() {
 
+	defer flush()
+
 	a := ni()
 	s := ns()
 	o := 0
@@ -27,7 +29,6 @@ func main() {
 	}
 
 	out(o)
-	flush()
 }
 
 func init() {
