@@ -7,4 +7,5 @@ read q
 mkdir -p _$dir/$q
 mv -i main.go _$dir/$q
 git add _$dir/$q/main.go
+git commit -m "$dir $q"
 

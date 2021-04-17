@@ -14,22 +14,10 @@ var wtr = bufio.NewWriter(os.Stdout)
 
 func main() {
 
-	if len(os.Args) > 1 && os.Args[1] == "i" {
-		b, e := ioutil.ReadFile("./input")
-		if e != nil {
-			panic(e)
-		}
-		sc = bufio.NewScanner(strings.NewReader(strings.Replace(string(b), " ", "\n", -1)))
-	}
-
 	a := ni()
-	b := ni()
-	c := ni()
 	s := ns()
 	o := 0
 	_ = a
-	_ = b
-	_ = c
 	_ = s
 
 	n := ni()
@@ -39,11 +27,18 @@ func main() {
 	}
 
 	out(o)
-	_ = wtr.Flush()
+	flush()
 }
 
 func init() {
 	sc.Split(bufio.ScanWords)
+	if len(os.Args) > 1 && os.Args[1] == "i" {
+		b, e := ioutil.ReadFile("./input")
+		if e != nil {
+			panic(e)
+		}
+		sc = bufio.NewScanner(strings.NewReader(strings.Replace(string(b), " ", "\n", -1)))
+	}
 }
 
 func ni() int {
@@ -70,5 +65,15 @@ func ns() string {
 }
 
 func out(v interface{}) {
-	fmt.Fprintln(wtr, v)
+	_, e := fmt.Fprintln(wtr, v)
+	if e != nil {
+		panic(e)
+	}
+}
+
+func flush() {
+	_, e := fmt.Fprintln(wtr, v)
+	if e != nil {
+		panic(e)
+	}
 }
