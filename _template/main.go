@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -32,6 +33,7 @@ func main() {
 }
 
 func init() {
+	sc.Buffer([]byte{}, math.MaxInt64)
 	sc.Split(bufio.ScanWords)
 	if len(os.Args) > 1 && os.Args[1] == "i" {
 		b, e := ioutil.ReadFile("./input")
@@ -65,8 +67,8 @@ func ns() string {
 	return sc.Text()
 }
 
-func out(v interface{}) {
-	_, e := fmt.Fprintln(wtr, v)
+func out(v ...interface{}) {
+	_, e := fmt.Fprintln(wtr, v...)
 	if e != nil {
 		panic(e)
 	}
