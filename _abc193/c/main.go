@@ -17,17 +17,18 @@ func main() {
 
 	defer flush()
 
-	o := -1
-
 	n := ni()
-	for i := 0; i < n; i++ {
-		a := ni()
-		p := ni()
-		x := ni()
-		if a < x {
-			if o == -1 || o > p {
-				o = p
-			}
+	o := n
+	sqrt := int(math.Sqrt(float64(n)))
+	list := make(map[int]struct{})
+
+	for i := 2; i <= sqrt; i++ {
+		if _, ok := list[i-1]; ok {
+			continue
+		}
+		for j := i * i; j <= n; j = j * i {
+			list[j-1] = struct{}{}
+			o--
 		}
 	}
 
