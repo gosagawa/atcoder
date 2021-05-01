@@ -18,37 +18,45 @@ func main() {
 	defer flush()
 
 	s := ns()
-	pos := make([]int, len(s))
-	c := 0
-	rc := 0
+	rev := false
+	lens := len(s)
+	o := make([]rune, 2*lens)
+	posfrom := lens - 1
+	posto := lens
 	for _, st := range s {
 		if string(st) == "R" {
-			for i := 0; i < (c-rc)/2; i++ {
-				pos[0+i], pos[c-1-i] = pos[c-1-i], pos[0+i]
+			if rev {
+				rev = false
+			} else {
+				rev = true
 			}
-			rc++
 		} else {
-			pos[c] = c + rc
-			c++
+			if rev {
+				if st == o[posfrom+1] {
+					posfrom++
+				} else {
+					o[posfrom] = st
+					posfrom--
+				}
+			} else {
+				if st == o[posto-1] {
+					posto--
+				} else {
+					o[posto] = st
+					posto++
+				}
+			}
 		}
 	}
-	l := len(pos) - rc
-	o := make([]byte, len(pos))
-	ch := 1
-	c = 0
-	for i := 0; i < len(s)-rc; i++ {
-		b := s[pos[i]]
-
-		if c-ch >= 0 && b == o[c-ch] {
-			l -= 2
-			c--
-		} else {
-			o[c] = b
-			c++
+	o = o[posfrom+1 : posto]
+	l := len(o)
+	if rev {
+		for i := 0; i < l/2; i++ {
+			o[0+i], o[l-1-i] = o[l-1-i], o[0+i]
 		}
 	}
 
-	out(string(o[:l]))
+	out(string(o))
 }
 
 func init() {
