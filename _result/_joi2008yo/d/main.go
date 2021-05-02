@@ -54,7 +54,7 @@ func main() {
 		}
 		if match {
 			ox = pt[0] - bx
-			out(ox, oy)
+			oy = pt[1] - by
 			break
 		}
 	}
