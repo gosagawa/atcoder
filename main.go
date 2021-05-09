@@ -20,6 +20,22 @@ func main() {
 	defer flush()
 
 	o := 0
+	n, k := ni2()
+
+	f := func(i int) bool {
+		i--
+		tmp := (i*(i+1)*(2*i+1) - i*(i+1)*3) / 12
+		out(tmp)
+		if k >= tmp {
+			return true
+		}
+		return false
+	}
+	out(f(3))
+	out(f(4))
+	out(f(5))
+	t1 := binarysearch(3, 3*n, f)
+	out(t1)
 
 	/*
 		a := ni()
