@@ -141,6 +141,10 @@ func pow(a, b int) int {
 	return int(math.Pow(float64(a), float64(b)))
 }
 
+func pow2(a int) int {
+	return int(math.Pow(2, float64(a)))
+}
+
 func ch(cond bool, ok, ng int) int {
 	if cond {
 		return ok
@@ -184,10 +188,14 @@ func binarysearch(ok, ng int, judge func(int) bool) int {
 // bit
 // ==================================================
 
-// nthbit はaのn番目のビットを返します。
-func nthbit(a int, n int) int { return int((a >> uint(n)) & 1) }
+func hasbit(a int, n int) bool {
+	return (a>>uint(n))&1 == 1
+}
 
-// popcount はaのうち立っているビットを数えて返します。
+func nthbit(a int, n int) int {
+	return int((a >> uint(n)) & 1)
+}
+
 func popcount(a int) int {
 	return bits.OnesCount(uint(a))
 }
