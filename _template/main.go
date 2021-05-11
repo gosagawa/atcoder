@@ -166,6 +166,59 @@ func mul(a, b int) (int, int) {
 	return a * b, 0
 }
 
+func permutation(n int, k int) int {
+	if k > n || k <= 0 {
+		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
+	}
+	v := 1
+	for i := 0; i < k; i++ {
+		v *= (n - i)
+	}
+	return v
+}
+
+/*
+	for {
+
+		// Do something
+
+		if !nextPermutation(sort.IntSlice(x)) {
+			break
+		}
+	}
+*/
+func nextPermutation(x sort.Interface) bool {
+	n := x.Len() - 1
+	if n < 1 {
+		return false
+	}
+	j := n - 1
+	for ; !x.Less(j, j+1); j-- {
+		if j == 0 {
+			return false
+		}
+	}
+	l := n
+	for !x.Less(j, l) {
+		l--
+	}
+	x.Swap(j, l)
+	for k, l := j+1, n; k < l; {
+		x.Swap(k, l)
+		k++
+		l--
+	}
+	return true
+}
+
+func combination(n int, k int) int {
+	return permutation(n, k) / factorial(k)
+}
+
+func factorial(n int) int {
+	return permutation(n, n-1)
+}
+
 // ==================================================
 // binarysearch
 // ==================================================
@@ -254,18 +307,31 @@ func uniqueInt(arr []int) []int {
 	return arr[:j]
 }
 
+func delIdx(idx int, L []int) []int {
+	r := []int{}
+	r = append(r, L[:idx]...)
+	r = append(r, L[idx+1:]...)
+	return r
+}
+
 // ==================================================
 // point
 // ==================================================
 
-// Point is int point
-type Point struct {
+type point struct {
 	x int
 	y int
 }
 
-// Pointf is float point
-type Pointf struct {
+type pointf struct {
 	x float64
 	y float64
+}
+
+func pointDist(a, b point) float64 {
+	return math.Sqrt(float64((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y)))
+}
+
+func pointfDist(a, b pointf) float64 {
+	return math.Sqrt((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y))
 }
