@@ -14,7 +14,7 @@ import (
 
 var sc = bufio.NewScanner(os.Stdin)
 var wtr = bufio.NewWriter(os.Stdout)
-var fn = 0
+var fn = 0.0
 
 func main() {
 
@@ -22,64 +22,23 @@ func main() {
 
 	n := ni()
 	ps := make([]Point, n)
+	sorter := make([]int, n)
 	for i := 0; i < n; i++ {
 		x, y := ni2()
 		ps[i] = Point{x, y}
+		sorter[i] = i
 	}
-	fn = factorial(n)
-	out(culc(ps, n))
-}
-
-func culc(p []Point, n int) float64 {
-	searched := make([]bool, n)
-	length := 0.0
-	for i := 0; i < n; i++ {
-		searched[i] = true
-		length += culcc(0.0, i, p, searched, n)
-
-		searched[i] = false
-	}
-	return length
-}
-
-func culcc(l float64, base int, p []Point, searched []bool, n int) float64 {
-
-	newl := 0.0
-	isLast := true
-	for i := 0; i < n; i++ {
-		if searched[i] {
-			continue
+	fn = float64(factorial(n))
+	o := 0.0
+	for {
+		for i := 0; i < n-1; i++ {
+			o += pointDistance(ps[sorter[i]], ps[sorter[i+1]]) / fn
 		}
-		isLast = false
-		searched[i] = true
-		ld := pointDistance(p[base], p[i]) / float64(fn)
-		newl += culcc(l+ld, i, p, searched, n)
-		searched[i] = false
-	}
-	if isLast {
-		return l
-	}
-	return newl
-}
-
-func permutation(n int, k int) int {
-	v := 1
-	if 0 < k && k <= n {
-		for i := 0; i < k; i++ {
-			v *= (n - i)
+		if !nextPermutation(sort.IntSlice(sorter)) {
+			break
 		}
-	} else if k > n {
-		v = 0
 	}
-	return v
-}
-
-func factorial(n int) int {
-	return permutation(n, n-1)
-}
-
-func combination(n int, k int) int {
-	return permutation(n, k) / factorial(k)
+	out(o)
 }
 
 // ==================================================
@@ -211,6 +170,54 @@ func mul(a, b int) (int, int) {
 		return 0, -1
 	}
 	return a * b, 0
+}
+
+func permutation(n int, k int) int {
+	if k > n || k <= 0 {
+		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
+	}
+	v := 1
+	for i := 0; i < k; i++ {
+		v *= (n - i)
+	}
+	return v
+}
+
+/*
+	for nextPermutation(sort.IntSlice(x)){
+		fmt.Println( x)
+	}
+*/
+func nextPermutation(x sort.Interface) bool {
+	n := x.Len() - 1
+	if n < 1 {
+		return false
+	}
+	j := n - 1
+	for ; !x.Less(j, j+1); j-- {
+		if j == 0 {
+			return false
+		}
+	}
+	l := n
+	for !x.Less(j, l) {
+		l--
+	}
+	x.Swap(j, l)
+	for k, l := j+1, n; k < l; {
+		x.Swap(k, l)
+		k++
+		l--
+	}
+	return true
+}
+
+func combination(n int, k int) int {
+	return permutation(n, k) / factorial(k)
+}
+
+func factorial(n int) int {
+	return permutation(n, n-1)
 }
 
 // ==================================================
