@@ -39,6 +39,8 @@ func main() {
 // init
 // ==================================================
 
+const inf = math.MaxInt64
+
 func init() {
 	sc.Buffer([]byte{}, math.MaxInt64)
 	sc.Split(bufio.ScanWords)
@@ -222,12 +224,16 @@ func factorial(n int) int {
 // ==================================================
 // binarysearch
 // ==================================================
-
-func binarysearch(ok, ng int, judge func(int) bool) int {
+/*
+	f := func(c int) bool {
+		return false
+	}
+*/
+func bs(ok, ng int, f func(int) bool) int {
 	for abs(ok-ng) > 1 {
 		mid := (ok + ng) / 2
 
-		if judge(mid) {
+		if f(mid) {
 			ok = mid
 		} else {
 			ng = mid
