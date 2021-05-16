@@ -285,32 +285,40 @@ func isUpper(b byte) bool {
 // slice
 // ==================================================
 
-func reverse(arr *[]interface{}) {
-	for i, j := 0, len(*arr)-1; i < j; i, j = i+1, j-1 {
-		(*arr)[i], (*arr)[j] = (*arr)[j], (*arr)[i]
+func sorti(sl []int) {
+	sort.Sort(sort.IntSlice(sl))
+}
+
+func sortir(sl []int) {
+	sort.Sort(sort.Reverse(sort.IntSlice(sl)))
+}
+
+func reverse(sl []interface{}) {
+	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
+		sl[i], sl[j] = sl[j], sl[i]
 	}
 }
 
-func reverseInt(arr *[]int) {
-	for i, j := 0, len(*arr)-1; i < j; i, j = i+1, j-1 {
-		(*arr)[i], (*arr)[j] = (*arr)[j], (*arr)[i]
+func reversei(sl []int) {
+	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
+		sl[i], sl[j] = sl[j], sl[i]
 	}
 }
 
-func uniqueInt(arr []int) []int {
+func uniquei(sl []int) []int {
 	hist := map[int]bool{}
 	j := 0
-	for i := 0; i < len(arr); i++ {
-		if hist[arr[i]] {
+	for i := 0; i < len(sl); i++ {
+		if hist[sl[i]] {
 			continue
 		}
 
-		a := arr[i]
-		arr[j] = a
+		a := sl[i]
+		sl[j] = a
 		hist[a] = true
 		j++
 	}
-	return arr[:j]
+	return sl[:j]
 }
 
 func delIdx(idx int, L []int) []int {
