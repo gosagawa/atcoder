@@ -16,14 +16,53 @@ var sc = bufio.NewScanner(os.Stdin)
 var wtr = bufio.NewWriter(os.Stdout)
 
 func main() {
+}
+func asPoint() {
+	defer flush()
+
+	o := 0
+	h, w := ni2()
+	m := make([][]bool, h)
+	dist := make([][]int, h)
+	for i := 0; i < h; i++ {
+		m[i] = make([]bool, w)
+		dist[i] = make([]int, w)
+
+		s := ns()
+		for j, v := range s {
+			dist[i][j] = -1
+			if string(v) == "." {
+				m[i][j] = true
+			}
+		}
+	}
+
+	q := new(pointQueue)
+	q.push(point{0, 0})
+	dist[0][0] = 0
+	for q.len() > 0 {
+		p := q.pop()
+		dr := []point{{0, -1}, {-1, 0}, {1, 0}, {0, 1}}
+		for _, d := range dr {
+			np := pointAdd(p, d)
+			if !np.isValid(h, w) || !m[np.x][np.y] || dist[np.x][np.y] != -1 {
+				continue
+			}
+			dist[np.x][np.y] = dist[p.x][p.y] + 1
+			q.push(np)
+		}
+	}
+
+	out(o)
+}
+
+func asGraph() {
 
 	defer flush()
 
 	o := 0
 	w, h := ni2()
 	ns := make([][]bool, h)
-	gr := make([][]int, h*w)
-	dist := make([]int, h*w)
 	for i := 0; i < h; i++ {
 		// get from int
 		ns[i] = make([]bool, w)
@@ -43,6 +82,9 @@ func main() {
 			}
 		*/
 	}
+
+	gr := make([][]int, h*w)
+	dist := make([]int, h*w)
 	for i := 0; i < h; i++ {
 		for j := 0; j < w; j++ {
 			if !ns[i][j] {
@@ -440,10 +482,36 @@ type pointf struct {
 	y float64
 }
 
+func (p point) isValid(x, y int) bool {
+	return 0 <= p.x && p.x < x && 0 <= p.y && p.y < y
+}
+
+func pointAdd(a, b point) point {
+	return point{a.x + b.x, a.y + b.y}
+}
+
 func pointDist(a, b point) float64 {
 	return math.Sqrt(float64((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y)))
 }
 
 func pointfDist(a, b pointf) float64 {
 	return math.Sqrt((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y))
+}
+
+type pointQueue struct {
+	pt []point
+}
+
+func (q *pointQueue) push(pt point) {
+	q.pt = append(q.pt, pt)
+}
+
+func (q *pointQueue) pop() (pt point) {
+	pt = q.pt[0]
+	q.pt = q.pt[1:]
+	return
+}
+
+func (q *pointQueue) len() int {
+	return len(q.pt)
 }
