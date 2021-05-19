@@ -28,13 +28,24 @@ func asPoint() {
 		m[i] = make([]bool, w)
 		dist[i] = make([]int, w)
 
-		s := ns()
-		for j, v := range s {
+		// get from int
+		for j := 0; j < w; j++ {
 			dist[i][j] = -1
-			if string(v) == "." {
+			if ni() == 1 {
 				m[i][j] = true
 			}
 		}
+
+		// get from string
+		/*
+			s := ns()
+			for j, v := range s {
+				dist[i][j] = -1
+				if string(v) == "." {
+					m[i][j] = true
+				}
+			}
+		*/
 	}
 
 	q := new(pointQueue)
