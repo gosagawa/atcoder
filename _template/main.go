@@ -214,7 +214,15 @@ func nextPermutation(x sort.Interface) bool {
 }
 
 func combination(n int, k int) int {
-	return permutation(n, k) / factorial(k)
+	if n-k < k {
+		k = n - k
+	}
+	v := 1
+	for i := 0; i < k; i++ {
+		v *= (n - i)
+		v /= (i + 1)
+	}
+	return v
 }
 
 func factorial(n int) int {
