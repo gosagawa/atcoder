@@ -21,13 +21,11 @@ func main() {
 
 	n, k := ni2()
 	m := make([][]int, n)
-	sm := make([][]int, n+1)
 	amax := 0
 	amin := inf
 	mid := (k*k)/2 + 1
 	for i := 0; i < n; i++ {
 		m[i] = make([]int, n)
-		sm[i] = make([]int, n+1)
 		for j := 0; j < n; j++ {
 			a := ni()
 			m[i][j] = a
@@ -35,21 +33,22 @@ func main() {
 			amin = min(amin, a)
 		}
 	}
-	sm[n] = make([]int, n+1)
+	cusum2d := newCusum2d(n, n)
 
 	f := func(c int) bool {
 
 		for i := 0; i < n; i++ {
 			for j := 0; j < n; j++ {
-				sm[i+1][j+1] = sm[i+1][j] + sm[i][j+1] - sm[i][j]
 				if m[i][j] > c {
-					sm[i+1][j+1]++
+					cusum2d.set(i, j, 1)
+				} else {
+					cusum2d.set(i, j, 0)
 				}
 			}
 		}
 		for i := 0; i < n-k+1; i++ {
 			for j := 0; j < n-k+1; j++ {
-				if (sm[i+k][j+k] + sm[i][j] - sm[i][j+k] - sm[i+k][j]) < mid {
+				if cusum2d.get(i, j, i+k, j+k) < mid {
 					return false
 				}
 			}
@@ -58,6 +57,27 @@ func main() {
 	}
 
 	out(bs(amin-1, amax, f) + 1)
+}
+
+type cusum2d struct {
+	s [][]int
+}
+
+func newCusum2d(n, m int) *cusum2d {
+	c := &cusum2d{}
+	c.s = make([][]int, n+1)
+	for i := 0; i <= n; i++ {
+		c.s[i] = make([]int, m+1)
+	}
+	return c
+}
+func (c *cusum2d) set(x, y, add int) {
+	c.s[x+1][y+1] = c.s[x+1][y] + c.s[x][y+1] - c.s[x][y]
+	c.s[x+1][y+1] += add
+}
+
+func (c *cusum2d) get(x1, y1, x2, y2 int) int {
+	return c.s[x2][y2] + c.s[x1][y1] - c.s[x1][y2] - c.s[x2][y1]
 }
 
 // ==================================================
