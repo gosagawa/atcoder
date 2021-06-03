@@ -19,29 +19,15 @@ func main() {
 
 	defer flush()
 
-	o := 0
-	h, w := ni2()
-	m := make([][]bool, h)
-	for i := 0; i < h; i++ {
-		m[i] = make([]bool, w)
-
-		s := ns()
-		for j, v := range s {
-			if string(v) == "." {
-				m[i][j] = true
-			}
+	n, x := ni2()
+	ns := make([]string, 0, n)
+	for i := 0; i < n; i++ {
+		ni := ni()
+		if ni != x {
+			ns = append(ns, strconv.Itoa(ni))
 		}
 	}
-	for i := 0; i < h-1; i++ {
-		for j := 0; j < w-1; j++ {
-			if (m[i][j] == m[i][j+1] && m[i+1][j] == m[i+1][j+1]) || (m[i][j] == m[i+1][j] && m[i][j+1] == m[i+1][j+1]) {
-			} else {
-				o++
-			}
-		}
-	}
-
-	out(o)
+	out(strings.Join(ns, " "))
 }
 
 // ==================================================
