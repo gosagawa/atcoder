@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"container/heap"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -382,4 +383,193 @@ func (q *pointQueue) pop() (pt point) {
 
 func (q *pointQueue) len() int {
 	return len(q.pt)
+}
+
+// ==================================================
+// heap
+// ==================================================
+
+/*
+  h := &int2dHeap{&int2d{dist[r], r}}
+  heap.Init(h)
+  v := heap.Pop(h).(*int2d)
+  heap.Push(h, &int2d{x, y})
+*/
+
+type int2d [2]int
+
+type int2dHeap []*int2d
+
+func (h int2dHeap) Len() int           { return len(h) }
+func (h int2dHeap) Less(i, j int) bool { return h[i][0] < h[j][0] }
+func (h int2dHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *int2dHeap) Push(x interface{}) {
+	*h = append(*h, x.(*int2d))
+}
+
+func (h *int2dHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	old[n-1] = nil
+	*h = old[0 : n-1]
+	return x
+}
+
+func (h *int2dHeap) IsEmpty() bool {
+	return h.Len() == 0
+}
+
+type pq struct {
+	arr   []interface{}
+	comps []compFunc
+}
+
+/*
+	graph.comps = []compFunc{
+		func(p, q interface{}) int {
+			if p.(state).score < q.(state).score {
+				return -1
+			} else if p.(state).score == q.(state).score {
+				return 0
+			}
+			return 1
+		},
+	}
+*/
+type compFunc func(p, q interface{}) int
+
+func newpq(comps []compFunc) *pq {
+	return &pq{
+		comps: comps,
+	}
+}
+
+func (pq pq) Len() int {
+	return len(pq.arr)
+}
+
+func (pq pq) Swap(i, j int) {
+	pq.arr[i], pq.arr[j] = pq.arr[j], pq.arr[i]
+}
+
+func (pq pq) Less(i, j int) bool {
+	for _, comp := range pq.comps {
+		result := comp(pq.arr[i], pq.arr[j])
+		switch result {
+		case -1:
+			return true
+		case 1:
+			return false
+		case 0:
+			continue
+		}
+	}
+	return true
+}
+
+func (pq *pq) Push(x interface{}) {
+	pq.arr = append(pq.arr, x)
+}
+
+func (pq *pq) Pop() interface{} {
+	n := pq.Len()
+	item := pq.arr[n-1]
+	pq.arr = pq.arr[:n-1]
+	return item
+}
+
+func (pq *pq) Top() interface{} {
+	n := pq.Len()
+	return pq.arr[n-1]
+}
+
+func (pq *pq) IsEmpty() bool {
+	return pq.Len() == 0
+}
+
+// ==================================================
+// graph
+// ==================================================
+
+type edge struct {
+	to   int
+	cost int
+}
+
+type state struct {
+	score int
+	node  int
+}
+
+type graph struct {
+	size         int
+	edges        [][]edge
+	starts       []state
+	comps        []compFunc
+	defaultScore int
+}
+
+func newgraph(size int, edges [][]edge) *graph {
+	return &graph{
+		size:  size,
+		edges: edges,
+	}
+}
+
+func (g *graph) setStart(s state) {
+	g.starts = append(g.starts, s)
+}
+
+/*
+	v, e, r := ni3()
+	edges := make([][]edge, v)
+
+	for i := 0; i < e; i++ {
+		s, t, d := ni3()
+		edges[s] = append(edges[s], edge{to: t, cost: d})
+	}
+
+	graph := newgraph(v, edges)
+	graph.setStart(state{node: r})
+	graph.defaultScore = inf
+	graph.comps = []compFunc{
+		func(p, q interface{}) int {
+			if p.(state).score < q.(state).score {
+				return -1
+			} else if p.(state).score == q.(state).score {
+				return 0
+			}
+			return 1
+		},
+	}
+	dist := graph.dijkstra()
+*/
+
+func (g *graph) dijkstra() []int {
+	score := make([]int, g.size)
+	for i := 0; i < g.size; i++ {
+		score[i] = g.defaultScore
+	}
+	que := newpq(g.comps)
+	for _, start := range g.starts {
+		score[start.node] = start.score
+		heap.Push(que, start)
+	}
+
+	for !que.IsEmpty() {
+		st := heap.Pop(que).(state)
+		if st.score > score[st.node] {
+			continue
+		}
+		for _, edge := range g.edges[st.node] {
+			newScore := st.score + edge.cost
+			if score[edge.to] > newScore {
+				score[edge.to] = newScore
+				heap.Push(que, state{score: newScore, node: edge.to})
+			}
+		}
+	}
+	return score
 }
