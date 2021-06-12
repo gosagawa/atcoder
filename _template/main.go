@@ -573,3 +573,39 @@ func (g *graph) dijkstra() []int {
 	}
 	return score
 }
+
+func (g *graph) floydWarshall() ([][]int, bool) {
+
+	score := make([][]int, g.size)
+	for i := 0; i < g.size; i++ {
+		score[i] = make([]int, g.size)
+		for j := 0; j < g.size; j++ {
+			if i == j {
+				score[i][j] = 0
+			} else {
+				score[i][j] = g.defaultScore
+			}
+		}
+		for _, edge := range g.edges[i] {
+			score[i][edge.to] = edge.cost
+		}
+	}
+	for k := 0; k < g.size; k++ {
+		for i := 0; i < g.size; i++ {
+			for j := 0; j < g.size; j++ {
+				if score[i][k] == g.defaultScore || score[k][j] == g.defaultScore {
+					continue
+				}
+				score[i][j] = min(score[i][j], score[i][k]+score[k][j])
+			}
+		}
+	}
+
+	for k := 0; k < g.size; k++ {
+		if score[k][k] < 0 {
+			return nil, true
+		}
+	}
+
+	return score, false
+}
