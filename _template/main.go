@@ -490,10 +490,61 @@ func (pq *pq) IsEmpty() bool {
 }
 
 // ==================================================
+// union find
+// ==================================================
+
+type unionFind struct {
+	par []int
+}
+
+func newUnionFind(n int) *unionFind {
+	u := &unionFind{
+		par: make([]int, n),
+	}
+	for i := range u.par {
+		u.par[i] = -1
+	}
+	return u
+}
+
+func (u *unionFind) root(x int) int {
+	if u.par[x] < 0 {
+		return x
+	}
+	u.par[x] = u.root(u.par[x])
+	return u.par[x]
+}
+
+func (u *unionFind) unite(x, y int) {
+	x = u.root(x)
+	y = u.root(y)
+	if x == y {
+		return
+	}
+	if u.size(x) < u.size(y) {
+		x, y = y, x
+	}
+	u.par[y] += u.par[x]
+	u.par[x] = y
+}
+
+func (u *unionFind) issame(x, y int) bool {
+	if u.root(x) == u.root(y) {
+		return true
+	}
+	return false
+}
+
+func (u *unionFind) size(x int) int {
+	return -u.par[u.root(x)]
+}
+
+// ==================================================
 // graph
 // ==================================================
 
 type edge struct {
+	from int
 	to   int
 	cost int
 }
@@ -608,4 +659,38 @@ func (g *graph) floydWarshall() ([][]int, bool) {
 	}
 
 	return score, false
+}
+
+/*
+	v, e := ni2()
+	edges := make([][]edge, 1)
+	edges[0] = make([]edge, e)
+
+	for i := 0; i < e; i++ {
+		s, t, d := ni3()
+		edges[0][i] = edge{from: s, to: t, cost: d}
+	}
+
+	graph := newgraph(v, edges)
+
+	o = graph.kruskal()
+*/
+func (g *graph) kruskal() int {
+
+	sort.Slice(g.edges[0], func(i, j int) bool { return g.edges[0][i].cost < g.edges[0][j].cost })
+
+	e := len(g.edges[0])
+
+	uf := newUnionFind(g.size)
+	r := 0
+	for i := 0; i < e; i++ {
+		edge := g.edges[0][i]
+		if uf.issame(edge.from, edge.to) {
+			continue
+		}
+		r += edge.cost
+		uf.unite(edge.from, edge.to)
+	}
+
+	return r
 }
