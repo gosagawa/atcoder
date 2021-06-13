@@ -41,6 +41,7 @@ func main() {
 // ==================================================
 
 const inf = math.MaxInt64
+const mod = 1000000007
 
 func init() {
 	sc.Buffer([]byte{}, math.MaxInt64)
@@ -113,6 +114,38 @@ func flush() {
 	if e != nil {
 		panic(e)
 	}
+}
+
+func nftoi(decimalLen int) int {
+	sc.Scan()
+	s := sc.Text()
+
+	r := 0
+	minus := strings.Split(s, "-")
+	isMinus := false
+	if len(minus) == 2 {
+		s = minus[1]
+		isMinus = true
+	}
+
+	t := strings.Split(s, ".")
+	i, e := strconv.Atoi(t[0])
+	if e != nil {
+		panic(e)
+	}
+	r += i * pow(10, decimalLen)
+	if len(t) > 1 {
+		i, e := strconv.Atoi(t[1])
+		if e != nil {
+			panic(e)
+		}
+		i *= pow(10, decimalLen-len(t[1]))
+		r += i
+	}
+	if isMinus {
+		return -r
+	}
+	return r
 }
 
 // ==================================================
@@ -228,6 +261,53 @@ func combination(n int, k int) int {
 
 func factorial(n int) int {
 	return permutation(n, n-1)
+}
+
+// ==================================================
+// mod
+// ==================================================
+
+func madd(a, b int) int {
+	a += b
+	if a < 0 {
+		a += mod
+	} else if a >= mod {
+		a -= mod
+	}
+	return a
+}
+
+func mmul(a, b int) int {
+	return a * b % mod
+}
+
+func mdiv(a, b int) int {
+	a %= mod
+	return a * modinv(b) % mod
+}
+
+func modinv(a int) int {
+	res := 1
+	n := mod - 2
+	for n > 0 {
+		if n&1 == 1 {
+			res = res * a % mod
+		}
+		a = a * a % mod
+		n >>= 1
+	}
+	return res
+}
+
+func mpow(m, n int) int {
+	res := 1
+	for n != 0 {
+		if n&1 == 1 {
+			res = mmul(res, m)
+		}
+		m, n = mmul(m, m), n>>1
+	}
+	return res
 }
 
 // ==================================================
