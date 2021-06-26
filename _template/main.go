@@ -259,6 +259,21 @@ func combination(n int, k int) int {
 	return v
 }
 
+func modcombination(n int, k int) int {
+	if k > n || k <= 0 {
+		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
+	}
+	if n-k < k {
+		k = n - k
+	}
+	v := 1
+	for i := 0; i < k; i++ {
+		v = mmul(v, n-i)
+		v = mdiv(v, i+1)
+	}
+	return v
+}
+
 func factorial(n int) int {
 	return permutation(n, n-1)
 }
