@@ -585,6 +585,31 @@ func (pq *pq) IsEmpty() bool {
 }
 
 // ==================================================
+// cusum2d
+// ==================================================
+
+type cusum2d struct {
+	s [][]int
+}
+
+func newCusum2d(n, m int) *cusum2d {
+	c := &cusum2d{}
+	c.s = make([][]int, n+1)
+	for i := 0; i <= n; i++ {
+		c.s[i] = make([]int, m+1)
+	}
+	return c
+}
+func (c *cusum2d) set(x, y, add int) {
+	c.s[x+1][y+1] = c.s[x+1][y] + c.s[x][y+1] - c.s[x][y]
+	c.s[x+1][y+1] += add
+}
+
+func (c *cusum2d) get(x1, y1, x2, y2 int) int {
+	return c.s[x2][y2] + c.s[x1][y1] - c.s[x1][y2] - c.s[x2][y1]
+}
+
+// ==================================================
 // union find
 // ==================================================
 
