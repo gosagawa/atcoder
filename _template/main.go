@@ -202,6 +202,10 @@ func mul(a, b int) (int, int) {
 	return a * b, 0
 }
 
+func getAngle(x, y float64) float64 {
+	return math.Atan2(y, x) * 180 / math.Pi
+}
+
 func permutation(n int, k int) int {
 	if k > n || k <= 0 {
 		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
