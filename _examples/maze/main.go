@@ -158,7 +158,7 @@ func asGraph() {
 		}
 	}
 
-	//wfs
+	//bfs
 	q := []int{}
 	var s, g int
 	q = append(q, s)
