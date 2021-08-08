@@ -25,35 +25,73 @@ func main() {
 	for i := 0; i < k; i++ {
 		ks[i] = ni()
 	}
-	dp := make([][]int, n+1)
+
+	cm := make([][]int, b)
+	for i := 0; i < b; i++ {
+		cm[i] = make([]int, b)
+	}
+	for i := 0; i < b; i++ {
+		for _, j := range ks {
+			cm[i][(i*10+j)%b]++
+		}
+	}
+
+	mpow10 := make([]int, 61)
+	mpow10[0] = 10 % b
+	for i := 0; i < 60; i++ {
+		mpow10[i+1] = mpow10[i] * mpow10[i] % b
+	}
+
+	dp := make([][]int, 61)
 	dp[0] = make([]int, b)
-	dp[0][0] = 1
-	for i := 0; i < n; i++ {
+	dp[0] = cm[0]
+	for i := 0; i < 60; i++ {
 		dp[i+1] = make([]int, b)
-		for j, v := range dp[i] {
-			for _, kv := range ks {
-				t := (j*10 + kv) % b
-				dp[i+1][t] = madd(dp[i+1][t], v)
+		for j := 0; j < b; j++ {
+			for k := 0; k < b; k++ {
+				t := (j*mpow10[i] + k) % b
+				dp[i+1][t] = madd(dp[i+1][t], mmul(dp[i][j], dp[i][k]))
 			}
 		}
 	}
 
-	out(dp[n][0])
-
-	/*
-		cm := make([][]int, b)
-		for i := 0; i < b; i++ {
-			cm[i] = make([]int, b)
+	idx := []int{}
+	for i := 0; i < 60; i++ {
+		if n>>i&1 == 1 {
+			idx = append(idx, i)
 		}
-		for _, i := range ks {
-			for _, j := range ks {
-				cm[i%b][(i*10+j)%b]++
+	}
+	idxl := len(idx)
+	ndp := make([][]int, idxl)
+	ndp[0] = make([]int, b)
+	ndp[0] = dp[idx[0]]
+	for i := 1; i < idxl; i++ {
+		ndp[i] = make([]int, b)
+
+		for j := 0; j < b; j++ {
+			for k := 0; k < b; k++ {
+				t := (j*mpow10[idx[i]] + k) % b
+				ndp[i][t] = madd(ndp[i][t], mmul(ndp[i-1][j], dp[idx[i]][k]))
 			}
 		}
-		for i := 0; i < b; i++ {
-			out(cm[i])
+	}
+
+	out(ndp[idxl-1][0])
+}
+
+func queueMul(qa, qb [][]int, x, y int) [][]int {
+	qr := make([][]int, x)
+	for i := 0; i < x; i++ {
+		qr[i] = make([]int, y)
+	}
+	for i := 0; i < x; i++ {
+		for j := 0; j < y; j++ {
+			for k := 0; k < x; k++ {
+				qr[i][j] = madd(qr[i][j], mmul(qa[i][k], qb[k][j]))
+			}
 		}
-	*/
+	}
+	return qr
 }
 
 // ==================================================
