@@ -20,27 +20,69 @@ func main() {
 
 	defer flush()
 
+	o := 0.0
 	n := ni()
-	ns1 := make([]int, n+1)
-	ns2 := make([]int, n+1)
+	ns := make([]point, n)
 	for i := 0; i < n; i++ {
-		c, p := ni2()
-		ns1[i+1] = ns1[i]
-		ns2[i+1] = ns2[i]
-		switch c {
-		case 1:
-			ns1[i+1] += p
-		case 2:
-			ns2[i+1] += p
+		x, y := ni2()
+		ns[i] = point{x, y}
+	}
+	for i := 0; i < n; i++ {
+		rs := make([]float64, n-1)
+		t := 0
+		for j := 0; j < n; j++ {
+			if i == j {
+				continue
+			}
+			rs[t] = ns[j].getAngle(ns[i])
+			t++
+		}
+		sort.Slice(rs, func(i, j int) bool {
+			if rs[i] < rs[j] {
+				return true
+			}
+			return false
+		})
+		for j := 0; j < n-1; j++ {
+			target := rs[j] + 180
+			if target > 360 {
+				target -= 360
+			}
+			if target < rs[0] || target >= rs[n-2] {
+				o = maxf(o, getAngleDiff(rs[j], rs[0]))
+				o = maxf(o, getAngleDiff(rs[j], rs[n-2]))
+				continue
+			}
+			f := func(c int) bool {
+				if rs[c] <= target {
+					return true
+				}
+				return false
+			}
+			k := bs(0, n-2, f)
+			o = maxf(o, getAngleDiff(rs[j], rs[k]))
+			o = maxf(o, getAngleDiff(rs[j], rs[k+1]))
 		}
 	}
-	q := ni()
-	for i := 0; i < q; i++ {
-		l, r := ni2()
-		p1 := ns1[r] - ns1[l-1]
-		p2 := ns2[r] - ns2[l-1]
-		out(fmt.Sprintf("%v %v", p1, p2))
+
+	out(o)
+}
+
+func (p point) getRad(f point) float64 {
+	return math.Atan2(float64(p.y-f.y), float64(p.x-f.x))
+}
+func (p point) getAngle(f point) float64 {
+	return math.Atan2(float64(p.y-f.y), float64(p.x-f.x))*180/math.Pi + 180
+}
+func getAngleDiff(f, t float64) float64 {
+	v := t - f
+	if v < 0 {
+		v = -v
 	}
+	if v > 180 {
+		v = 360 - v
+	}
+	return v
 }
 
 // ==================================================
@@ -160,6 +202,12 @@ func nftoi(decimalLen int) int {
 // ==================================================
 
 func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func maxf(a, b float64) float64 {
 	if a > b {
 		return a
 	}
