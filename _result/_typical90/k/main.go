@@ -31,7 +31,7 @@ func main() {
 	sort.Slice(ns, func(i, j int) bool { return ns[i][0] > ns[j][0] })
 
 	dp := make([][]int, 2)
-	nmax := 5010
+	nmax := 5001
 	dp[0] = make([]int, nmax)
 	dp[1] = make([]int, nmax)
 
