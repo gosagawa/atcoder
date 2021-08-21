@@ -282,6 +282,42 @@ func factorial(n int) int {
 	return permutation(n, n-1)
 }
 
+func gcd(a, b int) int {
+	if b == 0 {
+		return a
+	}
+	return gcd(b, a%b)
+}
+
+func divisor(n int) []int {
+	sqrtn := int(math.Sqrt(float64(n)))
+	c := 2
+	divisor := []int{}
+	for {
+		if n%2 != 0 {
+			break
+		}
+		divisor = append(divisor, 2)
+		n /= 2
+	}
+	c = 3
+	for {
+		if n%c == 0 {
+			divisor = append(divisor, c)
+			n /= c
+		} else {
+			c += 2
+			if c > sqrtn {
+				break
+			}
+		}
+	}
+	if n != 1 {
+		divisor = append(divisor, n)
+	}
+	return divisor
+}
+
 // ==================================================
 // mod
 // ==================================================
