@@ -687,27 +687,11 @@ type graph struct {
 }
 
 func newgraph(size int, edges [][]edge) *graph {
-	return &graph{
+	graph := &graph{
 		size:  size,
 		edges: edges,
 	}
-}
 
-func (g *graph) setStart(s state) {
-	g.starts = append(g.starts, s)
-}
-
-/*
-	v, e, r := ni3()
-	edges := make([][]edge, v)
-
-	for i := 0; i < e; i++ {
-		s, t, d := ni3()
-		edges[s] = append(edges[s], edge{to: t, cost: d})
-	}
-
-	graph := newgraph(v, edges)
-	graph.setStart(state{node: r})
 	graph.defaultScore = inf
 	graph.comps = []compFunc{
 		func(p, q interface{}) int {
@@ -719,10 +703,30 @@ func (g *graph) setStart(s state) {
 			return 1
 		},
 	}
-	dist := graph.dijkstra()
+	return graph
+}
+
+/*
+	v, e := ni2()
+	edges := make([][]edge, v)
+
+	for i := 0; i < e; i++ {
+		s, t, c := ni3()
+		s--
+		t--
+		edges[s] = append(edges[s], edge{to: t, cost: c})
+		edges[t] = append(edges[t], edge{to: s, cost: c})
+	}
+
+	graph := newgraph(v, edges)
+	graph.setStart(0)
+	dist := graph.dijkstra(0)
 */
 
-func (g *graph) dijkstra() []int {
+func (g *graph) dijkstra(start int) []int {
+
+	g.starts = []state{{node: start}}
+
 	score := make([]int, g.size)
 	for i := 0; i < g.size; i++ {
 		score[i] = g.defaultScore
