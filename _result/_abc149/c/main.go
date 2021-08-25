@@ -20,58 +20,27 @@ func main() {
 
 	defer flush()
 
+	o := 0
+
 	n := ni()
-	edges := make([][]edge, n)
-	for i := 0; i < n-1; i++ {
-		s, t := ni2()
-		s--
-		t--
-		edges[s] = append(edges[s], edge{to: t})
-		edges[t] = append(edges[t], edge{to: s})
-	}
-
-	culced2n := make([]int, n)
-	culced2nminus1 := make([]int, n)
-	t := 1
-	for i := 0; i < n; i++ {
-		t = mmul(t, 2)
-		culced2n[i] = t
-		culced2nminus1[i] = madd(t, -1)
-	}
-
-	graph := newgraph(n, edges)
-
-	//dfs
-	var dfs func(i int, cs []bool) int
-	cs := make([]bool, n)
-	totalEdge := 0
-	dfs = func(i int, cs []bool) int {
-		cs[i] = true
-		r := 0
-		for _, v := range graph.edges[i] {
-			if cs[v.to] {
-				continue
-			}
-			t := dfs(v.to, cs)
-			r += t
-
-			totalEdge = madd(totalEdge, mmul(culced2nminus1[t-1], culced2nminus1[n-t-1]))
+	check := 100004
+	p := make([]bool, check)
+	for i := 2; i < check; i++ {
+		if p[i] {
+			continue
 		}
-		if r == 0 {
-			return 1
+
+		out(i)
+		if i >= n {
+			o = i
+			break
 		}
-		r++
-		return r
+		for j := i * 2; j < check; j += i {
+			p[j] = true
+		}
 	}
-	dfs(0, cs)
 
-	totalCase := culced2n[n-1]
-	totalBlack := mmul(n, culced2n[n-2])
-
-	// 全部白だった場合空集合なので1引く
-	totalSCase := madd(madd(madd(totalEdge, totalCase), -1), -totalBlack)
-
-	out(mmul(totalSCase, modinv(totalCase)))
+	out(o)
 }
 
 // ==================================================
@@ -240,6 +209,10 @@ func mul(a, b int) (int, int) {
 	return a * b, 0
 }
 
+func getAngle(x, y float64) float64 {
+	return math.Atan2(y, x) * 180 / math.Pi
+}
+
 func permutation(n int, k int) int {
 	if k > n || k <= 0 {
 		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
@@ -314,6 +287,42 @@ func modcombination(n int, k int) int {
 
 func factorial(n int) int {
 	return permutation(n, n-1)
+}
+
+func gcd(a, b int) int {
+	if b == 0 {
+		return a
+	}
+	return gcd(b, a%b)
+}
+
+func divisor(n int) []int {
+	sqrtn := int(math.Sqrt(float64(n)))
+	c := 2
+	divisor := []int{}
+	for {
+		if n%2 != 0 {
+			break
+		}
+		divisor = append(divisor, 2)
+		n /= 2
+	}
+	c = 3
+	for {
+		if n%c == 0 {
+			divisor = append(divisor, c)
+			n /= c
+		} else {
+			c += 2
+			if c > sqrtn {
+				break
+			}
+		}
+	}
+	if n != 1 {
+		divisor = append(divisor, n)
+	}
+	return divisor
 }
 
 // ==================================================
@@ -623,6 +632,31 @@ func (pq *pq) IsEmpty() bool {
 }
 
 // ==================================================
+// cusum2d
+// ==================================================
+
+type cusum2d struct {
+	s [][]int
+}
+
+func newCusum2d(n, m int) *cusum2d {
+	c := &cusum2d{}
+	c.s = make([][]int, n+1)
+	for i := 0; i <= n; i++ {
+		c.s[i] = make([]int, m+1)
+	}
+	return c
+}
+func (c *cusum2d) set(x, y, add int) {
+	c.s[x+1][y+1] = c.s[x+1][y] + c.s[x][y+1] - c.s[x][y]
+	c.s[x+1][y+1] += add
+}
+
+func (c *cusum2d) get(x1, y1, x2, y2 int) int {
+	return c.s[x2][y2] + c.s[x1][y1] - c.s[x1][y2] - c.s[x2][y1]
+}
+
+// ==================================================
 // union find
 // ==================================================
 
@@ -696,27 +730,11 @@ type graph struct {
 }
 
 func newgraph(size int, edges [][]edge) *graph {
-	return &graph{
+	graph := &graph{
 		size:  size,
 		edges: edges,
 	}
-}
 
-func (g *graph) setStart(s state) {
-	g.starts = append(g.starts, s)
-}
-
-/*
-	v, e, r := ni3()
-	edges := make([][]edge, v)
-
-	for i := 0; i < e; i++ {
-		s, t, d := ni3()
-		edges[s] = append(edges[s], edge{to: t, cost: d})
-	}
-
-	graph := newgraph(v, edges)
-	graph.setStart(state{node: r})
 	graph.defaultScore = inf
 	graph.comps = []compFunc{
 		func(p, q interface{}) int {
@@ -728,10 +746,30 @@ func (g *graph) setStart(s state) {
 			return 1
 		},
 	}
-	dist := graph.dijkstra()
+	return graph
+}
+
+/*
+	v, e := ni2()
+	edges := make([][]edge, v)
+
+	for i := 0; i < e; i++ {
+		s, t, c := ni3()
+		s--
+		t--
+		edges[s] = append(edges[s], edge{to: t, cost: c})
+		edges[t] = append(edges[t], edge{to: s, cost: c})
+	}
+
+	graph := newgraph(v, edges)
+	graph.setStart(0)
+	dist := graph.dijkstra(0)
 */
 
-func (g *graph) dijkstra() []int {
+func (g *graph) dijkstra(start int) []int {
+
+	g.starts = []state{{node: start}}
+
 	score := make([]int, g.size)
 	for i := 0; i < g.size; i++ {
 		score[i] = g.defaultScore
