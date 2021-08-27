@@ -700,6 +700,38 @@ func (u *unionFind) size(x int) int {
 }
 
 // ==================================================
+// bit
+// ==================================================
+
+type bit struct {
+	n int
+	b []int
+}
+
+func newbit(n int) *bit {
+	return &bit{
+		n: n + 1,
+		b: make([]int, n+1),
+	}
+}
+
+func (b *bit) add(a, w int) {
+	a++
+	for i := a; i < b.n; i += i & -i {
+		b.b[i] += w
+	}
+}
+
+func (b *bit) sum(a int) int {
+	a++
+	ret := 0
+	for i := a; i > 0; i -= i & -i {
+		ret += b.b[i]
+	}
+	return ret
+}
+
+// ==================================================
 // graph
 // ==================================================
 
