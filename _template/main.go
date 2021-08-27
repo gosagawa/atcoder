@@ -426,7 +426,7 @@ func isUpper(b byte) bool {
 }
 
 // ==================================================
-// slice
+// sort
 // ==================================================
 
 func sorti(sl []int) {
@@ -436,6 +436,25 @@ func sorti(sl []int) {
 func sortir(sl []int) {
 	sort.Sort(sort.Reverse(sort.IntSlice(sl)))
 }
+
+func sorts(sl []string) {
+	sort.Slice(sl, func(i, j int) bool {
+		return sl[i] < sl[j]
+	})
+}
+
+func sort2ar(sl [][2]int, key1, key2 int) {
+	sort.Slice(sl, func(i, j int) bool {
+		if sl[i][key1] == sl[j][key1] {
+			return sl[i][key2] < sl[j][key2]
+		}
+		return sl[i][key1] < sl[j][key1]
+	})
+}
+
+// ==================================================
+// slice
+// ==================================================
 
 func reverse(sl []interface{}) {
 	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
