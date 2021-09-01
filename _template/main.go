@@ -129,16 +129,10 @@ func nftoi(decimalLen int) int {
 	}
 
 	t := strings.Split(s, ".")
-	i, e := strconv.Atoi(t[0])
-	if e != nil {
-		panic(e)
-	}
+	i = atoi(t[0])
 	r += i * pow(10, decimalLen)
 	if len(t) > 1 {
-		i, e := strconv.Atoi(t[1])
-		if e != nil {
-			panic(e)
-		}
+		i = atoi(t[1])
 		i *= pow(10, decimalLen-len(t[1]))
 		r += i
 	}
@@ -146,6 +140,18 @@ func nftoi(decimalLen int) int {
 		return -r
 	}
 	return r
+}
+
+func atoi(s string) int {
+	i, e := strconv.Atoi(s)
+	if e != nil {
+		panic(e)
+	}
+	return i
+}
+
+func btoi(b byte) int {
+	return atoi(string(b))
 }
 
 // ==================================================
