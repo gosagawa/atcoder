@@ -129,7 +129,7 @@ func nftoi(decimalLen int) int {
 	}
 
 	t := strings.Split(s, ".")
-	i = atoi(t[0])
+	i := atoi(t[0])
 	r += i * pow(10, decimalLen)
 	if len(t) > 1 {
 		i = atoi(t[1])
@@ -740,20 +740,36 @@ func newbit(n int) *bit {
 	}
 }
 
-func (b *bit) add(a, w int) {
-	a++
-	for i := a; i < b.n; i += i & -i {
-		b.b[i] += w
+func (b *bit) add(i, x int) {
+	for i++; i < b.n && i > 0; i += i & -i {
+		b.b[i] += x
 	}
 }
 
-func (b *bit) sum(a int) int {
-	a++
+func (b *bit) sum(i int) int {
 	ret := 0
-	for i := a; i > 0; i -= i & -i {
+	for i++; i > 0; i -= i & -i {
 		ret += b.b[i]
 	}
 	return ret
+}
+
+func (b *bit) rangesum(l, r int) int {
+	return b.sum(r-1) - b.sum(l-1)
+}
+
+func (b *bit) lowerBound(x int) int {
+	idx, k := 0, 1
+	for k < b.n {
+		k <<= 1
+	}
+	for k >>= 1; k > 0; k >>= 1 {
+		if idx+k < b.n && b.b[idx+k] < x {
+			x -= b.b[idx+k]
+			idx += k
+		}
+	}
+	return idx
 }
 
 // ==================================================
