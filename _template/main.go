@@ -344,17 +344,36 @@ func mmul(a, b int) int {
 
 func mdiv(a, b int) int {
 	a %= mod
-	return a * modinv(b) % mod
+	return a * modinvfermat(b, mod) % mod
 }
 
-func modinv(a int) int {
+func modinv(a, m int) int {
+	b := m
+	u := 1
+	v := 0
+	for b != 0 {
+		t := a / b
+		a -= t * b
+		a, b = b, a
+		u -= t * v
+		u, v = v, u
+	}
+	u %= m
+	if u < 0 {
+		u += m
+	}
+	return u
+}
+
+// m only allow prime number
+func modinvfermat(a, m int) int {
 	res := 1
-	n := mod - 2
+	n := m - 2
 	for n > 0 {
 		if n&1 == 1 {
-			res = res * a % mod
+			res = res * a % m
 		}
-		a = a * a % mod
+		a = a * a % m
 		n >>= 1
 	}
 	return res
