@@ -35,24 +35,24 @@ func main() {
 		}
 		ns[i] = idxs[a]
 	}
-	var l, kind int
-	for i := 0; i < n; i++ {
-		if used[ns[i]] == 0 {
-			kind++
-		}
-		used[ns[i]]++
-		l++
-		if kind > k {
-			for l > 0 {
-				l--
-				used[ns[i-l]]--
-				if used[ns[i-l]] == 0 {
-					kind--
+	var s, t, sum int
+	for t < n {
+		for t < n && sum <= k {
+			if used[ns[t]] == 0 {
+				if sum == k {
 					break
 				}
+				sum++
 			}
+			used[ns[t]]++
+			t++
 		}
-		o = max(o, l)
+		o = max(o, t-s)
+		used[ns[s]]--
+		if used[ns[s]] == 0 {
+			sum--
+		}
+		s++
 	}
 
 	out(o)
