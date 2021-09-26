@@ -997,6 +997,108 @@ func (s *stree) debug() {
 }
 
 // ==================================================
+// tree
+// ==================================================
+
+type tree struct {
+	size       int
+	root       int
+	edges      [][]edge
+	parentsize int
+	parent     [][]int
+	depth      []int
+	orderidx   int
+	order      []int
+}
+
+/*
+	n := ni()
+	edges := make([][]edge, n)
+	for i := 0; i < n-1; i++ {
+		s, t := ni2()
+		s--
+		t--
+		edges[s] = append(edges[s], edge{to: t})
+		edges[t] = append(edges[t], edge{to: s})
+	}
+	tree := newtree(n, 0, edges)
+	tree.init()
+*/
+func newtree(size int, root int, edges [][]edge) *tree {
+	parentsize := int(math.Log2(float64(size))) + 1
+	parent := make([][]int, parentsize)
+	for i := 0; i < parentsize; i++ {
+		parent[i] = make([]int, size)
+	}
+	depth := make([]int, size)
+	order := make([]int, size)
+	return &tree{
+		size:       size,
+		root:       root,
+		edges:      edges,
+		parentsize: parentsize,
+		parent:     parent,
+		depth:      depth,
+		order:      order,
+	}
+}
+
+func (t *tree) init() {
+	t.dfs(t.root, -1, 0)
+	for i := 0; i+1 < t.parentsize; i++ {
+		for j := 0; j < t.size; j++ {
+			if t.parent[i][j] < 0 {
+				t.parent[i+1][j] = -1
+			} else {
+				t.parent[i+1][j] = t.parent[i][t.parent[i][j]]
+			}
+		}
+	}
+}
+
+func (t *tree) dfs(v, p, d int) {
+	t.order[v] = t.orderidx
+	t.orderidx++
+	t.parent[0][v] = p
+	t.depth[v] = d
+	for _, nv := range t.edges[v] {
+		if nv.to != p {
+			t.dfs(nv.to, v, d+1)
+		}
+	}
+}
+
+func (t *tree) lca(u, v int) int {
+	if t.depth[u] > t.depth[v] {
+		u, v = v, u
+	}
+	for i := 0; i < t.parentsize; i++ {
+		if (t.depth[v]-t.depth[u])>>i&1 == 1 {
+			v = t.parent[i][v]
+		}
+	}
+	if u == v {
+		return u
+	}
+	for i := t.parentsize - 1; i >= 0; i-- {
+		if t.parent[i][u] != t.parent[i][v] {
+			u = t.parent[i][u]
+			v = t.parent[i][v]
+		}
+	}
+	return t.parent[0][u]
+}
+
+func (t *tree) dist(u, v int) int {
+	return t.depth[u] + t.depth[v] - t.depth[t.lca(u, v)]*2
+}
+
+func (t *tree) auxiliarytree(sl []int) []int {
+	sort.Slice(sl, func(i, j int) bool { return t.order[sl[i]] < t.order[sl[j]] })
+	return sl
+}
+
+// ==================================================
 // graph
 // ==================================================
 
