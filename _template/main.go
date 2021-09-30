@@ -795,14 +795,6 @@ func (b *bit) lowerBound(x int) int {
 // segment tree
 // ==================================================
 
-type stree struct {
-	n    int
-	b    []int
-	lazy []int
-	def  int
-	cmp  func(i, j int) int
-	culc func(i, j int) int
-}
 type streeculctype int
 
 var stadd streeculctype = 1
@@ -817,27 +809,32 @@ var stmax streeminmmax = 2
 s := newstree(n,stmin|stmax,stset|stadd)
 s.set(i,x)
 s.add(i,x)
-s.rc(l,r,x)
 result1 := s.query(l,r)
 result2 := s.findrightest(l,r,x)
 result3 := s.findlefttest(l,r,x)
 */
+type stree struct {
+	n    int
+	b    []int
+	def  int
+	cmp  func(i, j int) int
+	culc func(i, j int) int
+}
+
 func newstree(n int, minmax streeminmmax, ctype streeculctype) *stree {
 	tn := 1
 	for tn < n {
 		tn *= 2
 	}
 	s := &stree{
-		n:    tn,
-		b:    make([]int, 2*tn-1),
-		lazy: make([]int, 2*tn-1),
+		n: tn,
+		b: make([]int, 2*tn-1),
 	}
 	switch minmax {
 	case stmin:
 		s.def = inf
 		for i := 0; i < 2*tn-1; i++ {
 			s.b[i] = s.def
-			s.lazy[i] = s.def
 		}
 		s.cmp = func(i, j int) int {
 			return min(i, j)
@@ -860,18 +857,6 @@ func newstree(n int, minmax streeminmmax, ctype streeculctype) *stree {
 	return s
 }
 
-func (s *stree) eval(k int) {
-	if s.lazy[k] == s.def {
-		return
-	}
-	if k < s.n-1 {
-		s.lazy[k*2+1] = s.culc(s.lazy[k*2+1], s.lazy[k])
-		s.lazy[k*2+2] = s.culc(s.lazy[k*2+2], s.lazy[k])
-	}
-	s.b[k] = s.culc(s.b[k], s.lazy[k])
-	s.lazy[k] = s.def
-}
-
 func (s *stree) add(i, x int) {
 	i += s.n - 1
 	s.b[i] += x
@@ -892,29 +877,11 @@ func (s *stree) set(i, x int) {
 	}
 }
 
-// range culc
-func (s *stree) rc(a, b, x int) {
-	s.rcsub(a, b, x, 0, 0, s.n)
-}
-
-func (s *stree) rcsub(a, b, x, k, l, r int) {
-	s.eval(k)
-	if a <= l && r <= b {
-		s.lazy[k] = s.culc(s.lazy[k], x)
-		s.eval(k)
-	} else if l < b && a < r {
-		s.rcsub(a, b, x, k*2+1, l, (l+r)/2)
-		s.rcsub(a, b, x, k*2+2, (l+r)/2, r)
-		s.b[k] = s.cmp(s.b[k*2+1], s.b[k*2+2])
-	}
-}
-
 func (s *stree) query(a, b int) int {
 	return s.querysub(a, b, 0, 0, s.n)
 }
 
 func (s *stree) querysub(a, b, k, l, r int) int {
-	s.eval(k)
 	if r <= a || b <= l {
 		return s.def
 	}
@@ -962,6 +929,182 @@ func (s *stree) findleftestsub(a, b, x, k, l, r int) int {
 }
 
 func (s *stree) debug() {
+	l := []string{}
+	t := 2
+	out("data")
+	for i := 0; i < 2*s.n-1; i++ {
+		if i+1 == t {
+			t *= 2
+			out(strings.Join(l, " "))
+			l = []string{}
+		}
+		if s.b[i] == inf {
+			l = append(l, "∞")
+		} else {
+			l = append(l, strconv.Itoa(s.b[i]))
+		}
+	}
+	out(strings.Join(l, " "))
+}
+
+/*
+s := newlazystree(n,stmin|stmax,stset|stadd)
+s.set(i,x)
+s.add(i,x)
+s.rc(l,r,x)
+result1 := s.query(l,r)
+result2 := s.findrightest(l,r,x)
+result3 := s.findlefttest(l,r,x)
+*/
+type lazystree struct {
+	n    int
+	b    []int
+	lazy []int
+	def  int
+	cmp  func(i, j int) int
+	culc func(i, j int) int
+}
+
+func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
+	tn := 1
+	for tn < n {
+		tn *= 2
+	}
+	s := lazystree{
+		n:    tn,
+		b:    make([]int, 2*tn-1),
+		lazy: make([]int, 2*tn-1),
+	}
+	switch minmax {
+	case stmin:
+		s.def = inf
+		for i := 0; i < 2*tn-1; i++ {
+			s.b[i] = s.def
+			s.lazy[i] = s.def
+		}
+		s.cmp = func(i, j int) int {
+			return min(i, j)
+		}
+	case stmax:
+		s.cmp = func(i, j int) int {
+			return max(i, j)
+		}
+	}
+	switch ctype {
+	case stadd:
+		s.culc = func(i, j int) int {
+			return i + j
+		}
+	case stset:
+		s.culc = func(i, j int) int {
+			return j
+		}
+	}
+	return s
+}
+
+func (s lazystree) eval(k int) {
+	if s.lazy[k] == s.def {
+		return
+	}
+	if k < s.n-1 {
+		s.lazy[k*2+1] = s.culc(s.lazy[k*2+1], s.lazy[k])
+		s.lazy[k*2+2] = s.culc(s.lazy[k*2+2], s.lazy[k])
+	}
+	s.b[k] = s.culc(s.b[k], s.lazy[k])
+	s.lazy[k] = s.def
+}
+
+func (s lazystree) add(i, x int) {
+	i += s.n - 1
+	s.b[i] += x
+
+	for i > 0 {
+		i = (i - 1) / 2
+		s.b[i] = s.cmp(s.b[i*2+1], s.b[i*2+2])
+	}
+}
+
+func (s lazystree) set(i, x int) {
+	i += s.n - 1
+	s.b[i] = x
+
+	for i > 0 {
+		i = (i - 1) / 2
+		s.b[i] = s.cmp(s.b[i*2+1], s.b[i*2+2])
+	}
+}
+
+// range culc
+func (s lazystree) rc(a, b, x int) {
+	s.rcsub(a, b, x, 0, 0, s.n)
+}
+
+func (s lazystree) rcsub(a, b, x, k, l, r int) {
+	s.eval(k)
+	if a <= l && r <= b {
+		s.lazy[k] = s.culc(s.lazy[k], x)
+		s.eval(k)
+	} else if l < b && a < r {
+		s.rcsub(a, b, x, k*2+1, l, (l+r)/2)
+		s.rcsub(a, b, x, k*2+2, (l+r)/2, r)
+		s.b[k] = s.cmp(s.b[k*2+1], s.b[k*2+2])
+	}
+}
+
+func (s lazystree) query(a, b int) int {
+	return s.querysub(a, b, 0, 0, s.n)
+}
+
+func (s lazystree) querysub(a, b, k, l, r int) int {
+	s.eval(k)
+	if r <= a || b <= l {
+		return s.def
+	}
+	if a <= l && r <= b {
+		return s.b[k]
+	}
+	return s.cmp(
+		s.querysub(a, b, k*2+1, l, (l+r)/2),
+		s.querysub(a, b, k*2+2, (l+r)/2, r),
+	)
+}
+
+func (s lazystree) findrightest(a, b, x int) int {
+	return s.findrightestsub(a, b, x, 0, 0, s.n)
+}
+
+func (s lazystree) findrightestsub(a, b, x, k, l, r int) int {
+	if s.b[k] > x || r <= a || b <= l {
+		return a - 1
+	} else if k >= s.n-1 {
+		return k - s.n + 1
+	}
+	vr := s.findrightestsub(a, b, x, 2*k+2, (l+r)/2, r)
+	if vr != a-1 {
+		return vr
+	}
+	return s.findrightestsub(a, b, x, 2*k+1, l, (l+r)/2)
+}
+
+func (s lazystree) findleftest(a, b, x int) int {
+	return s.findleftestsub(a, b, x, 0, 0, s.n)
+}
+
+func (s lazystree) findleftestsub(a, b, x, k, l, r int) int {
+	if s.b[k] > x || r <= a || b <= l {
+		return b
+	} else if k >= s.n-1 {
+		return k - s.n + 1
+	}
+	vl := s.findleftestsub(a, b, x, 2*k+1, l, (l+r)/2)
+	if vl != b {
+		return vl
+	}
+	return s.findleftestsub(a, b, x, 2*k+2, (l+r)/2, r)
+}
+
+func (s lazystree) debug() {
 	l := []string{}
 	t := 2
 	out("data")
