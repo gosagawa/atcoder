@@ -1240,6 +1240,12 @@ type edge struct {
 	from int
 	to   int
 	cost int
+	rev  int
+}
+
+func setDualEdge(edges [][]edge, s, t, c int) {
+	edges[s] = append(edges[s], edge{to: t, cost: c, rev: len(edges[t])})
+	edges[t] = append(edges[t], edge{to: s, cost: 0, rev: len(edges[s]) - 1})
 }
 
 type state struct {
@@ -1253,6 +1259,8 @@ type graph struct {
 	starts       []state
 	comps        []compFunc
 	defaultScore int
+	level        []int
+	iter         []int
 }
 
 func newgraph(size int, edges [][]edge) *graph {
@@ -1390,4 +1398,59 @@ func (g *graph) kruskal() int {
 	}
 
 	return r
+}
+
+func (g *graph) dinic() int {
+	f := 0
+	for {
+		g.dinicbfs(0)
+		if g.level[g.size-1] < 0 {
+			break
+		}
+		g.iter = make([]int, g.size)
+		for {
+			t := g.dinicdfs(0, g.size-1, inf)
+			if t <= 0 {
+				break
+			}
+			f += t
+		}
+	}
+	return f
+}
+
+func (g *graph) dinicbfs(s int) {
+	g.level = make([]int, g.size)
+	for i := 0; i < g.size; i++ {
+		g.level[i] = -1
+	}
+	g.level[s] = 0
+	q := []int{s}
+	for len(q) > 0 {
+		t := q[0]
+		q = q[1:]
+		for _, e := range g.edges[t] {
+			if e.cost > 0 && g.level[e.to] < 0 {
+				g.level[e.to] = g.level[t] + 1
+				q = append(q, e.to)
+			}
+		}
+	}
+}
+
+func (g *graph) dinicdfs(v, t, f int) int {
+	if v == t {
+		return f
+	}
+	for i, e := range g.edges[v] {
+		if e.cost > 0 && g.level[v] < g.level[e.to] {
+			d := g.dinicdfs(e.to, t, min(f, e.cost))
+			if d > 0 {
+				g.edges[v][i].cost -= d
+				g.edges[e.to][e.rev].cost += d
+				return d
+			}
+		}
+	}
+	return 0
 }
