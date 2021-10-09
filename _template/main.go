@@ -537,24 +537,6 @@ func pointfDist(a, b pointf) float64 {
 	return math.Sqrt((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y))
 }
 
-type pointQueue struct {
-	pt []point
-}
-
-func (q *pointQueue) push(pt point) {
-	q.pt = append(q.pt, pt)
-}
-
-func (q *pointQueue) pop() (pt point) {
-	pt = q.pt[0]
-	q.pt = q.pt[1:]
-	return
-}
-
-func (q *pointQueue) len() int {
-	return len(q.pt)
-}
-
 // ==================================================
 // heap
 // ==================================================
