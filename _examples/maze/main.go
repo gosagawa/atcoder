@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"container/list"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -48,11 +49,12 @@ func asPoint() {
 		*/
 	}
 
-	q := new(pointQueue)
-	q.push(point{0, 0})
+	q := list.New()
+	q.PushBack(point{0, 0})
 	dist[0][0] = 0
-	for q.len() > 0 {
-		p := q.pop()
+	e := q.Front()
+	for e != nil {
+		p := e.Value.(point)
 		dr := []point{{0, -1}, {-1, 0}, {1, 0}, {0, 1}}
 		for _, d := range dr {
 			np := pointAdd(p, d)
@@ -60,8 +62,9 @@ func asPoint() {
 				continue
 			}
 			dist[np.x][np.y] = dist[p.x][p.y] + 1
-			q.push(np)
+			q.PushBack(np)
 		}
+		e = e.Next()
 	}
 
 	out(o)
@@ -159,23 +162,21 @@ func asGraph() {
 	}
 
 	//bfs
-	q := []int{}
+	q := list.New()
 	var s, g int
-	q = append(q, s)
+	q.PushBack(s)
 	dist[s] = 0
-	for {
-		if len(q) == 0 {
-			break
-		}
-		t := q[0]
-		q = q[1:]
+	e := q.Front()
+	for e != nil {
+		t := e.Value.(int)
 		for _, v := range gr[t] {
 			if dist[v] != -1 {
 				continue
 			}
-			q = append(q, v)
+			q.PushBack(v)
 			dist[v] = dist[t] + 1
 		}
+		e = e.Next()
 	}
 	out(dist[g])
 
