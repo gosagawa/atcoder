@@ -929,6 +929,7 @@ result2 := s.findrightest(l,r,x)
 result3 := s.findlefttest(l,r,x)
 */
 type lazystree struct {
+	on   int
 	n    int
 	b    []int
 	lazy []int
@@ -943,6 +944,7 @@ func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
 		tn *= 2
 	}
 	s := lazystree{
+		on:   n,
 		n:    tn,
 		b:    make([]int, 2*tn-1),
 		lazy: make([]int, 2*tn-1),
@@ -965,6 +967,12 @@ func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
 	switch ctype {
 	case stadd:
 		s.culc = func(i, j int) int {
+			if i == s.def {
+				return j
+			}
+			if i == s.def {
+				return i
+			}
 			return i + j
 		}
 	case stset:
@@ -1022,6 +1030,10 @@ func (s lazystree) rcsub(a, b, x, k, l, r int) {
 		s.rcsub(a, b, x, k*2+2, (l+r)/2, r)
 		s.b[k] = s.cmp(s.b[k*2+1], s.b[k*2+2])
 	}
+}
+
+func (s lazystree) get(a int) int {
+	return s.query(a, a+1)
 }
 
 func (s lazystree) query(a, b int) int {
@@ -1107,6 +1119,14 @@ func (s lazystree) debug() {
 		} else {
 			l = append(l, strconv.Itoa(s.lazy[i]))
 		}
+	}
+	out(strings.Join(l, " "))
+}
+
+func (s lazystree) debug2() {
+	l := make([]string, s.n)
+	for i := 0; i < s.on; i++ {
+		l[i] = strconv.Itoa(s.get(i))
 	}
 	out(strings.Join(l, " "))
 }
