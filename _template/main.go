@@ -150,6 +150,10 @@ func atoi(s string) int {
 	return i
 }
 
+func itoa(i int) string {
+	return strconv.Itoa(i)
+}
+
 func btoi(b byte) int {
 	return atoi(string(b))
 }
@@ -535,6 +539,23 @@ func pointDist(a, b point) float64 {
 func pointfDist(a, b pointf) float64 {
 	return math.Sqrt((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y))
 }
+
+// ==================================================
+// queue
+// ==================================================
+
+/*
+	q := list.New()
+	q.PushBack(val)
+	e := q.Front()
+	for e != nil {
+		t := e.Value.(int)
+
+		// Do something
+
+		e = e.Next()
+    }
+*/
 
 // ==================================================
 // heap
