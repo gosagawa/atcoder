@@ -721,8 +721,8 @@ func (u *unionFind) unite(x, y int) {
 	if u.size(x) < u.size(y) {
 		x, y = y, x
 	}
-	u.par[y] += u.par[x]
-	u.par[x] = y
+	u.par[x] += u.par[y]
+	u.par[y] = x
 }
 
 func (u *unionFind) issame(x, y int) bool {
