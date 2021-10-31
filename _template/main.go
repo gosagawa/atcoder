@@ -766,6 +766,7 @@ func (b *bit) sum(i int) int {
 	return ret
 }
 
+// l <= x < r
 func (b *bit) rangesum(l, r int) int {
 	return b.sum(r-1) - b.sum(l-1)
 }
