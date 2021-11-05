@@ -503,11 +503,14 @@ func uniquei(sl []int) []int {
 	return sl[:j]
 }
 
-func delIdx(idx int, L []int) []int {
-	r := []int{}
-	r = append(r, L[:idx]...)
-	r = append(r, L[idx+1:]...)
-	return r
+func addIdx(pos, v int, sl []int) []int {
+	sl = append(sl[:pos+1], sl[pos:]...)
+	sl[pos] = v
+	return sl
+}
+
+func delIdx(pos int, sl []int) []int {
+	return append(sl[:pos], sl[pos+1:]...)
 }
 
 // ==================================================
