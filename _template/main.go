@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"container/heap"
+	"container/list"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -1451,16 +1452,21 @@ func (g *graph) dinicbfs(s int) {
 		g.level[i] = -1
 	}
 	g.level[s] = 0
-	q := []int{s}
-	for len(q) > 0 {
-		t := q[0]
-		q = q[1:]
+
+	q := list.New()
+	q.PushBack(s)
+	e := q.Front()
+	for e != nil {
+		t := e.Value.(int)
+
 		for _, e := range g.edges[t] {
 			if e.cost > 0 && g.level[e.to] < 0 {
 				g.level[e.to] = g.level[t] + 1
-				q = append(q, e.to)
+				q.PushBack(e.to)
 			}
 		}
+
+		e = e.Next()
 	}
 }
 
