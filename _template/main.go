@@ -669,6 +669,20 @@ func (pq *pq) IsEmpty() bool {
 // cusum2d
 // ==================================================
 
+/*
+	cusum2d := newCusum2d(n, n)
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			cusum2d.set(i, j, 1)
+		}
+	}
+	for i := 0; i < n-k+1; i++ {
+		for j := 0; j < n-k+1; j++ {
+			t:=cusum2d.get(i, j, i+k, j+k)
+		}
+	}
+*/
+
 type cusum2d struct {
 	s [][]int
 }
@@ -686,6 +700,7 @@ func (c *cusum2d) set(x, y, add int) {
 	c.s[x+1][y+1] += add
 }
 
+// x1 <= x <= x2, y1 <= y <= y2
 func (c *cusum2d) get(x1, y1, x2, y2 int) int {
 	return c.s[x2][y2] + c.s[x1][y1] - c.s[x1][y2] - c.s[x2][y1]
 }
