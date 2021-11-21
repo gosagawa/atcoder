@@ -1338,7 +1338,6 @@ func newgraph(size int, edges [][]edge) *graph {
 	}
 
 	graph := newgraph(v, edges)
-	graph.setStart(0)
 	dist := graph.dijkstra(0)
 */
 
