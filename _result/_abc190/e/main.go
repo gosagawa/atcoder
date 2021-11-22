@@ -67,40 +67,36 @@ func main() {
 		}
 	}
 
-	max := (1 << uint32(k)) - 1
-
-	o := inf
-	for j := 0; j < k; j++ {
-
-		dp := make([][]int, max+1)
-		for i := 0; i <= max; i++ {
-			dp[i] = make([]int, k)
+	km := (1 << uint32(k))
+	dp := make([][]int, km)
+	for i := 0; i < km; i++ {
+		dp[i] = make([]int, k)
+		for j := 0; j < k; j++ {
+			dp[i][j] = inf
 		}
-
-		var rec func(s int, ve uint32) int
-		rec = func(s int, ve uint32) int {
-			if s == 0 {
-				return 0
+	}
+	for i := 0; i < k; i++ {
+		dp[1<<i][i] = 1
+	}
+	for bit := 1; bit < km; bit++ {
+		for i := 0; i < k; i++ {
+			if bit&(1<<i) == 0 {
+				continue
 			}
-
-			if s&(1<<ve) == 0 {
-				return inf
-			}
-
-			if dp[s][ve] != 0 {
-				return dp[s][ve]
-			}
-
-			dp[s][ve] = inf
-			for u := 0; u < k; u++ {
-				r := rec(s^(1<<ve), uint32(u))
-				if r != inf {
-					dp[s][ve] = min(dp[s][ve], r+edges2[u][ve].cost)
+			bit2 := bit ^ (1 << i)
+			for j := 0; j < k; j++ {
+				if bit2&(1<<j) == 0 {
+					continue
+				}
+				if dp[bit2][j] != inf {
+					dp[bit][i] = min(dp[bit][i], dp[bit2][j]+edges2[i][j].cost)
 				}
 			}
-			return dp[s][ve]
 		}
-		o = min(o, rec(max, uint32(j))+1)
+	}
+	o := inf
+	for i := 0; i < k; i++ {
+		o = min(o, dp[km-1][i])
 	}
 	out(o)
 }
