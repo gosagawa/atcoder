@@ -21,12 +21,15 @@ func main() {
 
 	defer flush()
 
-	if ni()%2 == 0 {
-		out("White")
-	} else {
-		out("Black")
+	o := 0
+
+	n := ni()
+	for i := 0; i < n; i++ {
+		a, b := ni2()
+		o += (a + b) * (b - a + 1) / 2
 	}
 
+	out(o)
 }
 
 // ==================================================
