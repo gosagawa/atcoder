@@ -476,6 +476,14 @@ func sort2ar(sl [][2]int, key1, key2 int) {
 // slice
 // ==================================================
 
+func isl(l int, def int) []int {
+	sl := make([]int, l)
+	for i := 0; i < l; i++ {
+		sl[i] = def
+	}
+	return sl
+}
+
 func reverse(sl []interface{}) {
 	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
 		sl[i], sl[j] = sl[j], sl[i]
