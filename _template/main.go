@@ -110,6 +110,14 @@ func out(v ...interface{}) {
 	}
 }
 
+func outYN(v bool) {
+	if v {
+		out("Yes")
+	} else {
+		out("No")
+	}
+}
+
 func flush() {
 	e := wtr.Flush()
 	if e != nil {
@@ -394,6 +402,12 @@ func minvfermat(a, m int) int {
 	}
 */
 func bs(ok, ng int, f func(int) bool) int {
+	if !f(ok) {
+		return -1
+	}
+	if f(ng) {
+		return ng
+	}
 	for abs(ok-ng) > 1 {
 		mid := (ok + ng) / 2
 
