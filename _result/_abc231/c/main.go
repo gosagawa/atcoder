@@ -29,13 +29,6 @@ func main() {
 	sorti(ns)
 	for i := 0; i < q; i++ {
 		x := ni()
-		if x <= ns[0] {
-			out(n)
-			continue
-		} else if x > ns[n-1] {
-			out(0)
-			continue
-		}
 		f := func(c int) bool {
 			return ns[c] < x
 		}
@@ -410,6 +403,12 @@ func minvfermat(a, m int) int {
 	}
 */
 func bs(ok, ng int, f func(int) bool) int {
+	if !f(ok) {
+		return -1
+	}
+	if f(ng) {
+		return ng
+	}
 	for abs(ok-ng) > 1 {
 		mid := (ok + ng) / 2
 
