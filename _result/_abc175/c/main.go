@@ -23,35 +23,35 @@ func main() {
 
 	o := 0
 
-	n := ni()
-	ns := make([]int, n)
-	for i := 0; i < n; i++ {
-		ns[i] = ni()
+	x, k, d := ni3()
+	kmax := min(k, 20000000000000000/d)
+	if kmax%2 != k%2 {
+		kmax++
 	}
-	for i := 0; i < n; i++ {
-		for j := i + 1; j < n; j++ {
-			for k := j + 1; k < n; k++ {
-				ts := []int{ns[i], ns[j], ns[k]}
-				sorti(ts)
-				if ns[i] == ns[j] {
-					continue
-				}
-				if ns[j] == ns[k] {
-					continue
-				}
-				if ns[k] == ns[i] {
-					continue
-				}
-				if ts[0]+ts[1] > ts[2] {
-					o++
-				}
-			}
-		}
+
+	minx := x - kmax*d
+	maxx := x + kmax*d
+	d2 := d * 2
+
+	if minx > 0 {
+		out(minx)
+		return
 	}
+	if maxx < 0 {
+		out(abs(maxx))
+		return
+	}
+	o = min(abs(maxx)%d2, abs(minx)%d2)
+
 	/*
 		a := ni()
 		s := ns()
 
+		n := ni()
+		ns := make([]int, n)
+		for i := 0; i < n; i++ {
+			ns[i] = ni()
+		}
 	*/
 
 	out(o)
