@@ -12,3 +12,6 @@ base:
 move:
 	./movefile.sh
 
+entr:
+	find ./ -maxdepth 1  -name main.go -or -name input | entr -c -p go run main.go i
+

@@ -1,7 +1,6 @@
 #!/bin/bash
-
-echo -n DIR?
-read dir
+dir=$(cat ./contest)
+echo -e DIR: $dir
 echo -n QUESTION?
 read q
 mkdir -p _result/_$dir/$q
