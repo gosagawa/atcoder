@@ -26,16 +26,14 @@ func main() {
 	for i := 0; i < n; i++ {
 		ns[i] = ni()
 	}
-	sorti(ns)
+	sortir(ns)
 	for i := 0; i < q; i++ {
 		x := ni()
 		f := func(c int) bool {
-			return ns[c] < x
+			return ns[c] >= x
 		}
-		r := bs(0, n-1, f)
-		out(n - r - 1)
+		out(bs(0, n-1, f) + 1)
 	}
-
 }
 
 // ==================================================
