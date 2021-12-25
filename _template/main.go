@@ -511,19 +511,29 @@ func reversei(sl []int) {
 }
 
 func uniquei(sl []int) []int {
-	hist := map[int]bool{}
+	hist := make(map[int]struct{})
 	j := 0
+	rsl := make([]int, len(sl))
 	for i := 0; i < len(sl); i++ {
-		if hist[sl[i]] {
+		if _, ok := hist[sl[i]]; ok {
 			continue
 		}
-
-		a := sl[i]
-		sl[j] = a
-		hist[a] = true
+		rsl[j] = sl[i]
+		hist[sl[i]] = struct{}{}
 		j++
 	}
-	return sl[:j]
+	return rsl[:j]
+}
+
+// coordinate compression
+func cocom(sl []int) ([]int, map[int]int) {
+	rsl := uniquei(sl)
+	sorti(rsl)
+	rm := make(map[int]int)
+	for i := 0; i < len(rsl); i++ {
+		rm[rsl[i]] = i
+	}
+	return rsl, rm
 }
 
 func addIdx(pos, v int, sl []int) []int {
