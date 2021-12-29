@@ -537,6 +537,10 @@ func cocom(sl []int) ([]int, map[int]int) {
 }
 
 func addIdx(pos, v int, sl []int) []int {
+	if len(sl) == pos {
+		sl = append(sl, v)
+		return sl
+	}
 	sl = append(sl[:pos+1], sl[pos:]...)
 	sl[pos] = v
 	return sl
