@@ -22,10 +22,10 @@ func main() {
 	defer flush()
 
 	/*
-		    o := 0
-			n := ni()
-			ns := nis(n)
-		    out(o)
+		o := 0
+		n := ni()
+		ns := nis(n)
+		out(o)
 	*/
 }
 
