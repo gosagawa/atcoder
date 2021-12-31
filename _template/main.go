@@ -21,20 +21,12 @@ func main() {
 
 	defer flush()
 
-	o := 0
-
 	/*
-		a := ni()
-		s := ns()
-
-		n := ni()
-		ns := make([]int, n)
-		for i := 0; i < n; i++ {
-			ns[i] = ni()
-		}
+		    o := 0
+			n := ni()
+			ns := nis(n)
+		    out(o)
 	*/
-
-	out(o)
 }
 
 // ==================================================
@@ -81,12 +73,39 @@ func ni4() (int, int, int, int) {
 	return ni(), ni(), ni(), ni()
 }
 
-func nis(n int) sort.IntSlice {
+func nis(n int) []int {
 	a := make([]int, n)
 	for i := 0; i < n; i++ {
 		a[i] = ni()
 	}
-	return sort.IntSlice(a)
+	return a
+}
+
+func ni2s(n int) ([]int, []int) {
+	a := make([]int, n)
+	b := make([]int, n)
+	for i := 0; i < n; i++ {
+		a[i], b[i] = ni2()
+	}
+	return a, b
+}
+
+func ni3s(n int) ([]int, []int, []int) {
+	a := make([]int, n)
+	b := make([]int, n)
+	c := make([]int, n)
+	for i := 0; i < n; i++ {
+		a[i], b[i], c[i] = ni3()
+	}
+	return a, b, c
+}
+
+func ni2a(n int) [][2]int {
+	a := make([][2]int, n)
+	for i := 0; i < n; i++ {
+		a[i][0], a[i][1] = ni2()
+	}
+	return a
 }
 
 func nf() float64 {
