@@ -21,12 +21,56 @@ func main() {
 
 	defer flush()
 
-	/*
-		o := 0
-		n := ni()
-		ns := nis(n)
-		out(o)
-	*/
+	o := 1
+	n := ni()
+	mp := make(map[point]int)
+	ps := []point{}
+	n2s := make([]int, n+1)
+	n2s[0] = 1
+	zero := 0
+	for i := 0; i < n; i++ {
+		a, b := ni2()
+		n2s[i+1] = mmul(n2s[i], 2)
+		if a == 0 && b == 0 {
+			zero++
+			continue
+		}
+		g := gcd(abs(a), abs(b))
+		p := point{a / g, b / g}
+		if _, ok := mp[p]; ok {
+			mp[p]++
+		} else {
+			mp[p] = 1
+			ps = append(ps, p)
+		}
+	}
+	for i := 0; i < len(ps); i++ {
+		if mp[ps[i]] == 0 {
+			continue
+		}
+		pb1 := point{ps[i].x, ps[i].y}
+		pb2 := point{-ps[i].x, -ps[i].y}
+		p1 := point{ps[i].y, -ps[i].x}
+		p2 := point{-ps[i].y, ps[i].x}
+		if mp[p1]+mp[p2] > 0 {
+			opt := n2s[mp[pb1]+mp[pb2]+mp[p1]+mp[p2]]
+			del := mmul(n2s[mp[pb1]+mp[pb2]], n2s[mp[p1]+mp[p2]])
+			del = madd(del, -n2s[mp[pb1]+mp[pb2]])
+			del = madd(del, -n2s[mp[p1]+mp[p2]])
+			del = madd(del, 1)
+			o = mmul(o, madd(opt, -del))
+			mp[p1] = 0
+			mp[p2] = 0
+			mp[pb1] = 0
+			mp[pb2] = 0
+		} else {
+			o = mmul(o, n2s[mp[ps[i]]])
+		}
+
+	}
+	o = madd(o, zero-1)
+	out(o)
+
 }
 
 // ==================================================
