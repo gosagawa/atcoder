@@ -484,6 +484,13 @@ func isUpper(b byte) bool {
 // sort
 // ==================================================
 
+type sortOrder int
+
+const (
+	asc sortOrder = iota
+	desc
+)
+
 func sorti(sl []int) {
 	sort.Sort(sort.IntSlice(sl))
 }
@@ -498,12 +505,42 @@ func sorts(sl []string) {
 	})
 }
 
-func sort2ar(sl [][2]int, key1, key2 int) {
+type Sort2ArOptions struct {
+	keys   []int
+	orders []sortOrder
+}
+
+type Sort2ArOption func(*Sort2ArOptions)
+
+func opt2ar(key int, order sortOrder) Sort2ArOption {
+	return func(args *Sort2ArOptions) {
+		args.keys = append(args.keys, key)
+		args.orders = append(args.orders, order)
+	}
+}
+
+// sort2ar(sl,opt2r(1,asc))
+// sort2ar(sl,opt2r(0,asc),opt2r(1,asc))
+func sort2ar(sl [][2]int, setters ...Sort2ArOption) {
+	args := &Sort2ArOptions{}
+
+	for _, setter := range setters {
+		setter(args)
+	}
+
 	sort.Slice(sl, func(i, j int) bool {
-		if sl[i][key1] == sl[j][key1] {
-			return sl[i][key2] < sl[j][key2]
+		for idx, key := range args.keys {
+			if sl[i][key] == sl[j][key] {
+				continue
+			}
+			switch args.orders[idx] {
+			case asc:
+				return sl[i][key] < sl[j][key]
+			case desc:
+				return sl[i][key] > sl[j][key]
+			}
 		}
-		return sl[i][key1] < sl[j][key1]
+		return true
 	})
 }
 
