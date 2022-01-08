@@ -102,6 +102,17 @@ func ni3s(n int) ([]int, []int, []int) {
 	return a, b, c
 }
 
+func ni4s(n int) ([]int, []int, []int, []int) {
+	a := make([]int, n)
+	b := make([]int, n)
+	c := make([]int, n)
+	d := make([]int, n)
+	for i := 0; i < n; i++ {
+		a[i], b[i], c[i], d[i] = ni4()
+	}
+	return a, b, c, d
+}
+
 func ni2a(n int) [][2]int {
 	a := make([][2]int, n)
 	for i := 0; i < n; i++ {
@@ -519,8 +530,8 @@ func opt2ar(key int, order sortOrder) Sort2ArOption {
 	}
 }
 
-// sort2ar(sl,opt2r(1,asc))
-// sort2ar(sl,opt2r(0,asc),opt2r(1,asc))
+// sort2ar(sl,opt2ar(1,asc))
+// sort2ar(sl,opt2ar(0,asc),opt2ar(1,asc))
 func sort2ar(sl [][2]int, setters ...Sort2ArOption) {
 	args := &Sort2ArOptions{}
 
