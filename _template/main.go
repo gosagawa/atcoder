@@ -369,6 +369,38 @@ func divisor(n int) []int {
 	return divisor
 }
 
+type binom struct {
+	fac  []int
+	finv []int
+	inv  []int
+}
+
+func newbinom(n int) *binom {
+	b := &binom{
+		fac:  make([]int, n),
+		finv: make([]int, n),
+		inv:  make([]int, n),
+	}
+	b.fac[0] = 1
+	b.fac[1] = 1
+	b.inv[1] = 1
+	b.finv[0] = 1
+	b.finv[1] = 1
+	for i := 2; i < n; i++ {
+		b.fac[i] = b.fac[i-1] * i % mod
+		b.inv[i] = mod - mod/i*b.inv[mod%i]%mod
+		b.finv[i] = b.finv[i-1] * b.inv[i] % mod
+	}
+	return b
+}
+
+func (b *binom) get(n, r int) int {
+	if n < r || n < 0 || r < 0 {
+		return 0
+	}
+	return b.fac[n] * b.finv[r] % mod * b.finv[n-r] % mod
+}
+
 // ==================================================
 // mod
 // ==================================================
