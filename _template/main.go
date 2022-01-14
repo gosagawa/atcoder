@@ -21,12 +21,10 @@ func main() {
 
 	defer flush()
 
-	/*
-		o := 0
-		n := ni()
-		ns := nis(n)
-		out(o)
-	*/
+	o := 0
+	n := ni()
+	ns := nis(n)
+	out(o)
 }
 
 // ==================================================
@@ -302,35 +300,43 @@ func nextPermutation(x sort.Interface) bool {
 	return true
 }
 
-func combination(n int, k int) int {
-	if n-k < k {
-		k = n - k
-	}
-	v := 1
-	for i := 0; i < k; i++ {
-		v *= (n - i)
-		v /= (i + 1)
-	}
-	return v
+type combFactorial struct {
+	fac    []int
+	facinv []int
 }
 
-func modcombination(n int, k int) int {
-	if k > n || k <= 0 {
-		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
+func newcombFactorial(n int) *combFactorial {
+
+	fac := make([]int, n)
+	facinv := make([]int, n)
+	fac[0] = 1
+	facinv[0] = minvfermat(1, mod)
+
+	for i := 1; i < n; i++ {
+		fac[i] = mmul(i, fac[i-1])
+		facinv[i] = minvfermat(fac[i], mod)
 	}
-	if n-k < k {
-		k = n - k
+
+	return &combFactorial{
+		fac:    fac,
+		facinv: facinv,
 	}
-	v := 1
-	for i := 0; i < k; i++ {
-		v = mmul(v, n-i)
-		v = mdiv(v, i+1)
-	}
-	return v
 }
 
-func factorial(n int) int {
-	return permutation(n, n-1)
+func (c *combFactorial) factorial(n int) int {
+	return c.fac[n]
+}
+
+func (c *combFactorial) combination(n, r int) int {
+	return mmul(mmul(c.fac[n], c.facinv[r]), c.facinv[n-r])
+}
+
+func (c *combFactorial) permutation(n, r int) int {
+	return mmul(c.fac[n], c.facinv[n-r])
+}
+
+func (c *combFactorial) homogeousProduct(n, r int) int {
+	return c.combination(n-1+r, r)
 }
 
 func gcd(a, b int) int {
