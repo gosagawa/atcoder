@@ -22,9 +22,16 @@ func main() {
 	defer flush()
 
 	o := 0
-	a, b, c := ni3()
-	o = min(c, b/a)
-
+	a, b, k := ni3()
+	for i := 100; i >= 1; i-- {
+		if a%i == 0 && b%i == 0 {
+			o = i
+			k--
+		}
+		if k == 0 {
+			break
+		}
+	}
 	out(o)
 }
 
