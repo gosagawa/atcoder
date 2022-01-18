@@ -9,7 +9,7 @@ runwi:
 base:
 	cp -i _template/main.go ./main.go
 
-move:
+mv:
 	./shell/movefile.sh
 
 entr:
@@ -18,3 +18,11 @@ entr:
 dl:
 	./shell/download.sh
 
+t:
+	oj t -c "go run main.go"
+
+login:
+	oj login https://atcoder.jp
+
+s:
+	oj t -c "go run main.go" ; ./shell/submit.sh
