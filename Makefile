@@ -10,8 +10,11 @@ base:
 	cp -i _template/main.go ./main.go
 
 move:
-	./movefile.sh
+	./shell/movefile.sh
 
 entr:
 	find ./ -maxdepth 1  -name main.go -or -name input | entr -c -p go run main.go i
+
+dl:
+	./shell/download.sh
 
