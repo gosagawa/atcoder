@@ -9,7 +9,7 @@ runwi:
 base:
 	cp -i _template/main.go ./main.go
 
-mv:
+m:
 	./shell/movefile.sh
 
 entr:
