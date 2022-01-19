@@ -15,7 +15,7 @@ mv:
 entr:
 	find ./ -maxdepth 1  -name main.go -or -name input | entr -c -p go run main.go i
 
-dl:
+d:
 	./shell/download.sh
 
 t:
@@ -25,4 +25,4 @@ login:
 	oj login https://atcoder.jp
 
 s:
-	oj t -c "go run main.go" ; ./shell/submit.sh
+	./shell/submit.sh
