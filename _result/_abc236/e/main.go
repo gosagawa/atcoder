@@ -21,109 +21,30 @@ func main() {
 
 	defer flush()
 
-	oa := 0.0
-	om := 0
 	n := ni()
 	ns := nis(n)
-	nos := make([]int, (n+1)/2)
-	nes := make([]int, n/2)
-	osum := 0
-	esum := 0
-	for i := 0; i < n; i++ {
-		if i%2 == 0 {
-			nos[(i+1)/2] = ns[i]
-			osum += ns[i]
-		} else {
-			nes[i/2] = ns[i]
-			esum += ns[i]
+	ra := bs(0, 1000000000000, func(c int) bool {
+		dp := make([][2]int, n+1)
+		for i := 0; i < n; i++ {
+			dp[i+1][0] = dp[i][1]
+			dp[i+1][1] = max(dp[i][0], dp[i][1]) + (ns[i]*1000 - c)
 		}
-	}
-	tc := len(nes)
-	ts := esum
-	sortir(nos)
-	sortir(nes)
-	for _, v := range nos {
-		if tc*(ts+v) > (tc+1)*ts {
-			ts += v
-			tc++
-		}
-		break
-	}
-	out(nos, nes)
-	out(ts, tc)
-	if oa < float64(ts)/float64(tc) {
-		oa = float64(ts) / float64(tc)
-	}
-
-	tc = len(nos)
-	ts = osum
-	for _, v := range nes {
-		if tc*(ts+v) > (tc+1)*ts {
-			ts += v
-			tc++
-		}
-		break
-	}
-	out(ts, tc)
-	if oa < float64(ts)/float64(tc) {
-		oa = float64(ts) / float64(tc)
-	}
-
-	h := &IntHeap{}
-	heap.Init(h)
-	for i := 0; i < len(nos)/2+1; i++ {
-		heap.Push(h, nos[i])
-	}
-	for _, v := range nes {
-		if (*h)[0] < v {
-			heap.Push(h, v)
-			if h.Len()%2 == 0 {
-				heap.Pop(h)
+		return max(dp[n][0], dp[n][1]) >= 0
+	})
+	rm := bs(0, 1000000000000, func(c int) bool {
+		dp := make([][2]int, n+1)
+		for i := 0; i < n; i++ {
+			dp[i+1][0] = dp[i][1]
+			if ns[i] >= c {
+				dp[i+1][1] = max(dp[i][0], dp[i][1]) + 1
+			} else {
+				dp[i+1][1] = max(dp[i][0], dp[i][1]) - 1
 			}
 		}
-	}
-	om = max(om, (*h)[0])
-
-	h = &IntHeap{}
-	heap.Init(h)
-	for i := 0; i < len(nes)/2+1; i++ {
-		heap.Push(h, nos[i])
-	}
-	for _, v := range nos {
-		if (*h)[0] < v {
-			heap.Push(h, v)
-			if h.Len()%2 == 0 {
-				heap.Pop(h)
-			}
-		}
-	}
-
-	om = max(om, (*h)[0])
-
-	out(oa)
-	out(om)
-
-}
-
-// An IntHeap is a min-heap of ints.
-type IntHeap []int
-
-func (h IntHeap) Len() int           { return len(h) }
-func (h IntHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *IntHeap) Push(x interface{}) {
-	// Push and Pop use pointer receivers because they modify the slice's length,
-	// not just its contents.
-	*h = append(*h, x.(int))
-}
-
-func (h *IntHeap) Pop() interface{} {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
+		return max(dp[n][0], dp[n][1]) > 0
+	})
+	out(float64(ra) / 1000)
+	out(rm)
 }
 
 // ==================================================
@@ -571,12 +492,14 @@ func minvfermat(a, m int) int {
 	}
 */
 func bs(ok, ng int, f func(int) bool) int {
+
 	if !f(ok) {
 		return -1
 	}
 	if f(ng) {
 		return ng
 	}
+
 	for abs(ok-ng) > 1 {
 		mid := (ok + ng) / 2
 
