@@ -507,6 +507,10 @@ func popcount(a int) int {
 	return bits.OnesCount(uint(a))
 }
 
+func bitlen(a int) int {
+	return bits.Len(uint(a))
+}
+
 func xor(a, b bool) bool { return a != b }
 
 // ==================================================
