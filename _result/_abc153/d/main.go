@@ -21,20 +21,13 @@ func main() {
 
 	defer flush()
 
-	o := 0
+	o := 1
 	h := ni()
-
-	maxn := 0
-	for i := 0; i < 64; i++ {
-		if h&(1<<i) != 0 {
-			maxn = i
-		}
-	}
-	o = 2
-	for i := 0; i < maxn; i++ {
+	for i := 0; i < bits.Len(uint(h)); i++ {
 		o *= 2
 	}
 	out(o - 1)
+
 }
 
 // ==================================================
