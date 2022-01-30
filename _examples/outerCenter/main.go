@@ -1,4 +1,4 @@
-// abc160 f
+// abc151 f
 package main
 
 import (
@@ -22,22 +22,78 @@ func main() {
 
 	defer flush()
 
+	o := 1000.0
 	n := ni()
-	edges := make([][]edge, n)
-	for i := 0; i < n-1; i++ {
-		s, t := ni2()
-		s--
-		t--
-		tidx := len(edges[t])
-		sidx := len(edges[s])
-		edges[s] = append(edges[s], edge{index: tidx, to: t})
-		edges[t] = append(edges[t], edge{index: sidx, to: s})
-	}
-	tree := newtree(n, 0, edges)
-	tree.rerooting()
+	ns := make([]pointf, n)
 	for i := 0; i < n; i++ {
-		out(tree.nodeRes[i].num)
+		ns[i] = pointf{float64(ni()), float64(ni())}
 	}
+	if n == 2 {
+		cx := (ns[0].x + ns[1].x) / 2
+		cy := (ns[0].y + ns[1].y) / 2
+		x2 := ns[0].x - cx
+		y2 := ns[0].y - cy
+		out(math.Sqrt(x2*x2 + y2*y2))
+		return
+	}
+	for i := 0; i < n; i++ {
+		for j := i + 1; j < n; j++ {
+			cx := (ns[i].x + ns[j].x) / 2
+			cy := (ns[i].y + ns[j].y) / 2
+			to := 0.0
+			for k := 0; k < n; k++ {
+				x2 := ns[k].x - cx
+				y2 := ns[k].y - cy
+				t := math.Sqrt(x2*x2 + y2*y2)
+				if t > to {
+					to = t
+				}
+			}
+			if to < o {
+				o = to
+			}
+			for l := j + 1; l < n; l++ {
+				cx, cy, valid := outerCenter(ns[i], ns[j], ns[l])
+				if !valid {
+					continue
+				}
+				to := 0.0
+				for k := 0; k < n; k++ {
+					x2 := ns[k].x - cx
+					y2 := ns[k].y - cy
+					t := math.Sqrt(x2*x2 + y2*y2)
+					if t > to {
+						to = t
+					}
+				}
+				if to < o {
+					o = to
+				}
+			}
+		}
+	}
+
+	out(o)
+}
+
+func outerCenter(p1, p2, p3 pointf) (float64, float64, bool) {
+	p1l := p1.x*p1.x + p1.y*p1.y
+	p2l := p2.x*p2.x + p2.y*p2.y
+	p3l := p3.x*p3.x + p3.y*p3.y
+	ty := 2*(p3.x-p1.x)*(p1.y-p2.y) - 2*(p2.x-p1.x)*(p1.y-p3.y)
+	if ty == 0 {
+		return 0.0, 0.0, false
+	}
+	var px, py float64
+	py = ((p3.x-p1.x)*(p1l-p2l) - (p2.x-p1.x)*(p1l-p3l)) / ty
+	if p2.x-p1.x != 0 {
+		px = (2*(p1.y-p2.y)*py - p1l + p2l) / (2 * (p2.x - p1.x))
+	} else if p3.x-p1.x != 0 {
+		px = (2*(p1.y-p3.y)*py - p1l + p3l) / (2 * (p3.x - p1.x))
+	} else {
+		return 0.0, 0.0, false
+	}
+	return px, py, true
 }
 
 // ==================================================
@@ -268,6 +324,17 @@ func getAngle(x, y float64) float64 {
 	return math.Atan2(y, x) * 180 / math.Pi
 }
 
+func permutation(n int, k int) int {
+	if k > n || k <= 0 {
+		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
+	}
+	v := 1
+	for i := 0; i < k; i++ {
+		v *= (n - i)
+	}
+	return v
+}
+
 /*
 	for {
 
@@ -323,6 +390,10 @@ func newcombFactorial(n int) *combFactorial {
 		fac:    fac,
 		facinv: facinv,
 	}
+}
+
+func (c *combFactorial) factorial(n int) int {
+	return c.fac[n]
 }
 
 func (c *combFactorial) combination(n, r int) int {
@@ -503,6 +574,10 @@ func nthbit(a int, n int) int {
 
 func popcount(a int) int {
 	return bits.OnesCount(uint(a))
+}
+
+func bitlen(a int) int {
+	return bits.Len(uint(a))
 }
 
 func xor(a, b bool) bool { return a != b }
@@ -1318,18 +1393,14 @@ func (s lazystree) debug2() {
 // ==================================================
 
 type tree struct {
-	size            int
-	root            int
-	edges           [][]edge
-	parentsize      int
-	parent          []int
-	depth           []int
-	orderidx        int
-	order           []int
-	childSubtreeRes [][]T
-	nodeRes         []T
-	identity        T
-	ioa             [][]int
+	size       int
+	root       int
+	edges      [][]edge
+	parentsize int
+	parent     [][]int
+	depth      []int
+	orderidx   int
+	order      []int
 }
 
 /*
@@ -1346,89 +1417,42 @@ type tree struct {
 	tree.init()
 */
 func newtree(size int, root int, edges [][]edge) *tree {
-	parent := make([]int, size)
-	childSubtreeRes := make([][]T, size)
-	for i := 0; i < size; i++ {
-		childSubtreeRes[i] = make([]T, len(edges[i]))
+	parentsize := int(math.Log2(float64(size))) + 1
+	parent := make([][]int, parentsize)
+	for i := 0; i < parentsize; i++ {
+		parent[i] = make([]int, size)
 	}
+	depth := make([]int, size)
 	order := make([]int, size)
-	nodeRes := make([]T, size)
-
 	return &tree{
-		size:            size,
-		root:            root,
-		edges:           edges,
-		parent:          parent,
-		order:           order,
-		childSubtreeRes: childSubtreeRes,
-		nodeRes:         nodeRes,
-		identity:        T{0, 1},
+		size:       size,
+		root:       root,
+		edges:      edges,
+		parentsize: parentsize,
+		parent:     parent,
+		depth:      depth,
+		order:      order,
 	}
 }
 
-type T struct {
-	size, num int
-}
-
-func (t *tree) rerooting() {
+func (t *tree) init() {
 	t.dfs(t.root, -1, 0)
-
-	cf := newcombFactorial(200050)
-
-	merge := func(l, r T) T {
-		if l.size == 0 {
-			return r
-		}
-		if r.size == 0 {
-			return l
-		}
-		total := int(l.size + r.size)
-		res := cf.combination(total, l.size)
-		res = mmul(res, l.num)
-		res = mmul(res, r.num)
-		return T{total, res}
-	}
-	addNode := func(t T, i int) T {
-		return T{t.size + 1, t.num}
-	}
-
-	for i := t.orderidx - 1; i >= 1; i-- {
-		v := t.order[i]
-		p := t.parent[v]
-		pidx := -1
-		result := t.identity
-
-		for j, nv := range t.edges[v] {
-			if nv.to == p {
-				pidx = nv.index
-				continue
+	for i := 0; i+1 < t.parentsize; i++ {
+		for j := 0; j < t.size; j++ {
+			if t.parent[i][j] < 0 {
+				t.parent[i+1][j] = -1
+			} else {
+				t.parent[i+1][j] = t.parent[i][t.parent[i][j]]
 			}
-			result = merge(result, t.childSubtreeRes[v][j])
 		}
-		t.childSubtreeRes[p][pidx] = addNode(result, v)
-	}
-
-	for i := 0; i < t.orderidx; i++ {
-		v := t.order[i]
-		accumsFromTail := make([]T, len(t.edges[v]))
-		accumsFromTail[len(accumsFromTail)-1] = t.identity
-		for j := len(accumsFromTail) - 1; j >= 1; j-- {
-			accumsFromTail[j-1] = merge(t.childSubtreeRes[v][j], accumsFromTail[j])
-		}
-		accum := t.identity
-		for j := 0; j < len(accumsFromTail); j++ {
-			result := addNode(merge(accum, accumsFromTail[j]), v)
-			t.childSubtreeRes[t.edges[v][j].to][t.edges[v][j].index] = result
-			accum = merge(accum, t.childSubtreeRes[v][j])
-		}
-		t.nodeRes[v] = addNode(accum, v)
 	}
 }
 
 func (t *tree) dfs(v, p, d int) {
-	t.order[t.orderidx] = v
+	t.order[v] = t.orderidx
 	t.orderidx++
-	t.parent[v] = p
+	t.parent[0][v] = p
+	t.depth[v] = d
 	for _, nv := range t.edges[v] {
 		if nv.to != p {
 			t.dfs(nv.to, v, d+1)
@@ -1436,16 +1460,45 @@ func (t *tree) dfs(v, p, d int) {
 	}
 }
 
+func (t *tree) lca(u, v int) int {
+	if t.depth[u] > t.depth[v] {
+		u, v = v, u
+	}
+	for i := 0; i < t.parentsize; i++ {
+		if (t.depth[v]-t.depth[u])>>i&1 == 1 {
+			v = t.parent[i][v]
+		}
+	}
+	if u == v {
+		return u
+	}
+	for i := t.parentsize - 1; i >= 0; i-- {
+		if t.parent[i][u] != t.parent[i][v] {
+			u = t.parent[i][u]
+			v = t.parent[i][v]
+		}
+	}
+	return t.parent[0][u]
+}
+
+func (t *tree) dist(u, v int) int {
+	return t.depth[u] + t.depth[v] - t.depth[t.lca(u, v)]*2
+}
+
+func (t *tree) auxiliarytree(sl []int) []int {
+	sort.Slice(sl, func(i, j int) bool { return t.order[sl[i]] < t.order[sl[j]] })
+	return sl
+}
+
 // ==================================================
 // graph
 // ==================================================
 
 type edge struct {
-	from  int
-	to    int
-	index int
-	cost  int
-	rev   int
+	from int
+	to   int
+	cost int
+	rev  int
 }
 
 func setDualEdge(edges [][]edge, s, t, c int) {

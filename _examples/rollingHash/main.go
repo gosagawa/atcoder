@@ -1,4 +1,4 @@
-//typical90_47
+// typical90 au
 package main
 
 import (

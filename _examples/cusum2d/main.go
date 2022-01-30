@@ -1,3 +1,4 @@
+// abc203 d
 package main
 
 import (
@@ -15,7 +16,6 @@ import (
 var sc = bufio.NewScanner(os.Stdin)
 var wtr = bufio.NewWriter(os.Stdout)
 
-// abc203
 func main() {
 
 	defer flush()

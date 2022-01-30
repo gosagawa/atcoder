@@ -1,3 +1,4 @@
+// typical90 i
 package main
 
 import (
@@ -16,7 +17,6 @@ import (
 var sc = bufio.NewScanner(os.Stdin)
 var wtr = bufio.NewWriter(os.Stdout)
 
-// typical90 i
 func main() {
 
 	defer flush()
