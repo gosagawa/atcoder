@@ -18,6 +18,9 @@ entr:
 d:
 	./shell/download.sh
 
+du:
+	./shell/downloadurl.sh
+
 t:
 	oj t -c "go run main.go"
 
