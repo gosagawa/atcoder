@@ -1,2 +1,2 @@
 #!/bin/bash
-oj s main.go
+oj s $1
