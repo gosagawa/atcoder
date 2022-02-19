@@ -740,6 +740,10 @@ func (h *IntHeap) Pop() interface{} {
 	return x
 }
 
+func (h *IntHeap) IsEmpty() bool {
+	return h.Len() == 0
+}
+
 func (h *IntHeap) Min() interface{} {
 	return (*h)[0]
 }
@@ -750,16 +754,21 @@ type pq struct {
 }
 
 /*
-	graph.comps = []compFunc{
-		func(p, q interface{}) int {
-			if p.(state).score < q.(state).score {
-				return -1
-			} else if p.(state).score == q.(state).score {
-				return 0
-			}
-			return 1
-		},
-	}
+	pq := newpq([]compFunc{func(p, q interface{}) int {
+		if p.(edge).cost < q.(edge).cost {
+			return -1
+		} else if p.(edge).cost == q.(edge).cost {
+			return 0
+		}
+		return 1
+	}})
+	heap.Init(pq)
+	heap.Push(pq, edge{from: 3, to: 3, cost: 2})
+	heap.Push(pq, edge{from: 2, to: 2, cost: 3})
+	out(heap.Pop(pq).(edge))
+	out(pq.Min().(edge))
+	heap.Pop(pq)
+	out(pq.Len())
 */
 type compFunc func(p, q interface{}) int
 
@@ -803,13 +812,12 @@ func (pq *pq) Pop() interface{} {
 	return item
 }
 
-func (pq *pq) Top() interface{} {
-	n := pq.Len()
-	return pq.arr[n-1]
-}
-
 func (pq *pq) IsEmpty() bool {
 	return pq.Len() == 0
+}
+
+func (pq *pq) Min() interface{} {
+	return pq.arr[0]
 }
 
 // ==================================================
