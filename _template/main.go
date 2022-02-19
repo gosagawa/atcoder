@@ -713,35 +713,35 @@ func pointfDist(a, b pointf) float64 {
 // ==================================================
 
 /*
-  h := &int2dHeap{&int2d{dist[r], r}}
-  heap.Init(h)
-  v := heap.Pop(h).(*int2d)
-  heap.Push(h, &int2d{x, y})
+	h := &IntHeap{}
+	heap.Init(h)
+	heap.Push(h, 2)
+	heap.Push(h, 3)
+	out(heap.Pop(h).(int))
+	out(h.Min().(int))
+	heap.Pop(h)
+	out(h.Len())
 */
+type IntHeap []int
 
-type int2d [2]int
+func (h IntHeap) Len() int           { return len(h) }
+func (h IntHeap) Less(i, j int) bool { return h[i] < h[j] }
+func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
 
-type int2dHeap []*int2d
-
-func (h int2dHeap) Len() int           { return len(h) }
-func (h int2dHeap) Less(i, j int) bool { return h[i][0] < h[j][0] }
-func (h int2dHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *int2dHeap) Push(x interface{}) {
-	*h = append(*h, x.(*int2d))
+func (h *IntHeap) Push(x interface{}) {
+	*h = append(*h, x.(int))
 }
 
-func (h *int2dHeap) Pop() interface{} {
+func (h *IntHeap) Pop() interface{} {
 	old := *h
 	n := len(old)
 	x := old[n-1]
-	old[n-1] = nil
 	*h = old[0 : n-1]
 	return x
 }
 
-func (h *int2dHeap) IsEmpty() bool {
-	return h.Len() == 0
+func (h *IntHeap) Min() interface{} {
+	return (*h)[0]
 }
 
 type pq struct {
