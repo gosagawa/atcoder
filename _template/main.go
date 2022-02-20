@@ -647,6 +647,10 @@ func cocom(sl []int) ([]int, map[int]int) {
 	return rsl, rm
 }
 
+func popBack(sl []int) (int, []int) {
+	return sl[len(sl)-1], sl[:len(sl)-1]
+}
+
 func addIdx(pos, v int, sl []int) []int {
 	if len(sl) == pos {
 		sl = append(sl, v)
