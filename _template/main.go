@@ -1487,6 +1487,50 @@ func newgraph(size int, edges [][]edge) *graph {
 /*
 	v, e := ni2()
 	edges := make([][]edge, v)
+	deg := make([]int, v)
+	for i := 0; i < e; i++ {
+		s, t, c := ni3()
+		s--
+		t--
+		edges[s] = append(edges[s], edge{to: t, cost: c})
+		deg[t]++
+	}
+	graph := newgraph(v, edges)
+	isdag, r := graph.topologicalSort(deg)
+*/
+func (g *graph) topologicalSort(deg []int) (bool, []int) {
+
+	r := []int{}
+	q := list.New()
+	for i := 0; i < g.size; i++ {
+		if deg[i] == 0 {
+			q.PushBack(i)
+		}
+	}
+	e := q.Front()
+	for e != nil {
+		t := e.Value.(int)
+		r = append(r, t)
+		for _, edge := range g.edges[t] {
+			deg[edge.to]--
+			if deg[edge.to] == 0 {
+				q.PushBack(edge.to)
+			}
+		}
+
+		e = e.Next()
+	}
+	for _, v := range deg {
+		if v != 0 {
+			return false, nil
+		}
+	}
+	return true, r
+}
+
+/*
+	v, e := ni2()
+	edges := make([][]edge, v)
 
 	for i := 0; i < e; i++ {
 		s, t, c := ni3()
