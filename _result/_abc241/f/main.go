@@ -26,30 +26,29 @@ func main() {
 	xs, ys := ni2s(n)
 	xms := make(map[int][]int)
 	yms := make(map[int][]int)
-	pttoi := make(map[point]int)
-	haso := make(map[point]bool)
+	pttoim := make(map[point]int)
 
 	idx := 1
-	for i := 0; i < n; i++ {
-		haso[point{xs[i], ys[i]}] = true
-	}
 	for i := 0; i < n; i++ {
 		xms[xs[i]] = append(xms[xs[i]], ys[i])
 		yms[ys[i]] = append(yms[ys[i]], xs[i])
 		dr := []point{{0, -1}, {-1, 0}, {1, 0}, {0, 1}}
 		for _, d := range dr {
 			np := pointAdd(point{xs[i], ys[i]}, d)
-			if np.isValid(h, w) && !haso[point{np.x, np.y}] {
-				pttoi[point{np.x, np.y}] = idx
+			if np.isValid(h, w) {
+				pttoim[point{np.x, np.y}] = idx
 				idx++
 			}
 		}
 	}
-	if pttoi[point{sx, sy}] == 0 {
-		pttoi[point{sx, sy}] = idx
+	pttoi := func(x, y int) int {
+		return pttoim[point{x, y}]
+	}
+	if pttoi(sx, sy) == 0 {
+		pttoim[point{sx, sy}] = idx
 		idx++
 	}
-	if pttoi[point{gx, gy}] == 0 {
+	if pttoi(gx, gy) == 0 {
 		out(-1)
 		return
 	}
@@ -65,14 +64,14 @@ func main() {
 	addxedge := func(x, y int) {
 		i, hasK := lowerBound(y, xms[x])
 		if hasK {
-			s := pttoi[point{x, y}]
-			t := pttoi[point{x, xms[x][i] + 1}]
+			s := pttoi(x, y)
+			t := pttoi(x, xms[x][i]+1)
 			edges[s] = append(edges[s], edge{to: t, cost: 1})
 		}
 		i, hasK = upperBound(y, xms[x])
 		if hasK {
-			s := pttoi[point{x, y}]
-			t := pttoi[point{x, xms[x][i] - 1}]
+			s := pttoi(x, y)
+			t := pttoi(x, xms[x][i]-1)
 			edges[s] = append(edges[s], edge{to: t, cost: 1})
 		}
 	}
@@ -80,14 +79,14 @@ func main() {
 	addyedge := func(x, y int) {
 		i, hasK := lowerBound(x, yms[y])
 		if hasK {
-			s := pttoi[point{x, y}]
-			t := pttoi[point{yms[y][i] + 1, y}]
+			s := pttoi(x, y)
+			t := pttoi(yms[y][i]+1, y)
 			edges[s] = append(edges[s], edge{to: t, cost: 1})
 		}
 		i, hasK = upperBound(x, yms[y])
 		if hasK {
-			s := pttoi[point{x, y}]
-			t := pttoi[point{yms[y][i] - 1, y}]
+			s := pttoi(x, y)
+			t := pttoi(yms[y][i]-1, y)
 			edges[s] = append(edges[s], edge{to: t, cost: 1})
 		}
 	}
@@ -97,27 +96,27 @@ func main() {
 		dr := []point{{-1, 0}, {1, 0}}
 		for _, d := range dr {
 			np := pointAdd(point{xs[i], ys[i]}, d)
-			if np.isValid(h, w) && !haso[point{np.x, np.y}] {
+			if np.isValid(h, w) {
 				addxedge(np.x, np.y)
 			}
 		}
 		dr = []point{{0, -1}, {0, 1}}
 		for _, d := range dr {
 			np := pointAdd(point{xs[i], ys[i]}, d)
-			if np.isValid(h, w) && !haso[point{np.x, np.y}] {
+			if np.isValid(h, w) {
 				addyedge(np.x, np.y)
 			}
 		}
 	}
 
 	graph := newgraph(idx, edges)
-	dist := graph.dijkstra(pttoi[point{sx, sy}])
-	if dist[pttoi[point{gx, gy}]] == inf {
+	dist := graph.dijkstra(pttoi(sx, sy))
+	if dist[pttoi(gx, gy)] == inf {
 		out(-1)
 		return
 	}
 
-	out(dist[pttoi[point{gx, gy}]])
+	out(dist[pttoi(gx, gy)])
 }
 
 func lowerBound(i int, sl []int) (int, bool) {
