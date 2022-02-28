@@ -466,10 +466,11 @@ func minvfermat(a, m int) int {
 // ==================================================
 // binarysearch
 // ==================================================
+
 /*
-	f := func(c int) bool {
-		return false
-	}
+	o = bs(0, len(sl)-1, func(c int) bool {
+		return true
+	})
 */
 func bs(ok, ng int, f func(int) bool) int {
 	if !f(ok) {
@@ -479,6 +480,26 @@ func bs(ok, ng int, f func(int) bool) int {
 		return ng
 	}
 	for abs(ok-ng) > 1 {
+		mid := (ok + ng) / 2
+
+		if f(mid) {
+			ok = mid
+		} else {
+			ng = mid
+		}
+	}
+
+	return ok
+}
+
+/*
+	o = bsfl(0.0, 100.0, 100, func(c float64) bool {
+		return true
+	})
+*/
+func bsfl(ok, ng float64, c int, f func(float64) bool) float64 {
+	for i := 0; i < c; i++ {
+
 		mid := (ok + ng) / 2
 
 		if f(mid) {
@@ -663,6 +684,32 @@ func addIdx(pos, v int, sl []int) []int {
 
 func delIdx(pos int, sl []int) []int {
 	return append(sl[:pos], sl[pos+1:]...)
+}
+
+func lowerBound(i int, sl []int) (int, bool) {
+	if len(sl) == 0 {
+		return 0, false
+	}
+	idx := bs(0, len(sl)-1, func(c int) bool {
+		return sl[c] < i
+	})
+	if idx == -1 {
+		return 0, false
+	}
+	return idx, true
+}
+
+func upperBound(i int, sl []int) (int, bool) {
+	if len(sl) == 0 {
+		return 0, false
+	}
+	idx := bs(0, len(sl)-1, func(c int) bool {
+		return sl[c] <= i
+	})
+	if idx == len(sl)-1 {
+		return 0, false
+	}
+	return idx + 1, true
 }
 
 // ==================================================
