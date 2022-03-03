@@ -23,8 +23,7 @@ func main() {
 
 	o := 0
 	n := ni()
-	ns := int(math.Sqrt(float64(n)))
-	o = ns * ns
+	ns := nis(n)
 	out(o)
 }
 
