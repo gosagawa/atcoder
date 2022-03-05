@@ -23,14 +23,13 @@ func main() {
 
 	n := ni()
 	s := NewRBMAP()
-	m := make(map[int]int)
 	for q := 0; q < n; q++ {
 		t := ni()
 		x := ni()
 		switch t {
 		case 1:
-			s.Insert(x, 1)
-			m[x]++
+			v := s.Lookup(x)
+			s.Insert(x, v+1)
 		case 2:
 			k := ni()
 			x++
@@ -41,7 +40,7 @@ func main() {
 					out(-1)
 					break
 				}
-				vc := m[v]
+				vc := s.Lookup(v)
 				k -= vc
 				if k <= 0 {
 					out(v)
@@ -59,7 +58,7 @@ func main() {
 					out(-1)
 					break
 				}
-				vc := m[v]
+				vc := s.Lookup(v)
 				k -= vc
 				if k <= 0 {
 					out(v)
@@ -2067,7 +2066,7 @@ func (m *RBMAP) insertSub(t *RBMAPNode, key int, x int) *RBMAPNode {
 	if cmp < 0 {
 		t.lst = m.insertSub(t.lst, key, x)
 		return m.balance(t)
-	} else if cmp >= 0 {
+	} else if cmp > 0 {
 		t.rst = m.insertSub(t.rst, key, x)
 		return m.balance(t)
 	}
