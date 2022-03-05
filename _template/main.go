@@ -140,12 +140,19 @@ func out(v ...interface{}) {
 	}
 }
 
-func outYN(v bool) {
-	if v {
-		out("Yes")
-	} else {
-		out("No")
+func outwoln(v ...interface{}) {
+	_, e := fmt.Fprint(wtr, v...)
+	if e != nil {
+		panic(e)
 	}
+}
+
+func outis(sl []int) {
+	r := make([]string, len(sl))
+	for i, v := range sl {
+		r[i] = itoa(v)
+	}
+	out(strings.Join(r, " "))
 }
 
 func flush() {
@@ -622,7 +629,7 @@ func sort2ar(sl [][2]int, setters ...Sort2ArOption) {
 // slice
 // ==================================================
 
-func isl(l int, def int) []int {
+func is(l int, def int) []int {
 	sl := make([]int, l)
 	for i := 0; i < l; i++ {
 		sl[i] = def
