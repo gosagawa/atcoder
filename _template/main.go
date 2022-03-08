@@ -335,10 +335,16 @@ func (c *combFactorial) factorial(n int) int {
 }
 
 func (c *combFactorial) combination(n, r int) int {
+	if r > n {
+		return 0
+	}
 	return mmul(mmul(c.fac[n], c.facinv[r]), c.facinv[n-r])
 }
 
 func (c *combFactorial) permutation(n, r int) int {
+	if r > n {
+		return 0
+	}
 	return mmul(c.fac[n], c.facinv[n-r])
 }
 
@@ -879,11 +885,28 @@ func (pq *pq) Min() interface{} {
 }
 
 // ==================================================
-// cusum2d
+// cusum
 // ==================================================
 
+type cusum struct {
+	s []int
+}
+
+func newcusum(sl []int) *cusum {
+	c := &cusum{}
+	c.s = make([]int, len(sl)+1)
+	for i, v := range sl {
+		c.s[i+1] = c.s[i] + v
+	}
+	return c
+}
+
+func (c *cusum) get(f, t int) int {
+	return c.s[t+1] - c.s[f]
+}
+
 /*
-	cusum2d := newCusum2d(n, n)
+	cusum2d := newcusum2d(n, n)
 	for i := 0; i < n; i++ {
 		for j := 0; j < n; j++ {
 			cusum2d.set(i, j, 1)
@@ -900,7 +923,7 @@ type cusum2d struct {
 	s [][]int
 }
 
-func newCusum2d(n, m int) *cusum2d {
+func newcusum2d(n, m int) *cusum2d {
 	c := &cusum2d{}
 	c.s = make([][]int, n+1)
 	for i := 0; i <= n; i++ {
