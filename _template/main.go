@@ -655,6 +655,17 @@ func is(l int, def int) []int {
 	return sl
 }
 
+//	out(stois("abcde", 'a'))
+//	out(stois("abcde", 'a'-1))
+//	out(stois("12345", '0'))
+func stois(s string, baseRune rune) []int {
+	r := make([]int, len(s))
+	for i, v := range s {
+		r[i] = int(v - baseRune)
+	}
+	return r
+}
+
 func reverse(sl []interface{}) {
 	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
 		sl[i], sl[j] = sl[j], sl[i]
