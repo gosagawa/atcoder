@@ -1,3 +1,4 @@
+// abc141 e
 package main
 
 import (
@@ -23,8 +24,52 @@ func main() {
 
 	o := 0
 	n := ni()
-	ns := nis(n)
+	s := ns()
+	for i := 0; i < n; i++ {
+		ts := s[i:]
+		zs := getzs(ts)
+		for j, v := range zs {
+			if v <= j {
+				o = max(o, v)
+			}
+		}
+	}
+
 	out(o)
+}
+
+func getzs(s string) []int {
+	n := len(s)
+	z := make([]int, n)
+	z[0] = n
+	var i, j int
+	i = 1
+	for {
+		if i >= n {
+			break
+		}
+		for {
+			if i+j >= n || s[j] != s[i+j] {
+				break
+			}
+			j++
+		}
+		z[i] = j
+		if j == 0 {
+			i++
+			continue
+		}
+		k := 1
+		for {
+			if k >= j || k+z[k] >= j {
+				break
+			}
+			k++
+		}
+		i += k
+		j -= k
+	}
+	return z
 }
 
 // ==================================================
