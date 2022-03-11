@@ -93,7 +93,6 @@ func (r *rh) getNlenHash(n int) []int {
 	}
 	rs[0] = t
 	for i := n; i < r.sl; i++ {
-		//out(rs[i-n], mulrh(rs[i-n], r.base), mulrh(r.si[i-n], r.t[n]), r.si[i])
 		rs[i-n+1] = calcmodrh(mulrh(rs[i-n], r.base) - mulrh(r.si[i-n], r.t[n]) + r.si[i])
 	}
 	return rs
@@ -130,46 +129,6 @@ func calcmodrh(x int) int {
 		res -= mod2611
 	}
 	return res
-}
-
-func contain(a, b string) bool {
-	al := len(a)
-	bl := len(b)
-	ai := stoisl(a)
-	bi := stoisl(b)
-	if al > bl {
-		return false
-	}
-	base := mod
-
-	t := 1
-	for i := 0; i < al; i++ {
-		t *= base
-	}
-	var ah, bh int
-	for i := 0; i < al; i++ {
-		ah *= ah*base + ai[i]
-		bh *= bh*base + bi[i]
-	}
-	for i := 0; i+al <= bl; i++ {
-		if ah == bh {
-			return true
-		}
-		if i+al < bl {
-			bh = bh*base + bi[i+al] - (bi[i] * t)
-		}
-	}
-	return false
-}
-
-func stoisl(s string) []int {
-	sl := len(s)
-	r := make([]int, sl)
-	for i, v := range s {
-		r[i] = int(rune(v-'A')) + 1
-	}
-	return r
-
 }
 
 // ==================================================
