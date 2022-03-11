@@ -24,27 +24,29 @@ func main() {
 	o := 0
 	n := ni()
 	s := ns()
-	o = bs(1, n/2, func(c int) bool {
-		mp := make(map[string]int)
-		base := string(s[:c])
-		mp[base] = 0
-		for i := 1; i <= n-c; i++ {
-			base += string(s[i+c-1])
-			base = string(base[1:])
-			if v, ok := mp[base]; ok {
-				if i-v >= c {
+	ss := make([]int, n)
+	for i := 0; i < n; i++ {
+		ss[i] = int(s[i] - 'a' + 1)
+	}
+
+	rh := newrh(ss, mod)
+	o = bs(0, n/2, func(c int) bool {
+		if c == 0 {
+			return true
+		}
+		m := make(map[int]int)
+		hs := rh.getNlenHash(c)
+		for j, v := range hs {
+			if k, ok := m[v]; ok {
+				if k+c <= j {
 					return true
 				}
 			} else {
-				mp[base] = i
+				m[v] = j
 			}
 		}
 		return false
 	})
-	if o == -1 {
-		out(0)
-		return
-	}
 
 	out(o)
 }
@@ -68,16 +70,32 @@ func newrh(si []int, base int) *rh {
 	r.shr = make([]int, r.sl+1)
 	r.base = base
 	r.baseinv = minv(base, mod2611)
+	r.t[0] = 1
+	for i := 0; i < r.sl; i++ {
+		r.t[i+1] = calcmodrh(mulrh(r.t[i], r.base))
+	}
 
 	return r
 }
 
 func (r *rh) initHash() {
-	r.t[0] = 1
 	for i := 0; i < r.sl; i++ {
-		r.t[i+1] = calcmodrh(mulrh(r.t[i], r.base))
 		r.sh[i+1] = calcmodrh(mulrh(r.sh[i], r.base) + r.si[i])
 	}
+}
+
+func (r *rh) getNlenHash(n int) []int {
+	rs := make([]int, r.sl-n+1)
+	t := 0
+	for i := 0; i < n; i++ {
+		t = calcmodrh(mulrh(t, r.base) + r.si[i])
+	}
+	rs[0] = t
+	for i := n; i < r.sl; i++ {
+		//out(rs[i-n], mulrh(rs[i-n], r.base), mulrh(r.si[i-n], r.t[n]), r.si[i])
+		rs[i-n+1] = calcmodrh(mulrh(rs[i-n], r.base) - mulrh(r.si[i-n], r.t[n]) + r.si[i])
+	}
+	return rs
 }
 func (r *rh) initReverseHash() {
 
@@ -672,6 +690,18 @@ func bitlen(a int) int {
 }
 
 func xor(a, b bool) bool { return a != b }
+
+func debugbit(n int) string {
+	r := ""
+	for i := bitlen(n) - 1; i >= 0; i-- {
+		if n&(1<<i) != 0 {
+			r += "1"
+		} else {
+			r += "0"
+		}
+	}
+	return r
+}
 
 // ==================================================
 // string
