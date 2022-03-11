@@ -1,10 +1,9 @@
-// abc141 e
+// typical90 au
 package main
 
 import (
 	"bufio"
 	"container/heap"
-	"container/list"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -23,31 +22,55 @@ func main() {
 	defer flush()
 
 	o := 0
+
 	n := ni()
 	s := ns()
+	t := ns()
 	ss := make([]int, n)
+	ts := make([]int, n)
+	cts := make([]int, n)
 	for i := 0; i < n; i++ {
-		ss[i] = int(s[i] - 'a' + 1)
+		switch string(s[i]) {
+		case "G":
+			ss[i] = 1
+		case "B":
+			ss[i] = 2
+		}
+		switch string(t[i]) {
+		case "G":
+			ts[i] = 1
+		case "B":
+			ts[i] = 2
+		}
 	}
 
-	rh := newrh(ss, mod)
-	o = bs(0, n/2, func(c int) bool {
-		if c == 0 {
-			return true
+	trh := newrh(ts, mod)
+	trh.initHash()
+	trh.initReverseHash()
+
+	for j := 0; j < 3; j++ {
+		for i := 0; i < n; i++ {
+			cts[i] = (j - ss[i] + 3) % 3
 		}
-		m := make(map[int]int)
-		hs := rh.getNlenHash(c)
-		for j, v := range hs {
-			if k, ok := m[v]; ok {
-				if k+c <= j {
-					return true
-				}
-			} else {
-				m[v] = j
+
+		r := newrh(cts, mod)
+		r.initHash()
+		r.initReverseHash()
+
+		//		out(r.sh)
+		//		out(r.shr)
+		for i := 1; i < n; i++ {
+			if r.sh[n-i] == trh.shr[i] {
+				o++
+			}
+			if r.shr[n-i] == trh.sh[i] {
+				o++
 			}
 		}
-		return false
-	})
+		if r.sh[r.sl] == trh.sh[r.sl] {
+			o++
+		}
+	}
 
 	out(o)
 }
@@ -71,32 +94,16 @@ func newrh(si []int, base int) *rh {
 	r.shr = make([]int, r.sl+1)
 	r.base = base
 	r.baseinv = minv(base, mod2611)
-	r.t[0] = 1
-	for i := 0; i < r.sl; i++ {
-		r.t[i+1] = calcmodrh(mulrh(r.t[i], r.base))
-	}
 
 	return r
 }
 
 func (r *rh) initHash() {
+	r.t[0] = 1
 	for i := 0; i < r.sl; i++ {
+		r.t[i+1] = calcmodrh(mulrh(r.t[i], r.base))
 		r.sh[i+1] = calcmodrh(mulrh(r.sh[i], r.base) + r.si[i])
 	}
-}
-
-func (r *rh) getNlenHash(n int) []int {
-	rs := make([]int, r.sl-n+1)
-	t := 0
-	for i := 0; i < n; i++ {
-		t = calcmodrh(mulrh(t, r.base) + r.si[i])
-	}
-	rs[0] = t
-	for i := n; i < r.sl; i++ {
-		//out(rs[i-n], mulrh(rs[i-n], r.base), mulrh(r.si[i-n], r.t[n]), r.si[i])
-		rs[i-n+1] = calcmodrh(mulrh(rs[i-n], r.base) - mulrh(r.si[i-n], r.t[n]) + r.si[i])
-	}
-	return rs
 }
 func (r *rh) initReverseHash() {
 
@@ -177,9 +184,7 @@ func stoisl(s string) []int {
 // ==================================================
 
 const inf = math.MaxInt64
-const mod1000000007 = 1000000007
-const mod998244353 = 998244353
-const mod = mod1000000007
+const mod = 1000000007
 
 func init() {
 	sc.Buffer([]byte{}, math.MaxInt64)
@@ -218,50 +223,12 @@ func ni4() (int, int, int, int) {
 	return ni(), ni(), ni(), ni()
 }
 
-func nis(n int) []int {
+func nis(n int) sort.IntSlice {
 	a := make([]int, n)
 	for i := 0; i < n; i++ {
 		a[i] = ni()
 	}
-	return a
-}
-
-func ni2s(n int) ([]int, []int) {
-	a := make([]int, n)
-	b := make([]int, n)
-	for i := 0; i < n; i++ {
-		a[i], b[i] = ni2()
-	}
-	return a, b
-}
-
-func ni3s(n int) ([]int, []int, []int) {
-	a := make([]int, n)
-	b := make([]int, n)
-	c := make([]int, n)
-	for i := 0; i < n; i++ {
-		a[i], b[i], c[i] = ni3()
-	}
-	return a, b, c
-}
-
-func ni4s(n int) ([]int, []int, []int, []int) {
-	a := make([]int, n)
-	b := make([]int, n)
-	c := make([]int, n)
-	d := make([]int, n)
-	for i := 0; i < n; i++ {
-		a[i], b[i], c[i], d[i] = ni4()
-	}
-	return a, b, c, d
-}
-
-func ni2a(n int) [][2]int {
-	a := make([][2]int, n)
-	for i := 0; i < n; i++ {
-		a[i][0], a[i][1] = ni2()
-	}
-	return a
+	return sort.IntSlice(a)
 }
 
 func nf() float64 {
@@ -283,21 +250,6 @@ func out(v ...interface{}) {
 	if e != nil {
 		panic(e)
 	}
-}
-
-func outwoln(v ...interface{}) {
-	_, e := fmt.Fprint(wtr, v...)
-	if e != nil {
-		panic(e)
-	}
-}
-
-func outis(sl []int) {
-	r := make([]string, len(sl))
-	for i, v := range sl {
-		r[i] = itoa(v)
-	}
-	out(strings.Join(r, " "))
 }
 
 func flush() {
@@ -339,10 +291,6 @@ func atoi(s string) int {
 		panic(e)
 	}
 	return i
-}
-
-func itoa(i int) string {
-	return strconv.Itoa(i)
 }
 
 func btoi(b byte) int {
@@ -452,49 +400,35 @@ func nextPermutation(x sort.Interface) bool {
 	return true
 }
 
-type combFactorial struct {
-	fac    []int
-	facinv []int
-}
-
-func newcombFactorial(n int) *combFactorial {
-
-	fac := make([]int, n)
-	facinv := make([]int, n)
-	fac[0] = 1
-	facinv[0] = minvfermat(1, mod)
-
-	for i := 1; i < n; i++ {
-		fac[i] = mmul(i, fac[i-1])
-		facinv[i] = minvfermat(fac[i], mod)
+func combination(n int, k int) int {
+	if n-k < k {
+		k = n - k
 	}
-
-	return &combFactorial{
-		fac:    fac,
-		facinv: facinv,
+	v := 1
+	for i := 0; i < k; i++ {
+		v *= (n - i)
+		v /= (i + 1)
 	}
+	return v
 }
 
-func (c *combFactorial) factorial(n int) int {
-	return c.fac[n]
-}
-
-func (c *combFactorial) combination(n, r int) int {
-	if r > n {
-		return 0
+func modcombination(n int, k int) int {
+	if k > n || k <= 0 {
+		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
 	}
-	return mmul(mmul(c.fac[n], c.facinv[r]), c.facinv[n-r])
-}
-
-func (c *combFactorial) permutation(n, r int) int {
-	if r > n {
-		return 0
+	if n-k < k {
+		k = n - k
 	}
-	return mmul(c.fac[n], c.facinv[n-r])
+	v := 1
+	for i := 0; i < k; i++ {
+		v = mmul(v, n-i)
+		v = mdiv(v, i+1)
+	}
+	return v
 }
 
-func (c *combFactorial) homogeousProduct(n, r int) int {
-	return c.combination(n-1+r, r)
+func factorial(n int) int {
+	return permutation(n, n-1)
 }
 
 func gcd(a, b int) int {
@@ -531,38 +465,6 @@ func divisor(n int) []int {
 		divisor = append(divisor, n)
 	}
 	return divisor
-}
-
-type binom struct {
-	fac  []int
-	finv []int
-	inv  []int
-}
-
-func newbinom(n int) *binom {
-	b := &binom{
-		fac:  make([]int, n),
-		finv: make([]int, n),
-		inv:  make([]int, n),
-	}
-	b.fac[0] = 1
-	b.fac[1] = 1
-	b.inv[1] = 1
-	b.finv[0] = 1
-	b.finv[1] = 1
-	for i := 2; i < n; i++ {
-		b.fac[i] = b.fac[i-1] * i % mod
-		b.inv[i] = mod - mod/i*b.inv[mod%i]%mod
-		b.finv[i] = b.finv[i-1] * b.inv[i] % mod
-	}
-	return b
-}
-
-func (b *binom) get(n, r int) int {
-	if n < r || n < 0 || r < 0 {
-		return 0
-	}
-	return b.fac[n] * b.finv[r] % mod * b.finv[n-r] % mod
 }
 
 // ==================================================
@@ -624,40 +526,13 @@ func minvfermat(a, m int) int {
 // ==================================================
 // binarysearch
 // ==================================================
-
 /*
-	o = bs(0, len(sl)-1, func(c int) bool {
-		return true
-	})
+	f := func(c int) bool {
+		return false
+	}
 */
 func bs(ok, ng int, f func(int) bool) int {
-	if !f(ok) {
-		return -1
-	}
-	if f(ng) {
-		return ng
-	}
 	for abs(ok-ng) > 1 {
-		mid := (ok + ng) / 2
-
-		if f(mid) {
-			ok = mid
-		} else {
-			ng = mid
-		}
-	}
-
-	return ok
-}
-
-/*
-	o = bsfl(0.0, 100.0, 100, func(c float64) bool {
-		return true
-	})
-*/
-func bsfl(ok, ng float64, c int, f func(float64) bool) float64 {
-	for i := 0; i < c; i++ {
-
 		mid := (ok + ng) / 2
 
 		if f(mid) {
@@ -686,23 +561,7 @@ func popcount(a int) int {
 	return bits.OnesCount(uint(a))
 }
 
-func bitlen(a int) int {
-	return bits.Len(uint(a))
-}
-
 func xor(a, b bool) bool { return a != b }
-
-func debugbit(n int) string {
-	r := ""
-	for i := bitlen(n) - 1; i >= 0; i-- {
-		if n&(1<<i) != 0 {
-			r += "1"
-		} else {
-			r += "0"
-		}
-	}
-	return r
-}
 
 // ==================================================
 // string
@@ -728,13 +587,6 @@ func isUpper(b byte) bool {
 // sort
 // ==================================================
 
-type sortOrder int
-
-const (
-	asc sortOrder = iota
-	desc
-)
-
 func sorti(sl []int) {
 	sort.Sort(sort.IntSlice(sl))
 }
@@ -749,56 +601,18 @@ func sorts(sl []string) {
 	})
 }
 
-type Sort2ArOptions struct {
-	keys   []int
-	orders []sortOrder
-}
-
-type Sort2ArOption func(*Sort2ArOptions)
-
-func opt2ar(key int, order sortOrder) Sort2ArOption {
-	return func(args *Sort2ArOptions) {
-		args.keys = append(args.keys, key)
-		args.orders = append(args.orders, order)
-	}
-}
-
-// sort2ar(sl,opt2ar(1,asc))
-// sort2ar(sl,opt2ar(0,asc),opt2ar(1,asc))
-func sort2ar(sl [][2]int, setters ...Sort2ArOption) {
-	args := &Sort2ArOptions{}
-
-	for _, setter := range setters {
-		setter(args)
-	}
-
+func sort2ar(sl [][2]int, key1, key2 int) {
 	sort.Slice(sl, func(i, j int) bool {
-		for idx, key := range args.keys {
-			if sl[i][key] == sl[j][key] {
-				continue
-			}
-			switch args.orders[idx] {
-			case asc:
-				return sl[i][key] < sl[j][key]
-			case desc:
-				return sl[i][key] > sl[j][key]
-			}
+		if sl[i][key1] == sl[j][key1] {
+			return sl[i][key2] < sl[j][key2]
 		}
-		return true
+		return sl[i][key1] < sl[j][key1]
 	})
 }
 
 // ==================================================
 // slice
 // ==================================================
-
-func is(l int, def int) []int {
-	sl := make([]int, l)
-	for i := 0; i < l; i++ {
-		sl[i] = def
-	}
-	return sl
-}
 
 func reverse(sl []interface{}) {
 	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
@@ -813,73 +627,26 @@ func reversei(sl []int) {
 }
 
 func uniquei(sl []int) []int {
-	hist := make(map[int]struct{})
+	hist := map[int]bool{}
 	j := 0
-	rsl := make([]int, len(sl))
 	for i := 0; i < len(sl); i++ {
-		if _, ok := hist[sl[i]]; ok {
+		if hist[sl[i]] {
 			continue
 		}
-		rsl[j] = sl[i]
-		hist[sl[i]] = struct{}{}
+
+		a := sl[i]
+		sl[j] = a
+		hist[a] = true
 		j++
 	}
-	return rsl[:j]
+	return sl[:j]
 }
 
-// coordinate compression
-func cocom(sl []int) ([]int, map[int]int) {
-	rsl := uniquei(sl)
-	sorti(rsl)
-	rm := make(map[int]int)
-	for i := 0; i < len(rsl); i++ {
-		rm[rsl[i]] = i
-	}
-	return rsl, rm
-}
-
-func popBack(sl []int) (int, []int) {
-	return sl[len(sl)-1], sl[:len(sl)-1]
-}
-
-func addIdx(pos, v int, sl []int) []int {
-	if len(sl) == pos {
-		sl = append(sl, v)
-		return sl
-	}
-	sl = append(sl[:pos+1], sl[pos:]...)
-	sl[pos] = v
-	return sl
-}
-
-func delIdx(pos int, sl []int) []int {
-	return append(sl[:pos], sl[pos+1:]...)
-}
-
-func lowerBound(i int, sl []int) (int, bool) {
-	if len(sl) == 0 {
-		return 0, false
-	}
-	idx := bs(0, len(sl)-1, func(c int) bool {
-		return sl[c] < i
-	})
-	if idx == -1 {
-		return 0, false
-	}
-	return idx, true
-}
-
-func upperBound(i int, sl []int) (int, bool) {
-	if len(sl) == 0 {
-		return 0, false
-	}
-	idx := bs(0, len(sl)-1, func(c int) bool {
-		return sl[c] <= i
-	})
-	if idx == len(sl)-1 {
-		return 0, false
-	}
-	return idx + 1, true
+func delIdx(idx int, L []int) []int {
+	r := []int{}
+	r = append(r, L[:idx]...)
+	r = append(r, L[idx+1:]...)
+	return r
 }
 
 // ==================================================
@@ -913,60 +680,39 @@ func pointfDist(a, b pointf) float64 {
 }
 
 // ==================================================
-// queue
-// ==================================================
-
-/*
-	q := list.New()
-	q.PushBack(val)
-	e := q.Front()
-	for e != nil {
-		t := e.Value.(int)
-
-		// Do something
-
-		e = e.Next()
-    }
-*/
-
-// ==================================================
 // heap
 // ==================================================
 
 /*
-	h := &IntHeap{}
-	heap.Init(h)
-	heap.Push(h, 2)
-	heap.Push(h, 3)
-	out(heap.Pop(h).(int))
-	out(h.Min().(int))
-	heap.Pop(h)
-	out(h.Len())
+  h := &int2dHeap{&int2d{dist[r], r}}
+  heap.Init(h)
+  v := heap.Pop(h).(*int2d)
+  heap.Push(h, &int2d{x, y})
 */
-type IntHeap []int
 
-func (h IntHeap) Len() int           { return len(h) }
-func (h IntHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+type int2d [2]int
 
-func (h *IntHeap) Push(x interface{}) {
-	*h = append(*h, x.(int))
+type int2dHeap []*int2d
+
+func (h int2dHeap) Len() int           { return len(h) }
+func (h int2dHeap) Less(i, j int) bool { return h[i][0] < h[j][0] }
+func (h int2dHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *int2dHeap) Push(x interface{}) {
+	*h = append(*h, x.(*int2d))
 }
 
-func (h *IntHeap) Pop() interface{} {
+func (h *int2dHeap) Pop() interface{} {
 	old := *h
 	n := len(old)
 	x := old[n-1]
+	old[n-1] = nil
 	*h = old[0 : n-1]
 	return x
 }
 
-func (h *IntHeap) IsEmpty() bool {
+func (h *int2dHeap) IsEmpty() bool {
 	return h.Len() == 0
-}
-
-func (h *IntHeap) Min() interface{} {
-	return (*h)[0]
 }
 
 type pq struct {
@@ -975,21 +721,16 @@ type pq struct {
 }
 
 /*
-	pq := newpq([]compFunc{func(p, q interface{}) int {
-		if p.(edge).cost < q.(edge).cost {
-			return -1
-		} else if p.(edge).cost == q.(edge).cost {
-			return 0
-		}
-		return 1
-	}})
-	heap.Init(pq)
-	heap.Push(pq, edge{from: 3, to: 3, cost: 2})
-	heap.Push(pq, edge{from: 2, to: 2, cost: 3})
-	out(heap.Pop(pq).(edge))
-	out(pq.Min().(edge))
-	heap.Pop(pq)
-	out(pq.Len())
+	graph.comps = []compFunc{
+		func(p, q interface{}) int {
+			if p.(state).score < q.(state).score {
+				return -1
+			} else if p.(state).score == q.(state).score {
+				return 0
+			}
+			return 1
+		},
+	}
 */
 type compFunc func(p, q interface{}) int
 
@@ -1033,54 +774,24 @@ func (pq *pq) Pop() interface{} {
 	return item
 }
 
+func (pq *pq) Top() interface{} {
+	n := pq.Len()
+	return pq.arr[n-1]
+}
+
 func (pq *pq) IsEmpty() bool {
 	return pq.Len() == 0
 }
 
-func (pq *pq) Min() interface{} {
-	return pq.arr[0]
-}
-
 // ==================================================
-// cusum
+// cusum2d
 // ==================================================
-
-type cusum struct {
-	s []int
-}
-
-func newcusum(sl []int) *cusum {
-	c := &cusum{}
-	c.s = make([]int, len(sl)+1)
-	for i, v := range sl {
-		c.s[i+1] = c.s[i] + v
-	}
-	return c
-}
-
-func (c *cusum) get(f, t int) int {
-	return c.s[t+1] - c.s[f]
-}
-
-/*
-	cusum2d := newcusum2d(n, n)
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			cusum2d.set(i, j, 1)
-		}
-	}
-	for i := 0; i < n-k+1; i++ {
-		for j := 0; j < n-k+1; j++ {
-			t:=cusum2d.get(i, j, i+k, j+k)
-		}
-	}
-*/
 
 type cusum2d struct {
 	s [][]int
 }
 
-func newcusum2d(n, m int) *cusum2d {
+func newCusum2d(n, m int) *cusum2d {
 	c := &cusum2d{}
 	c.s = make([][]int, n+1)
 	for i := 0; i <= n; i++ {
@@ -1093,7 +804,6 @@ func (c *cusum2d) set(x, y, add int) {
 	c.s[x+1][y+1] += add
 }
 
-// x1 <= x <= x2, y1 <= y <= y2
 func (c *cusum2d) get(x1, y1, x2, y2 int) int {
 	return c.s[x2][y2] + c.s[x1][y1] - c.s[x1][y2] - c.s[x2][y1]
 }
@@ -1133,8 +843,8 @@ func (u *unionFind) unite(x, y int) {
 	if u.size(x) < u.size(y) {
 		x, y = y, x
 	}
-	u.par[x] += u.par[y]
-	u.par[y] = x
+	u.par[y] += u.par[x]
+	u.par[x] = y
 }
 
 func (u *unionFind) issame(x, y int) bool {
@@ -1178,7 +888,6 @@ func (b *bit) sum(i int) int {
 	return ret
 }
 
-// l <= x < r
 func (b *bit) rangesum(l, r int) int {
 	return b.sum(r-1) - b.sum(l-1)
 }
@@ -1363,7 +1072,6 @@ result2 := s.findrightest(l,r,x)
 result3 := s.findlefttest(l,r,x)
 */
 type lazystree struct {
-	on   int
 	n    int
 	b    []int
 	lazy []int
@@ -1378,7 +1086,6 @@ func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
 		tn *= 2
 	}
 	s := lazystree{
-		on:   n,
 		n:    tn,
 		b:    make([]int, 2*tn-1),
 		lazy: make([]int, 2*tn-1),
@@ -1401,12 +1108,6 @@ func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
 	switch ctype {
 	case stadd:
 		s.culc = func(i, j int) int {
-			if i == s.def {
-				return j
-			}
-			if i == s.def {
-				return i
-			}
 			return i + j
 		}
 	case stset:
@@ -1464,10 +1165,6 @@ func (s lazystree) rcsub(a, b, x, k, l, r int) {
 		s.rcsub(a, b, x, k*2+2, (l+r)/2, r)
 		s.b[k] = s.cmp(s.b[k*2+1], s.b[k*2+2])
 	}
-}
-
-func (s lazystree) get(a int) int {
-	return s.query(a, a+1)
 }
 
 func (s lazystree) query(a, b int) int {
@@ -1553,14 +1250,6 @@ func (s lazystree) debug() {
 		} else {
 			l = append(l, strconv.Itoa(s.lazy[i]))
 		}
-	}
-	out(strings.Join(l, " "))
-}
-
-func (s lazystree) debug2() {
-	l := make([]string, s.n)
-	for i := 0; i < s.on; i++ {
-		l[i] = strconv.Itoa(s.get(i))
 	}
 	out(strings.Join(l, " "))
 }
@@ -1721,50 +1410,6 @@ func newgraph(size int, edges [][]edge) *graph {
 /*
 	v, e := ni2()
 	edges := make([][]edge, v)
-	deg := make([]int, v)
-	for i := 0; i < e; i++ {
-		s, t, c := ni3()
-		s--
-		t--
-		edges[s] = append(edges[s], edge{to: t, cost: c})
-		deg[t]++
-	}
-	graph := newgraph(v, edges)
-	isdag, r := graph.topologicalSort(deg)
-*/
-func (g *graph) topologicalSort(deg []int) (bool, []int) {
-
-	r := []int{}
-	q := list.New()
-	for i := 0; i < g.size; i++ {
-		if deg[i] == 0 {
-			q.PushBack(i)
-		}
-	}
-	e := q.Front()
-	for e != nil {
-		t := e.Value.(int)
-		r = append(r, t)
-		for _, edge := range g.edges[t] {
-			deg[edge.to]--
-			if deg[edge.to] == 0 {
-				q.PushBack(edge.to)
-			}
-		}
-
-		e = e.Next()
-	}
-	for _, v := range deg {
-		if v != 0 {
-			return false, nil
-		}
-	}
-	return true, r
-}
-
-/*
-	v, e := ni2()
-	edges := make([][]edge, v)
 
 	for i := 0; i < e; i++ {
 		s, t, c := ni3()
@@ -1775,6 +1420,7 @@ func (g *graph) topologicalSort(deg []int) (bool, []int) {
 	}
 
 	graph := newgraph(v, edges)
+	graph.setStart(0)
 	dist := graph.dijkstra(0)
 */
 
@@ -1903,21 +1549,16 @@ func (g *graph) dinicbfs(s int) {
 		g.level[i] = -1
 	}
 	g.level[s] = 0
-
-	q := list.New()
-	q.PushBack(s)
-	e := q.Front()
-	for e != nil {
-		t := e.Value.(int)
-
+	q := []int{s}
+	for len(q) > 0 {
+		t := q[0]
+		q = q[1:]
 		for _, e := range g.edges[t] {
 			if e.cost > 0 && g.level[e.to] < 0 {
 				g.level[e.to] = g.level[t] + 1
-				q.PushBack(e.to)
+				q = append(q, e.to)
 			}
 		}
-
-		e = e.Next()
 	}
 }
 
