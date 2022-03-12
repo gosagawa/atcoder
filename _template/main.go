@@ -237,6 +237,14 @@ func pow2(a int) int {
 	return int(math.Pow(2, float64(a)))
 }
 
+func pow10(a int) int {
+	return int(math.Pow(10, float64(a)))
+}
+
+func sqrt(i int) int {
+	return int(math.Sqrt(float64(i)))
+}
+
 func ch(cond bool, ok, ng int) int {
 	if cond {
 		return ok
@@ -929,15 +937,14 @@ func (c *cusum) get(f, t int) int {
 }
 
 /*
-	cusum2d := newcusum2d(n, n)
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			cusum2d.set(i, j, 1)
-		}
+	mp := make([][]int, n)
+	for i := 0; i < k; i++ {
+		mp[i] = make([]int, m)
 	}
-	for i := 0; i < n-k+1; i++ {
-		for j := 0; j < n-k+1; j++ {
-			t:=cusum2d.get(i, j, i+k, j+k)
+	cusum2d := newcusum2d(sl)
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
+			t:=cusum2d.get(0, 0, i, j)
 		}
 	}
 */
@@ -946,17 +953,21 @@ type cusum2d struct {
 	s [][]int
 }
 
-func newcusum2d(n, m int) *cusum2d {
+func newcusum2d(sl [][]int) *cusum2d {
 	c := &cusum2d{}
+	n := len(sl)
+	m := len(sl[0])
 	c.s = make([][]int, n+1)
-	for i := 0; i <= n; i++ {
+	for i := 0; i < n+1; i++ {
 		c.s[i] = make([]int, m+1)
 	}
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
+			c.s[i+1][j+1] = c.s[i+1][j] + c.s[i][j+1] - c.s[i][j]
+			c.s[i+1][j+1] += sl[i][j]
+		}
+	}
 	return c
-}
-func (c *cusum2d) set(x, y, add int) {
-	c.s[x+1][y+1] = c.s[x+1][y] + c.s[x][y+1] - c.s[x][y]
-	c.s[x+1][y+1] += add
 }
 
 // x1 <= x <= x2, y1 <= y <= y2
