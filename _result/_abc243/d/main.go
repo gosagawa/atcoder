@@ -40,14 +40,14 @@ func main() {
 				x *= 2
 				x++
 				t++
-			} else if t != 999 {
+			} else {
 				t++
 			}
 		case 11: //L
 			if t < 62 {
 				x *= 2
 				t++
-			} else if t != 999 {
+			} else {
 				t++
 			}
 		}
