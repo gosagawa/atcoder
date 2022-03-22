@@ -85,6 +85,11 @@ func (r *rh) initHash() {
 	}
 }
 
+func (r *rh) getAllHash() int {
+	t := r.getNlenHash(r.sl)
+	return t[0]
+}
+
 func (r *rh) getNlenHash(n int) []int {
 	rs := make([]int, r.sl-n+1)
 	t := 0
