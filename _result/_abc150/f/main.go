@@ -25,51 +25,30 @@ func main() {
 	as := nis(n)
 	bs := nis(n)
 	r := make([]int, n)
-	hasnr := make([]bool, n)
-	for i := 0; i < 30; i++ {
-		cs := make([]int, n*2)
-		cis := make([]int, n*2)
-		bcs := make([]int, n)
-		for j := 0; j < n; j++ {
-
-			if hasbit(as[j], i) {
-				cs[j] = 1
-				cs[n+j] = 1
-			} else {
-				cis[j] = 1
-				cis[n+j] = 1
-			}
-
-			if hasbit(bs[j], i) {
-				bcs[j] = 1
-			}
-		}
-
-		rh := newrh(cs, mod)
-		hs1 := rh.getNlenHash(n)
-		rh = newrh(cis, mod)
-		hs2 := rh.getNlenHash(n)
-		rh = newrh(bcs, mod)
-		cv := rh.getAllHash()
-		for j := 0; j < n; j++ {
-			if hs1[j] == cv {
-			} else if hs2[j] == cv {
-				r[j] |= 1 << i
-			} else {
-				hasnr[j] = true
-			}
-		}
-		/*
-			out(cs)
-			out(cis)
-			out(bcs)
-			out(r)
-			out(hasnr)
-		*/
+	hasr := make([]bool, n)
+	cs := make([]int, n*2)
+	bcs := make([]int, n)
+	for j := 0; j < n; j++ {
+		cs[j] = as[(j+1)%n] ^ as[j]
+		cs[n+j] = cs[j]
+		bcs[j] = bs[(j+1)%n] ^ bs[j]
 	}
+
+	rh := newrh(cs, mod)
+	hs := rh.getNlenHash(n)
+	rh = newrh(bcs, mod)
+	cv := rh.getAllHash()
+	for j := 0; j < n; j++ {
+		if hs[j] != cv {
+			continue
+		}
+		hasr[j] = true
+		r[j] = as[j] ^ bs[0]
+	}
+
 	hasV := false
 	for i, v := range r {
-		if !hasnr[i] {
+		if hasr[i] {
 			hasV = true
 			out(fmt.Sprintf("%d %d", i, v))
 		}
