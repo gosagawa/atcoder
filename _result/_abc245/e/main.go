@@ -26,65 +26,30 @@ func main() {
 	bs := nis(n)
 	cs := nis(m)
 	ds := nis(m)
-	ts := append(as, bs...)
-	ts = append(ts, cs...)
-	ts = append(ts, ds...)
-	_, mp := cocom(ts)
-	abs := make([][]int, len(mp)+1)
-	cds := make([][2]int, m)
+	ts := make([][3]int, m+n)
 	for i := 0; i < n; i++ {
-		abs[mp[as[i]]] = append(abs[mp[as[i]]], mp[bs[i]])
+		ts[i] = [3]int{as[i], bs[i], 0}
 	}
 	for i := 0; i < m; i++ {
-		cds[i] = [2]int{mp[cs[i]], mp[ds[i]]}
+		ts[n+i] = [3]int{cs[i], ds[i], 1}
 	}
-	sort2ar(cds, opt2ar(0, asc), opt2ar(1, desc))
-	//out(abs)
-	//	out(cds)
-	ct := 0
-	ci := 0
+	sort3ar(ts, opt2ar(0, desc), opt2ar(2, desc))
 
 	s := NewRBMAP()
-	if len(abs[0]) > 0 {
-		for _, nv := range abs[0] {
-			s.Insert(nv, s.Lookup(nv)+1)
-		}
-	}
-	for _, v := range cds {
-		if ci < v[0] {
-			for {
-				ci++
-				if len(abs[ci]) > 0 {
-					for _, nv := range abs[ci] {
-						s.Insert(nv, s.Lookup(nv)+1)
-					}
-				}
-
-				if ci == v[0] {
-					break
-				}
+	for _, v := range ts {
+		switch v[2] {
+		case 0:
+			key, hasKey := s.UpperBound(v[1] - 1)
+			if !hasKey {
+				out("No")
+				return
 			}
-		}
-		if !s.IsEmpty() {
-			id, hasKey := s.LowerBound(v[1] + 1)
-			//out(ci, id, hasKey)
-			if hasKey {
-				lu := s.Lookup(id)
-				if lu == 1 {
-					s.Delete(id)
-				} else {
-					s.Insert(id, lu-1)
-				}
-				ct++
-			}
+			s.Decrement(key)
+		case 1:
+			s.Increment(v[1])
 		}
 	}
-	//out(ct)
-	if ct == n {
-		out("Yes")
-	} else {
-		out("No")
-	}
+	out("Yes")
 
 }
 
@@ -690,6 +655,29 @@ func opt2ar(key int, order sortOrder) Sort2ArOption {
 // sort2ar(sl,opt2ar(1,asc))
 // sort2ar(sl,opt2ar(0,asc),opt2ar(1,asc))
 func sort2ar(sl [][2]int, setters ...Sort2ArOption) {
+	args := &Sort2ArOptions{}
+
+	for _, setter := range setters {
+		setter(args)
+	}
+
+	sort.Slice(sl, func(i, j int) bool {
+		for idx, key := range args.keys {
+			if sl[i][key] == sl[j][key] {
+				continue
+			}
+			switch args.orders[idx] {
+			case asc:
+				return sl[i][key] < sl[j][key]
+			case desc:
+				return sl[i][key] > sl[j][key]
+			}
+		}
+		return true
+	})
+}
+
+func sort3ar(sl [][3]int, setters ...Sort2ArOption) {
 	args := &Sort2ArOptions{}
 
 	for _, setter := range setters {
@@ -2180,6 +2168,10 @@ func (m *RBMAP) Insert(key int, x int) {
 	m.root.color = RBMAPColorB
 }
 
+func (m *RBMAP) Increment(key int) {
+	m.Insert(key, m.Lookup(key)+1)
+}
+
 func (m *RBMAP) insertSub(t *RBMAPNode, key int, x int) *RBMAPNode {
 	if t == nil {
 		m.change = true
@@ -2238,6 +2230,16 @@ func (m *RBMAP) Delete(key int) {
 	m.root = m.deleteSub(m.root, key)
 	if m.root != nil {
 		m.root.color = RBMAPColorB
+	}
+}
+
+func (m *RBMAP) Decrement(key int) {
+	count := m.Lookup(key)
+	count--
+	if count <= 0 {
+		m.Delete(key)
+	} else {
+		m.Insert(key, count)
 	}
 }
 
