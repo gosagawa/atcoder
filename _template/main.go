@@ -1642,6 +1642,65 @@ func (g *graph) topologicalSort(deg []int) (bool, []int) {
 /*
 	v, e := ni2()
 	edges := make([][]edge, v)
+	edgers := make([][]edge, v)
+
+	for i := 0; i < e; i++ {
+		s, t := ni2()
+		s--
+		t--
+		edges[s] = append(edges[s], edge{to: t})
+		edgers[t] = append(edgers[t], edge{to: s})
+	}
+
+	scc := getScc(v, edges, edgers)
+*/
+func getScc(v int, edges, edgers [][]edge) [][]int {
+	used := make([]bool, v)
+	scc := [][]int{}
+	vs := []int{}
+
+	var dfs func(i int)
+	dfs = func(i int) {
+		used[i] = true
+		for _, v := range edges[i] {
+			if used[v.to] == false {
+				dfs(v.to)
+			}
+		}
+		vs = append(vs, i)
+	}
+
+	var rdfs func(i, k int)
+	rdfs = func(i, k int) {
+		used[i] = true
+		scc[k] = append(scc[k], i)
+		for _, v := range edgers[i] {
+			if used[v.to] == false {
+				rdfs(v.to, k)
+			}
+		}
+	}
+
+	for i := 0; i < v; i++ {
+		if used[i] == false {
+			dfs(i)
+		}
+	}
+	used = make([]bool, v)
+	k := 0
+	for i := v - 1; i >= 0; i-- {
+		if used[vs[i]] == false {
+			scc = append(scc, []int{})
+			rdfs(vs[i], k)
+			k++
+		}
+	}
+	return scc
+}
+
+/*
+	v, e := ni2()
+	edges := make([][]edge, v)
 
 	for i := 0; i < e; i++ {
 		s, t, c := ni3()
