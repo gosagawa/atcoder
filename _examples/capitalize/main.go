@@ -1,3 +1,4 @@
+// tenka1-2012-qualB b
 package main
 
 import (
@@ -21,10 +22,128 @@ func main() {
 
 	defer flush()
 
-	o := 0
-	n := ni()
-	ns := nis(n)
-	out(o)
+	s := ns()
+	ss := strings.Split(s, "_")
+	isSC := func(i int) bool {
+		return i >= 49 && i <= 74
+	}
+	isLC := func(i int) bool {
+		return i >= 17 && i <= 42
+	}
+	isWord := func(s string) bool {
+		if len(s) == 0 {
+			return false
+		}
+		cs := stois(s, '0')
+		if !isSC(cs[0]) {
+			return false
+		}
+		for i := 1; i < len(cs); i++ {
+			if isLC(cs[i]) {
+				return false
+			}
+		}
+		return true
+	}
+	isCamel := func(s string) bool {
+		if len(s) == 0 {
+			return false
+		}
+		cs := stois(s, '0')
+		if !isSC(cs[0]) {
+			return false
+		}
+		return true
+	}
+	toCamel := func(s string) string {
+		t := []byte(s)
+		t[0] = t[0] - 32
+		return string(t)
+	}
+	toLower := func(s string) string {
+		t := []byte(s)
+		t[0] = t[0] + 32
+		return string(t)
+	}
+	hasFirstS := 0
+	if ss[0] == "" {
+		c := 0
+		for i := 0; i < len(ss); i++ {
+			if ss[i] != "" {
+				break
+			}
+			c++
+		}
+		hasFirstS = c
+		ss = ss[c:]
+	}
+	hasLastS := 0
+	if len(ss) != 0 && ss[len(ss)-1] == "" {
+		c := 0
+		for i := len(ss) - 1; i >= 0; i-- {
+			if ss[i] != "" {
+				break
+			}
+			c++
+		}
+		hasLastS = c
+		ss = ss[:len(ss)-c]
+	}
+
+	isAllWord := true
+	isAllCamel := true
+	if len(ss) == 0 {
+		isAllWord = false
+		isAllCamel = false
+	}
+	if len(ss) > 1 {
+		isAllCamel = false
+	}
+	for _, v := range ss {
+		if !isWord(v) {
+			isAllWord = false
+		}
+		if !isCamel(v) {
+			isAllCamel = false
+		}
+	}
+	r := ""
+	if isAllWord {
+		for i := 1; i < len(ss); i++ {
+			ss[i] = toCamel(ss[i])
+		}
+		r = strings.Join(ss, "")
+	} else if isAllCamel {
+		t := []string{}
+		s := 0
+		for i := 0; i < len(ss[0]); i++ {
+			if isLC(int(ss[0][i] - '0')) {
+				if s == 0 {
+					t = append(t, string(ss[0][s:i]))
+				} else {
+					t = append(t, toLower(string(ss[0][s:i])))
+				}
+				s = i
+			}
+		}
+		if s == 0 {
+			t = append(t, string(ss[0][s:len(ss[0])]))
+		} else {
+			t = append(t, toLower(string(ss[0][s:len(ss[0])])))
+		}
+		r = strings.Join(t, "_")
+	} else {
+		out(s)
+		return
+	}
+	for i := 0; i < hasFirstS; i++ {
+		r = "_" + r
+	}
+	for i := 0; i < hasLastS; i++ {
+		r = r + "_"
+	}
+
+	out(r)
 }
 
 // ==================================================
