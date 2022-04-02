@@ -775,7 +775,7 @@ func (p point) isValid(x, y int) bool {
 }
 
 func pointAdd(a, b point) point {
-	return point{a.x + b.x, a.y + b.y}
+	return point{x: a.x + b.x, y: a.y + b.y}
 }
 
 func pointDist(a, b point) float64 {
