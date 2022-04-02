@@ -34,11 +34,9 @@ func main() {
 	by--
 	m := make([][]bool, n)
 	dist := make([][]int, n)
-	used := make([][][2]bool, n)
 	for i := 0; i < n; i++ {
 		m[i] = make([]bool, n)
 		dist[i] = make([]int, n)
-		used[i] = make([][2]bool, n)
 
 		// get from string
 		s := ns()
@@ -56,7 +54,7 @@ func main() {
 	for e != nil {
 		p := e.Value.(point)
 		dr := []point{{1, -1}, {1, 1}, {-1, 1}, {-1, -1}}
-		for i, d := range dr {
+		for _, d := range dr {
 			j := 1
 			for {
 				nd := point{d.x * j, d.y * j}
@@ -65,17 +63,13 @@ func main() {
 				if !np.isValid(n, n) || !m[np.x][np.y] {
 					break
 				}
-				if used[np.x][np.y][i%2] {
-					break
-				}
-				if dist[np.x][np.y] != -1 && dist[np.x][np.y] < dist[p.x][p.y] {
+				if dist[np.x][np.y] != -1 && dist[np.x][np.y] < dist[p.x][p.y]+1 {
 					break
 				}
 				if dist[np.x][np.y] != -1 {
 					j++
 					continue
 				}
-				used[np.x][np.y][i%2] = true
 				dist[np.x][np.y] = dist[p.x][p.y] + 1
 				if np.x == bx && np.y == by {
 					out(dist[p.x][p.y] + 1)
