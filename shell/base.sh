@@ -1,11 +1,12 @@
 #!/bin/bash
 
 mode=$(cat ./.mode)
+sendfile=""
 
 if test "$mode" = "go" ; then
-  oj s main.go
+  cp -i _template/main.go ./main.go
 fi
 
 if test "$mode" = "cpp"; then
-  oj s main.cpp
+  cp -i _template/main.cpp ./main.cpp
 fi

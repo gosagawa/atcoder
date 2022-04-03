@@ -3,9 +3,10 @@
 mode=$(cat ./.mode)
 
 if test "$mode" = "go" ; then
-  oj s main.go
+  go run main.go
 fi
 
 if test "$mode" = "cpp"; then
-  oj s main.cpp
+  g++ -o main main.cpp
+  ./main
 fi
