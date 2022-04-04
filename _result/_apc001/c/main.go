@@ -19,8 +19,7 @@ var wtr = bufio.NewWriter(os.Stdout)
 
 func main() {
 
-	var n int
-	fmt.Scanf("%d", &n)
+	n := scani()
 
 	rf := getAns(0)
 	if rf == 2 {
@@ -50,10 +49,9 @@ func main() {
 }
 
 func getAns(i int) int {
-	fmt.Printf("%d\n", i)
-	var s string
-	fmt.Scanf("%s", &s)
-	switch s {
+	out(i)
+	flush()
+	switch scans() {
 	case "Male":
 		return 0
 	case "Female":
@@ -61,6 +59,18 @@ func getAns(i int) int {
 	default:
 		return 2
 	}
+}
+
+func scani() int {
+	var i int
+	fmt.Scanf("%d", &i)
+	return i
+}
+
+func scans() string {
+	var s string
+	fmt.Scanf("%s", &s)
+	return s
 }
 
 // ==================================================
