@@ -133,6 +133,18 @@ func ns() string {
 	return sc.Text()
 }
 
+func scani() int {
+	var i int
+	fmt.Scanf("%i", &i)
+	return i
+}
+
+func scans() string {
+	var s string
+	fmt.Scanf("%s", &s)
+	return s
+}
+
 func out(v ...interface{}) {
 	_, e := fmt.Fprintln(wtr, v...)
 	if e != nil {
