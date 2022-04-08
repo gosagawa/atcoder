@@ -21,151 +21,93 @@ func main() {
 
 	defer flush()
 
-	o := float64(inf)
+	o := 0
 	n := ni()
-	hasp := [4][3]bool{}
-	valp := [4][3]int{}
-	d := func(s string) []int {
-		switch s {
-		case "R":
-			return []int{1, 0, 2, 2}
-		case "L":
-			return []int{0, 1, 2, 2}
-		case "U":
-			return []int{2, 2, 1, 0}
-		}
-		return []int{2, 2, 0, 1}
-	}
+	xd := newd()
+	yd := newd()
 	for i := 0; i < n; i++ {
 		x, y := ni2()
 		x *= 2
 		y *= 2
-		ds := d(ns())
-		for j, v := range ds {
-			t := x
-			if j == 2 || j == 3 {
-				t = y
-			}
-			if !hasp[j][v] {
-				hasp[j][v] = true
-				valp[j][v] = t
-			} else {
-				{
-					if j == 0 || j == 2 {
-						valp[j][v] = max(valp[j][v], t)
-					} else {
-						valp[j][v] = min(valp[j][v], t)
-					}
-				}
-			}
+		s := ns()
+		switch s {
+		case "R":
+			xd.add(x, 1)
+			yd.add(y, 0)
+		case "L":
+			xd.add(x, -1)
+			yd.add(y, 0)
+		case "U":
+			xd.add(x, 0)
+			yd.add(y, 1)
+		case "D":
+			xd.add(x, 0)
+			yd.add(y, -1)
 		}
 	}
-	//	out(hasp)
-	//	out(valp)
-
-	ctm := []int{0}
-	for i := 0; i < 4; i++ {
-		cf := []int{0, 0, 1}
-		ct := []int{1, 2, 2}
-		div := []int{2, 1, 1}
-		for j := 0; j < 3; j++ {
-			if hasp[i][cf[j]] && hasp[i][ct[j]] {
-				t := (valp[i][cf[j]] - valp[i][ct[j]]) / div[j]
-				ctm = append(ctm, t)
-				ctm = append(ctm, -t)
-			}
-		}
-
-		if i == 0 || i == 2 {
-			cif := []int{i, i, i, i + 1, i, i + 1}
-			cit := []int{i + 1, i + 1, i + 1, i, i + 1, i}
-			cf = []int{0, 1, 0, 0, 1, 1}
-			ct = []int{1, 0, 2, 2, 2, 2}
-			div := []int{2, 2, 1, 1, 1, 1}
-			for j := 0; j < 5; j++ {
-				if hasp[cif[j]][cf[j]] && hasp[cit[j]][ct[j]] {
-					t := (valp[cif[j]][cf[j]] - valp[cit[j]][ct[j]]) / div[j]
-					ctm = append(ctm, t)
-					ctm = append(ctm, -t)
-				}
-			}
-		}
+	o = xd.get(0) * yd.get(0)
+	for _, v := range xd.events() {
+		o = min(o, xd.get(v)*yd.get(v))
 	}
-	ctm = uniquei(ctm)
-	sorti(ctm)
-	culc := func(v float64) float64 {
-		xmax := float64(-inf)
-		xmin := float64(inf)
-		ymax := float64(-inf)
-		ymin := float64(inf)
-		for i := 0; i < 4; i++ {
-			for j := 0; j < 3; j++ {
-				if hasp[i][j] {
-					ijf := float64(valp[i][j])
-					if j == 2 {
-						if i == 0 || i == 1 {
-							xmax = maxf(xmax, ijf)
-							xmin = minf(xmin, ijf)
-						} else {
-							ymax = maxf(ymax, ijf)
-							ymin = minf(ymin, ijf)
-						}
-					}
-					if j == 1 {
-						mv := v
-						if i == 1 || i == 3 {
-							mv = -v
-						}
-						if i == 0 || i == 1 {
-							xmax = maxf(xmax, ijf+mv)
-							xmin = minf(xmin, ijf+mv)
-						} else {
-							ymax = maxf(ymax, ijf+mv)
-							ymin = minf(ymin, ijf+mv)
-						}
-					}
-					if j == 0 {
-						mv := v
-						if i == 1 || i == 3 {
-							mv = -v
-						}
-						if i == 0 || i == 1 {
-							xmax = maxf(xmax, ijf-mv)
-							xmin = minf(xmin, ijf-mv)
-						} else {
-							ymax = maxf(ymax, ijf-mv)
-							ymin = minf(ymin, ijf-mv)
-						}
-					}
-				}
-			}
-		}
-		//out(v, xmax, xmin, ymax, ymin, (xmax-xmin)*(ymax-ymin))
-		return (xmax - xmin) * (ymax - ymin)
+	for _, v := range yd.events() {
+		o = min(o, xd.get(v)*yd.get(v))
 	}
 
-	for _, v := range ctm {
-		if v < 0 {
-			continue
-		}
-		o = minf(o, culc(float64(v)))
-	}
-	for i := 0; i < len(ctm)-1; i++ {
-		if ctm[i] < 0 {
-			continue
-		}
-		v := bs3fl(float64(ctm[i]), float64(ctm[i+1]), 1000, culc)
-		o = minf(o, culc(float64(v)))
-	}
+	out(float64(o) / 4)
+}
 
-	out(o / 4)
+type d struct {
+	l [3]int
+	r [3]int
+}
+
+func newd() *d {
+	d := &d{}
+	for i := 0; i < 3; i++ {
+		d.l[i] = inf
+		d.r[i] = -inf
+	}
+	return d
+}
+
+func (d *d) add(x, v int) {
+	v++
+	d.l[v] = min(d.l[v], x)
+	d.r[v] = max(d.r[v], x)
+}
+
+func (d *d) get(t int) int {
+	nl := inf
+	nr := -inf
+	for i := 0; i < 3; i++ {
+		nl = min(nl, d.l[i]+i*t)
+		nr = max(nr, d.r[i]+i*t)
+	}
+	return nr - nl
+}
+
+func (d *d) events() []int {
+	ts := []int{}
+	for i := 0; i < 3; i++ {
+		for j := 0; j < i; j++ {
+			t := (d.l[j] - d.l[i]) / (i - j)
+			if t > 0 {
+				ts = append(ts, t)
+			}
+			t = (d.r[j] - d.r[i]) / (i - j)
+			if t > 0 {
+				ts = append(ts, t)
+			}
+		}
+	}
+	return ts
 }
 
 // ==================================================
 // init
 // ==================================================
 
-const inf = math.MaxInt64
+const inf = 1000000000
 const mod1000000007 = 1000000007
 const mod998244353 = 998244353
 const mod = mod1000000007
