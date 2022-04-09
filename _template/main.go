@@ -227,11 +227,23 @@ func max(a, b int) int {
 	return b
 }
 
+func maxs(a *int, b int) {
+	if *a < b {
+		*a = b
+	}
+}
+
 func min(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
+}
+
+func mins(a *int, b int) {
+	if *a > b {
+		*a = b
+	}
 }
 
 func abs(a int) int {
@@ -379,21 +391,24 @@ func gcd(a, b int) int {
 	return gcd(b, a%b)
 }
 
-func divisor(n int) []int {
+func divisor(n int) ([]int, map[int]struct{}) {
 	sqrtn := int(math.Sqrt(float64(n)))
 	c := 2
 	divisor := []int{}
+	divisorm := make(map[int]struct{})
 	for {
 		if n%2 != 0 {
 			break
 		}
 		divisor = append(divisor, 2)
+		divisorm[2] = struct{}{}
 		n /= 2
 	}
 	c = 3
 	for {
 		if n%c == 0 {
 			divisor = append(divisor, c)
+			divisorm[c] = struct{}{}
 			n /= c
 		} else {
 			c += 2
@@ -404,8 +419,9 @@ func divisor(n int) []int {
 	}
 	if n != 1 {
 		divisor = append(divisor, n)
+		divisorm[n] = struct{}{}
 	}
-	return divisor
+	return divisor, divisorm
 }
 
 type binom struct {
@@ -543,6 +559,21 @@ func bsfl(ok, ng float64, c int, f func(float64) bool) float64 {
 	}
 
 	return ok
+}
+
+func bs3fl(low, high float64, c int, f func(float64) float64) float64 {
+
+	for i := 0; i < c; i++ {
+		c1 := (low*2 + high) / 3
+		c2 := (low + high*2) / 3
+
+		if f(c1) > f(c2) {
+			low = c1
+		} else {
+			high = c2
+		}
+	}
+	return low
 }
 
 // ==================================================
