@@ -21,16 +21,14 @@ func main() {
 
 	defer flush()
 
-	n := ns()
-	d := make([]int, 10)
-	for _, v := range n {
-		d[int(v-'0')]++
+	n := nsis()
+	if n[0] == n[1] && n[1] == n[2] {
+		out("Yes")
+		return
 	}
-	for _, v := range d {
-		if v >= 3 {
-			out("Yes")
-			return
-		}
+	if n[2] == n[3] && n[1] == n[2] {
+		out("Yes")
+		return
 	}
 	out("No")
 }
@@ -139,6 +137,12 @@ func nf() float64 {
 func ns() string {
 	sc.Scan()
 	return sc.Text()
+}
+
+func nsis() []int {
+	sc.Scan()
+	s := sc.Text()
+	return stois(s, '0')
 }
 
 func scani() int {
