@@ -133,6 +133,12 @@ func ns() string {
 	return sc.Text()
 }
 
+func nsis() []int {
+	sc.Scan()
+	s := sc.Text()
+	return stois(s, '0')
+}
+
 func scani() int {
 	var i int
 	fmt.Scanf("%i", &i)
@@ -1274,7 +1280,7 @@ func (s *stree) debug() {
 }
 
 /*
-s := newlazystree(n,stmin|stmax,stset|stadd)
+s := newlazystree(n,stmin|stmax,stset|stadd|stmadd)
 s.set(i,x)
 s.add(i,x)
 s.rc(l,r,x)
@@ -1324,10 +1330,20 @@ func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
 			if i == s.def {
 				return j
 			}
-			if i == s.def {
+			if j == s.def {
 				return i
 			}
 			return i + j
+		}
+	case stmadd:
+		s.culc = func(i, j int) int {
+			if i == s.def {
+				return j
+			}
+			if j == s.def {
+				return i
+			}
+			return madd(i, j)
 		}
 	case stset:
 		s.culc = func(i, j int) int {
@@ -1369,7 +1385,7 @@ func (s lazystree) set(i, x int) {
 	}
 }
 
-// range culc
+// range culc a <= n n <= b
 func (s lazystree) rc(a, b, x int) {
 	s.rcsub(a, b, x, 0, 0, s.n)
 }
