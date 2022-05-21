@@ -1129,13 +1129,18 @@ func (b *bit) lowerBound(x int) int {
 
 type streeculctype int
 
-var stadd streeculctype = 1
-var stset streeculctype = 2
+const (
+	stadd streeculctype = iota
+	stmadd
+	stset
+)
 
 type streeminmmax int
 
-var stmin streeminmmax = 1
-var stmax streeminmmax = 2
+const (
+	stmin streeminmmax = iota
+	stmax
+)
 
 /*
 s := newstree(n,stmin|stmax,stset|stadd)
