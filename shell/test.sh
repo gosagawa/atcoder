@@ -4,7 +4,7 @@ mode=$(cat ./.mode)
 sendfile=""
 
 if test "$mode" = "go" ; then
-  oj t -c "go run main.go"
+  oj t -c "./main"
 fi
 
 if test "$mode" = "cpp"; then

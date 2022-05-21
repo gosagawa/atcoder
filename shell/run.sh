@@ -3,7 +3,8 @@
 mode=$(cat ./.mode)
 
 if test "$mode" = "go" ; then
-  go run main.go i
+  go build main.go
+  ./main i
 fi
 
 if test "$mode" = "cpp"; then
