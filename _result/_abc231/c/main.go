@@ -22,17 +22,12 @@ func main() {
 	defer flush()
 
 	n, q := ni2()
-	ns := make([]int, n)
-	for i := 0; i < n; i++ {
-		ns[i] = ni()
-	}
-	sortir(ns)
+	ns := nis(n)
+	sorti(ns)
 	for i := 0; i < q; i++ {
 		x := ni()
-		f := func(c int) bool {
-			return ns[c] >= x
-		}
-		out(bs(0, n-1, f) + 1)
+		t := upperBound(x-1, ns)
+		out(n - t)
 	}
 }
 
@@ -41,7 +36,9 @@ func main() {
 // ==================================================
 
 const inf = math.MaxInt64
-const mod = 1000000007
+const mod1000000007 = 1000000007
+const mod998244353 = 998244353
+const mod = mod1000000007
 
 func init() {
 	sc.Buffer([]byte{}, math.MaxInt64)
@@ -80,12 +77,50 @@ func ni4() (int, int, int, int) {
 	return ni(), ni(), ni(), ni()
 }
 
-func nis(n int) sort.IntSlice {
+func nis(n int) []int {
 	a := make([]int, n)
 	for i := 0; i < n; i++ {
 		a[i] = ni()
 	}
-	return sort.IntSlice(a)
+	return a
+}
+
+func ni2s(n int) ([]int, []int) {
+	a := make([]int, n)
+	b := make([]int, n)
+	for i := 0; i < n; i++ {
+		a[i], b[i] = ni2()
+	}
+	return a, b
+}
+
+func ni3s(n int) ([]int, []int, []int) {
+	a := make([]int, n)
+	b := make([]int, n)
+	c := make([]int, n)
+	for i := 0; i < n; i++ {
+		a[i], b[i], c[i] = ni3()
+	}
+	return a, b, c
+}
+
+func ni4s(n int) ([]int, []int, []int, []int) {
+	a := make([]int, n)
+	b := make([]int, n)
+	c := make([]int, n)
+	d := make([]int, n)
+	for i := 0; i < n; i++ {
+		a[i], b[i], c[i], d[i] = ni4()
+	}
+	return a, b, c, d
+}
+
+func ni2a(n int) [][2]int {
+	a := make([][2]int, n)
+	for i := 0; i < n; i++ {
+		a[i][0], a[i][1] = ni2()
+	}
+	return a
 }
 
 func nf() float64 {
@@ -102,6 +137,24 @@ func ns() string {
 	return sc.Text()
 }
 
+func nsis() []int {
+	sc.Scan()
+	s := sc.Text()
+	return stois(s, '0')
+}
+
+func scani() int {
+	var i int
+	fmt.Scanf("%i", &i)
+	return i
+}
+
+func scans() string {
+	var s string
+	fmt.Scanf("%s", &s)
+	return s
+}
+
 func out(v ...interface{}) {
 	_, e := fmt.Fprintln(wtr, v...)
 	if e != nil {
@@ -109,12 +162,19 @@ func out(v ...interface{}) {
 	}
 }
 
-func outYN(v bool) {
-	if v {
-		out("Yes")
-	} else {
-		out("No")
+func outwoln(v ...interface{}) {
+	_, e := fmt.Fprint(wtr, v...)
+	if e != nil {
+		panic(e)
 	}
+}
+
+func outis(sl []int) {
+	r := make([]string, len(sl))
+	for i, v := range sl {
+		r[i] = itoa(v)
+	}
+	out(strings.Join(r, " "))
 }
 
 func flush() {
@@ -177,11 +237,23 @@ func max(a, b int) int {
 	return b
 }
 
+func maxs(a *int, b int) {
+	if *a < b {
+		*a = b
+	}
+}
+
 func min(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
+}
+
+func mins(a *int, b int) {
+	if *a > b {
+		*a = b
+	}
 }
 
 func abs(a int) int {
@@ -197,6 +269,14 @@ func pow(a, b int) int {
 
 func pow2(a int) int {
 	return int(math.Pow(2, float64(a)))
+}
+
+func pow10(a int) int {
+	return int(math.Pow(10, float64(a)))
+}
+
+func sqrt(i int) int {
+	return int(math.Sqrt(float64(i)))
 }
 
 func ch(cond bool, ok, ng int) int {
@@ -269,35 +349,49 @@ func nextPermutation(x sort.Interface) bool {
 	return true
 }
 
-func combination(n int, k int) int {
-	if n-k < k {
-		k = n - k
-	}
-	v := 1
-	for i := 0; i < k; i++ {
-		v *= (n - i)
-		v /= (i + 1)
-	}
-	return v
+type combFactorial struct {
+	fac    []int
+	facinv []int
 }
 
-func modcombination(n int, k int) int {
-	if k > n || k <= 0 {
-		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
+func newcombFactorial(n int) *combFactorial {
+
+	fac := make([]int, n)
+	facinv := make([]int, n)
+	fac[0] = 1
+	facinv[0] = minvfermat(1, mod)
+
+	for i := 1; i < n; i++ {
+		fac[i] = mmul(i, fac[i-1])
+		facinv[i] = minvfermat(fac[i], mod)
 	}
-	if n-k < k {
-		k = n - k
+
+	return &combFactorial{
+		fac:    fac,
+		facinv: facinv,
 	}
-	v := 1
-	for i := 0; i < k; i++ {
-		v = mmul(v, n-i)
-		v = mdiv(v, i+1)
-	}
-	return v
 }
 
-func factorial(n int) int {
-	return permutation(n, n-1)
+func (c *combFactorial) factorial(n int) int {
+	return c.fac[n]
+}
+
+func (c *combFactorial) combination(n, r int) int {
+	if r > n {
+		return 0
+	}
+	return mmul(mmul(c.fac[n], c.facinv[r]), c.facinv[n-r])
+}
+
+func (c *combFactorial) permutation(n, r int) int {
+	if r > n {
+		return 0
+	}
+	return mmul(c.fac[n], c.facinv[n-r])
+}
+
+func (c *combFactorial) homogeousProduct(n, r int) int {
+	return c.combination(n-1+r, r)
 }
 
 func gcd(a, b int) int {
@@ -307,21 +401,24 @@ func gcd(a, b int) int {
 	return gcd(b, a%b)
 }
 
-func divisor(n int) []int {
+func divisor(n int) ([]int, map[int]struct{}) {
 	sqrtn := int(math.Sqrt(float64(n)))
 	c := 2
 	divisor := []int{}
+	divisorm := make(map[int]struct{})
 	for {
 		if n%2 != 0 {
 			break
 		}
 		divisor = append(divisor, 2)
+		divisorm[2] = struct{}{}
 		n /= 2
 	}
 	c = 3
 	for {
 		if n%c == 0 {
 			divisor = append(divisor, c)
+			divisorm[c] = struct{}{}
 			n /= c
 		} else {
 			c += 2
@@ -332,8 +429,41 @@ func divisor(n int) []int {
 	}
 	if n != 1 {
 		divisor = append(divisor, n)
+		divisorm[n] = struct{}{}
 	}
-	return divisor
+	return divisor, divisorm
+}
+
+type binom struct {
+	fac  []int
+	finv []int
+	inv  []int
+}
+
+func newbinom(n int) *binom {
+	b := &binom{
+		fac:  make([]int, n),
+		finv: make([]int, n),
+		inv:  make([]int, n),
+	}
+	b.fac[0] = 1
+	b.fac[1] = 1
+	b.inv[1] = 1
+	b.finv[0] = 1
+	b.finv[1] = 1
+	for i := 2; i < n; i++ {
+		b.fac[i] = b.fac[i-1] * i % mod
+		b.inv[i] = mod - mod/i*b.inv[mod%i]%mod
+		b.finv[i] = b.finv[i-1] * b.inv[i] % mod
+	}
+	return b
+}
+
+func (b *binom) get(n, r int) int {
+	if n < r || n < 0 || r < 0 {
+		return 0
+	}
+	return b.fac[n] * b.finv[r] % mod * b.finv[n-r] % mod
 }
 
 // ==================================================
@@ -395,10 +525,11 @@ func minvfermat(a, m int) int {
 // ==================================================
 // binarysearch
 // ==================================================
+
 /*
-	f := func(c int) bool {
-		return false
-	}
+	o = bs(0, len(sl)-1, func(c int) bool {
+		return true
+	})
 */
 func bs(ok, ng int, f func(int) bool) int {
 	if !f(ok) {
@@ -420,6 +551,41 @@ func bs(ok, ng int, f func(int) bool) int {
 	return ok
 }
 
+/*
+	o = bsfl(0.0, 100.0, 100, func(c float64) bool {
+		return true
+	})
+*/
+func bsfl(ok, ng float64, c int, f func(float64) bool) float64 {
+	for i := 0; i < c; i++ {
+
+		mid := (ok + ng) / 2
+
+		if f(mid) {
+			ok = mid
+		} else {
+			ng = mid
+		}
+	}
+
+	return ok
+}
+
+func bs3fl(low, high float64, c int, f func(float64) float64) float64 {
+
+	for i := 0; i < c; i++ {
+		c1 := (low*2 + high) / 3
+		c2 := (low + high*2) / 3
+
+		if f(c1) > f(c2) {
+			low = c1
+		} else {
+			high = c2
+		}
+	}
+	return low
+}
+
 // ==================================================
 // bit
 // ==================================================
@@ -436,7 +602,23 @@ func popcount(a int) int {
 	return bits.OnesCount(uint(a))
 }
 
+func bitlen(a int) int {
+	return bits.Len(uint(a))
+}
+
 func xor(a, b bool) bool { return a != b }
+
+func debugbit(n int) string {
+	r := ""
+	for i := bitlen(n) - 1; i >= 0; i-- {
+		if n&(1<<i) != 0 {
+			r += "1"
+		} else {
+			r += "0"
+		}
+	}
+	return r
+}
 
 // ==================================================
 // string
@@ -462,6 +644,13 @@ func isUpper(b byte) bool {
 // sort
 // ==================================================
 
+type sortOrder int
+
+const (
+	asc sortOrder = iota
+	desc
+)
+
 func sorti(sl []int) {
 	sort.Sort(sort.IntSlice(sl))
 }
@@ -476,12 +665,42 @@ func sorts(sl []string) {
 	})
 }
 
-func sort2ar(sl [][2]int, key1, key2 int) {
+type Sort2ArOptions struct {
+	keys   []int
+	orders []sortOrder
+}
+
+type Sort2ArOption func(*Sort2ArOptions)
+
+func opt2ar(key int, order sortOrder) Sort2ArOption {
+	return func(args *Sort2ArOptions) {
+		args.keys = append(args.keys, key)
+		args.orders = append(args.orders, order)
+	}
+}
+
+// sort2ar(sl,opt2ar(1,asc))
+// sort2ar(sl,opt2ar(0,asc),opt2ar(1,asc))
+func sort2ar(sl [][2]int, setters ...Sort2ArOption) {
+	args := &Sort2ArOptions{}
+
+	for _, setter := range setters {
+		setter(args)
+	}
+
 	sort.Slice(sl, func(i, j int) bool {
-		if sl[i][key1] == sl[j][key1] {
-			return sl[i][key2] < sl[j][key2]
+		for idx, key := range args.keys {
+			if sl[i][key] == sl[j][key] {
+				continue
+			}
+			switch args.orders[idx] {
+			case asc:
+				return sl[i][key] < sl[j][key]
+			case desc:
+				return sl[i][key] > sl[j][key]
+			}
 		}
-		return sl[i][key1] < sl[j][key1]
+		return true
 	})
 }
 
@@ -489,12 +708,23 @@ func sort2ar(sl [][2]int, key1, key2 int) {
 // slice
 // ==================================================
 
-func isl(l int, def int) []int {
+func is(l int, def int) []int {
 	sl := make([]int, l)
 	for i := 0; i < l; i++ {
 		sl[i] = def
 	}
 	return sl
+}
+
+//	out(stois("abcde", 'a'))
+//	out(stois("abcde", 'a'-1))
+//	out(stois("12345", '0'))
+func stois(s string, baseRune rune) []int {
+	r := make([]int, len(s))
+	for i, v := range s {
+		r[i] = int(v - baseRune)
+	}
+	return r
 }
 
 func reverse(sl []interface{}) {
@@ -510,22 +740,40 @@ func reversei(sl []int) {
 }
 
 func uniquei(sl []int) []int {
-	hist := map[int]bool{}
+	hist := make(map[int]struct{})
 	j := 0
+	rsl := make([]int, len(sl))
 	for i := 0; i < len(sl); i++ {
-		if hist[sl[i]] {
+		if _, ok := hist[sl[i]]; ok {
 			continue
 		}
-
-		a := sl[i]
-		sl[j] = a
-		hist[a] = true
+		rsl[j] = sl[i]
+		hist[sl[i]] = struct{}{}
 		j++
 	}
-	return sl[:j]
+	return rsl[:j]
+}
+
+// coordinate compression
+func cocom(sl []int) ([]int, map[int]int) {
+	rsl := uniquei(sl)
+	sorti(rsl)
+	rm := make(map[int]int)
+	for i := 0; i < len(rsl); i++ {
+		rm[rsl[i]] = i
+	}
+	return rsl, rm
+}
+
+func popBack(sl []int) (int, []int) {
+	return sl[len(sl)-1], sl[:len(sl)-1]
 }
 
 func addIdx(pos, v int, sl []int) []int {
+	if len(sl) == pos {
+		sl = append(sl, v)
+		return sl
+	}
 	sl = append(sl[:pos+1], sl[pos:]...)
 	sl[pos] = v
 	return sl
@@ -533,6 +781,28 @@ func addIdx(pos, v int, sl []int) []int {
 
 func delIdx(pos int, sl []int) []int {
 	return append(sl[:pos], sl[pos+1:]...)
+}
+
+// return -1 if no upperbound found
+func lowerBound(i int, sl []int) int {
+	if len(sl) == 0 {
+		panic("slise len is zero")
+	}
+	idx := bs(0, len(sl)-1, func(c int) bool {
+		return sl[c] < i
+	})
+	return idx
+}
+
+// return len(sl) if no upperbound found
+func upperBound(i int, sl []int) int {
+	if len(sl) == 0 {
+		panic("slise len is zero")
+	}
+	idx := bs(0, len(sl)-1, func(c int) bool {
+		return sl[c] <= i
+	})
+	return idx + 1
 }
 
 // ==================================================
@@ -554,7 +824,7 @@ func (p point) isValid(x, y int) bool {
 }
 
 func pointAdd(a, b point) point {
-	return point{a.x + b.x, a.y + b.y}
+	return point{x: a.x + b.x, y: a.y + b.y}
 }
 
 func pointDist(a, b point) float64 {
@@ -587,35 +857,39 @@ func pointfDist(a, b pointf) float64 {
 // ==================================================
 
 /*
-  h := &int2dHeap{&int2d{dist[r], r}}
-  heap.Init(h)
-  v := heap.Pop(h).(*int2d)
-  heap.Push(h, &int2d{x, y})
+	h := &IntHeap{}
+	heap.Init(h)
+	heap.Push(h, 2)
+	heap.Push(h, 3)
+	out(heap.Pop(h).(int))
+	out(h.Min().(int))
+	heap.Pop(h)
+	out(h.Len())
 */
+type IntHeap []int
 
-type int2d [2]int
+func (h IntHeap) Len() int           { return len(h) }
+func (h IntHeap) Less(i, j int) bool { return h[i] < h[j] }
+func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
 
-type int2dHeap []*int2d
-
-func (h int2dHeap) Len() int           { return len(h) }
-func (h int2dHeap) Less(i, j int) bool { return h[i][0] < h[j][0] }
-func (h int2dHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *int2dHeap) Push(x interface{}) {
-	*h = append(*h, x.(*int2d))
+func (h *IntHeap) Push(x interface{}) {
+	*h = append(*h, x.(int))
 }
 
-func (h *int2dHeap) Pop() interface{} {
+func (h *IntHeap) Pop() interface{} {
 	old := *h
 	n := len(old)
 	x := old[n-1]
-	old[n-1] = nil
 	*h = old[0 : n-1]
 	return x
 }
 
-func (h *int2dHeap) IsEmpty() bool {
+func (h *IntHeap) IsEmpty() bool {
 	return h.Len() == 0
+}
+
+func (h *IntHeap) Min() interface{} {
+	return (*h)[0]
 }
 
 type pq struct {
@@ -624,16 +898,21 @@ type pq struct {
 }
 
 /*
-	graph.comps = []compFunc{
-		func(p, q interface{}) int {
-			if p.(state).score < q.(state).score {
-				return -1
-			} else if p.(state).score == q.(state).score {
-				return 0
-			}
-			return 1
-		},
-	}
+	pq := newpq([]compFunc{func(p, q interface{}) int {
+		if p.(edge).cost < q.(edge).cost {
+			return -1
+		} else if p.(edge).cost == q.(edge).cost {
+			return 0
+		}
+		return 1
+	}})
+	heap.Init(pq)
+	heap.Push(pq, edge{from: 3, to: 3, cost: 2})
+	heap.Push(pq, edge{from: 2, to: 2, cost: 3})
+	out(heap.Pop(pq).(edge))
+	out(pq.Min().(edge))
+	heap.Pop(pq)
+	out(pq.Len())
 */
 type compFunc func(p, q interface{}) int
 
@@ -677,29 +956,44 @@ func (pq *pq) Pop() interface{} {
 	return item
 }
 
-func (pq *pq) Top() interface{} {
-	n := pq.Len()
-	return pq.arr[n-1]
-}
-
 func (pq *pq) IsEmpty() bool {
 	return pq.Len() == 0
 }
 
+func (pq *pq) Min() interface{} {
+	return pq.arr[0]
+}
+
 // ==================================================
-// cusum2d
+// cusum
 // ==================================================
 
-/*
-	cusum2d := newCusum2d(n, n)
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			cusum2d.set(i, j, 1)
-		}
+type cusum struct {
+	s []int
+}
+
+func newcusum(sl []int) *cusum {
+	c := &cusum{}
+	c.s = make([]int, len(sl)+1)
+	for i, v := range sl {
+		c.s[i+1] = c.s[i] + v
 	}
-	for i := 0; i < n-k+1; i++ {
-		for j := 0; j < n-k+1; j++ {
-			t:=cusum2d.get(i, j, i+k, j+k)
+	return c
+}
+
+func (c *cusum) get(f, t int) int {
+	return c.s[t+1] - c.s[f]
+}
+
+/*
+	mp := make([][]int, n)
+	for i := 0; i < k; i++ {
+		mp[i] = make([]int, m)
+	}
+	cusum2d := newcusum2d(sl)
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
+			t:=cusum2d.get(0, 0, i, j)
 		}
 	}
 */
@@ -708,17 +1002,21 @@ type cusum2d struct {
 	s [][]int
 }
 
-func newCusum2d(n, m int) *cusum2d {
+func newcusum2d(sl [][]int) *cusum2d {
 	c := &cusum2d{}
+	n := len(sl)
+	m := len(sl[0])
 	c.s = make([][]int, n+1)
-	for i := 0; i <= n; i++ {
+	for i := 0; i < n+1; i++ {
 		c.s[i] = make([]int, m+1)
 	}
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
+			c.s[i+1][j+1] = c.s[i+1][j] + c.s[i][j+1] - c.s[i][j]
+			c.s[i+1][j+1] += sl[i][j]
+		}
+	}
 	return c
-}
-func (c *cusum2d) set(x, y, add int) {
-	c.s[x+1][y+1] = c.s[x+1][y] + c.s[x][y+1] - c.s[x][y]
-	c.s[x+1][y+1] += add
 }
 
 // x1 <= x <= x2, y1 <= y <= y2
@@ -831,13 +1129,18 @@ func (b *bit) lowerBound(x int) int {
 
 type streeculctype int
 
-var stadd streeculctype = 1
-var stset streeculctype = 2
+const (
+	stadd streeculctype = iota
+	stmadd
+	stset
+)
 
 type streeminmmax int
 
-var stmin streeminmmax = 1
-var stmax streeminmmax = 2
+const (
+	stmin streeminmmax = iota
+	stmax
+)
 
 /*
 s := newstree(n,stmin|stmax,stset|stadd)
@@ -982,7 +1285,7 @@ func (s *stree) debug() {
 }
 
 /*
-s := newlazystree(n,stmin|stmax,stset|stadd)
+s := newlazystree(n,stmin|stmax,stset|stadd|stmadd)
 s.set(i,x)
 s.add(i,x)
 s.rc(l,r,x)
@@ -1032,10 +1335,20 @@ func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
 			if i == s.def {
 				return j
 			}
-			if i == s.def {
+			if j == s.def {
 				return i
 			}
 			return i + j
+		}
+	case stmadd:
+		s.culc = func(i, j int) int {
+			if i == s.def {
+				return j
+			}
+			if j == s.def {
+				return i
+			}
+			return madd(i, j)
 		}
 	case stset:
 		s.culc = func(i, j int) int {
@@ -1077,7 +1390,7 @@ func (s lazystree) set(i, x int) {
 	}
 }
 
-// range culc
+// range culc a <= n n <= b
 func (s lazystree) rc(a, b, x int) {
 	s.rcsub(a, b, x, 0, 0, s.n)
 }
@@ -1349,6 +1662,109 @@ func newgraph(size int, edges [][]edge) *graph {
 /*
 	v, e := ni2()
 	edges := make([][]edge, v)
+	deg := make([]int, v)
+	for i := 0; i < e; i++ {
+		s, t, c := ni3()
+		s--
+		t--
+		edges[s] = append(edges[s], edge{to: t, cost: c})
+		deg[t]++
+	}
+	graph := newgraph(v, edges)
+	isdag, r := graph.topologicalSort(deg)
+*/
+func (g *graph) topologicalSort(deg []int) (bool, []int) {
+
+	r := []int{}
+	q := list.New()
+	for i := 0; i < g.size; i++ {
+		if deg[i] == 0 {
+			q.PushBack(i)
+		}
+	}
+	e := q.Front()
+	for e != nil {
+		t := e.Value.(int)
+		r = append(r, t)
+		for _, edge := range g.edges[t] {
+			deg[edge.to]--
+			if deg[edge.to] == 0 {
+				q.PushBack(edge.to)
+			}
+		}
+
+		e = e.Next()
+	}
+	for _, v := range deg {
+		if v != 0 {
+			return false, nil
+		}
+	}
+	return true, r
+}
+
+/*
+	v, e := ni2()
+	edges := make([][]edge, v)
+	edgers := make([][]edge, v)
+
+	for i := 0; i < e; i++ {
+		s, t := ni2()
+		s--
+		t--
+		edges[s] = append(edges[s], edge{to: t})
+		edgers[t] = append(edgers[t], edge{to: s})
+	}
+
+	scc := getScc(v, edges, edgers)
+*/
+func getScc(v int, edges, edgers [][]edge) [][]int {
+	used := make([]bool, v)
+	scc := [][]int{}
+	vs := []int{}
+
+	var dfs func(i int)
+	dfs = func(i int) {
+		used[i] = true
+		for _, v := range edges[i] {
+			if used[v.to] == false {
+				dfs(v.to)
+			}
+		}
+		vs = append(vs, i)
+	}
+
+	var rdfs func(i, k int)
+	rdfs = func(i, k int) {
+		used[i] = true
+		scc[k] = append(scc[k], i)
+		for _, v := range edgers[i] {
+			if used[v.to] == false {
+				rdfs(v.to, k)
+			}
+		}
+	}
+
+	for i := 0; i < v; i++ {
+		if used[i] == false {
+			dfs(i)
+		}
+	}
+	used = make([]bool, v)
+	k := 0
+	for i := v - 1; i >= 0; i-- {
+		if used[vs[i]] == false {
+			scc = append(scc, []int{})
+			rdfs(vs[i], k)
+			k++
+		}
+	}
+	return scc
+}
+
+/*
+	v, e := ni2()
+	edges := make([][]edge, v)
 
 	for i := 0; i < e; i++ {
 		s, t, c := ni3()
@@ -1462,6 +1878,18 @@ func (g *graph) kruskal() int {
 	return r
 }
 
+/*
+	v, e := ni2()
+	edges := make([][]edge, v)
+	for i := 0; i < e; i++ {
+		s, t, c := ni3()
+		s--
+		t--
+		setDualEdge(edges, s, t, c)
+	}
+	graph := newgraph(v, edges)
+	o = graph.dinic()
+*/
 func (g *graph) dinic() int {
 	f := 0
 	for {
