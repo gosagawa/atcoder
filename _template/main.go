@@ -779,30 +779,26 @@ func delIdx(pos int, sl []int) []int {
 	return append(sl[:pos], sl[pos+1:]...)
 }
 
-func lowerBound(i int, sl []int) (int, bool) {
+// return -1 if no upperbound found
+func lowerBound(i int, sl []int) int {
 	if len(sl) == 0 {
-		return 0, false
+		panic("slise len is zero")
 	}
 	idx := bs(0, len(sl)-1, func(c int) bool {
 		return sl[c] < i
 	})
-	if idx == -1 {
-		return 0, false
-	}
-	return idx, true
+	return idx
 }
 
-func upperBound(i int, sl []int) (int, bool) {
+// return len(sl) if no upperbound found
+func upperBound(i int, sl []int) int {
 	if len(sl) == 0 {
-		return 0, false
+		panic("slise len is zero")
 	}
 	idx := bs(0, len(sl)-1, func(c int) bool {
 		return sl[c] <= i
 	})
-	if idx == len(sl)-1 {
-		return 0, false
-	}
-	return idx + 1, true
+	return idx + 1
 }
 
 // ==================================================
