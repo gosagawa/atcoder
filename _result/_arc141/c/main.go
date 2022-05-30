@@ -30,13 +30,13 @@ func main() {
 	}
 	ans := make([]string, n*2)
 	r := true
-	for i := 0; i < n*2-1; i++ {
+	for i := 0; i < n*2-1; i += 2 {
 		if ps[i] > ps[i+1] {
 			ans[ps[i]] = "("
 			ans[ps[i+1]] = ")"
 		}
 	}
-	for i := 0; i < n*2-1; i++ {
+	for i := 0; i < n*2-1; i += 2 {
 		if qs[i] < qs[i+1] {
 			if ans[qs[i]] == ")" {
 				r = false
