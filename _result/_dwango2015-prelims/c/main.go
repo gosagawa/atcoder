@@ -36,6 +36,7 @@ func main() {
 			return t[0]
 		}
 	}
+
 	pos := make([][]float64, n+1)
 	for i := range pos {
 		pos[i] = make([]float64, n+1)
@@ -68,30 +69,29 @@ func main() {
 			}
 		}
 	}
+
+	culced := make([]bool, n+1)
 	dp := make([]float64, n+1)
-	res := make([]float64, 1001)
-	dp[n] = 1.0
-	for i := 1; i < 100; i++ {
-		ndp := make([]float64, n+1)
-		for j := 2; j <= n; j++ {
-			for k, v := range pos[j] {
-				o += dp[j] * v
-				res[i] += dp[j] * v
-				ndp[k] += dp[j] * v
-			}
+	var dfs func(n int) float64
+	dfs = func(n int) float64 {
+		if n == 1 {
+			return 0.0
 		}
-
-		copy(dp, ndp)
-	}
-
-	if false {
-		out(res)
-		sum := 0.0
-		for _, v := range res {
-			sum += v
+		if culced[n] {
+			return dp[n]
 		}
-		out(sum)
+		t := pos[n][n]
+		for i := 1; i < n; i++ {
+			t += pos[n][i] * (dfs(i) + 1)
+		}
+		t /= 1.0 - pos[n][n]
+
+		culced[n] = true
+		dp[n] = t
+		return t
 	}
+	o = dfs(n)
+
 	out(o)
 }
 
