@@ -22,10 +22,8 @@ func main() {
 	defer flush()
 
 	o := 0
-	r, c := ni2()
-	a := nis(4)
-	o = a[(r-1)*2+c-1]
-
+	n := ni()
+	ns := nis(n)
 	out(o)
 }
 
