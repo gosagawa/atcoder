@@ -869,12 +869,11 @@ func pointfDist(a, b pointf) float64 {
 /*
 	h := &IntHeap{}
 	heap.Init(h)
-	heap.Push(h, 2)
-	heap.Push(h, 3)
-	out(heap.Pop(h).(int))
-	out(h.Min().(int))
-	heap.Pop(h)
-	out(h.Len())
+
+	heap.Push(h, v)
+	for !h.IsEmpty() {
+		v = heap.Pop(h).(int)
+	}
 */
 type IntHeap []int
 
@@ -898,6 +897,7 @@ func (h *IntHeap) IsEmpty() bool {
 	return h.Len() == 0
 }
 
+// h.Min().(int)
 func (h *IntHeap) Min() interface{} {
 	return (*h)[0]
 }
@@ -917,12 +917,11 @@ type pq struct {
 		return 1
 	}})
 	heap.Init(pq)
+
 	heap.Push(pq, edge{from: 3, to: 3, cost: 2})
-	heap.Push(pq, edge{from: 2, to: 2, cost: 3})
-	out(heap.Pop(pq).(edge))
-	out(pq.Min().(edge))
-	heap.Pop(pq)
-	out(pq.Len())
+	for !h.IsEmpty() {
+		v = heap.Pop(pq).(edge)
+	}
 */
 type compFunc func(p, q interface{}) int
 
@@ -970,6 +969,7 @@ func (pq *pq) IsEmpty() bool {
 	return pq.Len() == 0
 }
 
+// pq.Min().(edge)
 func (pq *pq) Min() interface{} {
 	return pq.arr[0]
 }
