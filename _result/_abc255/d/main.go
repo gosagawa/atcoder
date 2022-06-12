@@ -29,14 +29,6 @@ func main() {
 	for i := 0; i < q; i++ {
 		x := ni()
 		t := lowerBound(x, ns)
-		if t == -1 {
-			out(cs.get(0, n-1) - n*x)
-			continue
-		}
-		if t == n-1 {
-			out(n*x - cs.get(0, n-1))
-			continue
-		}
 		//		out(x, ns[t], t, cs.get(0, t), cs.get(t+1, n-1))
 		out(x*(t+1) - cs.get(0, t) + cs.get(t+1, n-1) - x*(n-t-1))
 	}
@@ -980,11 +972,13 @@ func (pq *pq) Min() interface{} {
 // ==================================================
 
 type cusum struct {
+	l int
 	s []int
 }
 
 func newcusum(sl []int) *cusum {
 	c := &cusum{}
+	c.l = len(sl)
 	c.s = make([]int, len(sl)+1)
 	for i, v := range sl {
 		c.s[i+1] = c.s[i] + v
@@ -992,7 +986,11 @@ func newcusum(sl []int) *cusum {
 	return c
 }
 
+// get sum f <= i && i <= t
 func (c *cusum) get(f, t int) int {
+	if f > t || f >= c.l {
+		return 0
+	}
 	return c.s[t+1] - c.s[f]
 }
 
