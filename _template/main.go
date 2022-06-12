@@ -73,10 +73,16 @@ func ni4() (int, int, int, int) {
 	return ni(), ni(), ni(), ni()
 }
 
-func nis(n int) []int {
+func nis(arg ...int) []int {
+	n := arg[0]
+	t := 0
+	if len(arg) == 2 {
+		t = arg[1]
+	}
+
 	a := make([]int, n)
 	for i := 0; i < n; i++ {
-		a[i] = ni()
+		a[i] = ni() - t
 	}
 	return a
 }
@@ -273,6 +279,10 @@ func pow10(a int) int {
 
 func sqrt(i int) int {
 	return int(math.Sqrt(float64(i)))
+}
+
+func sqrtf(i int) float64 {
+	return math.Sqrt(float64(i))
 }
 
 func ch(cond bool, ok, ng int) int {
@@ -779,24 +789,24 @@ func delIdx(pos int, sl []int) []int {
 	return append(sl[:pos], sl[pos+1:]...)
 }
 
-// return -1 if no upperbound found
-func lowerBound(i int, sl []int) int {
+// find x of sl[x] < v. return -1 if no lowerbound found
+func lowerBound(v int, sl []int) int {
 	if len(sl) == 0 {
 		panic("slise len is zero")
 	}
 	idx := bs(0, len(sl)-1, func(c int) bool {
-		return sl[c] < i
+		return sl[c] < v
 	})
 	return idx
 }
 
-// return len(sl) if no upperbound found
-func upperBound(i int, sl []int) int {
+// find x of v < sl[x]. return len(sl) if no upperbound found
+func upperBound(v int, sl []int) int {
 	if len(sl) == 0 {
 		panic("slise len is zero")
 	}
 	idx := bs(0, len(sl)-1, func(c int) bool {
-		return sl[c] <= i
+		return sl[c] <= v
 	})
 	return idx + 1
 }
@@ -824,7 +834,11 @@ func pointAdd(a, b point) point {
 }
 
 func pointDist(a, b point) float64 {
-	return math.Sqrt(float64((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y)))
+	return sqrtf((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y)))
+}
+
+func pointDistDouble(a, b point) int {
+	return (a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y)
 }
 
 func pointfDist(a, b pointf) float64 {

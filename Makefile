@@ -39,6 +39,9 @@ s:
 su:
 	./shell/submiturl.sh
 
+load:
+	./shell/load.sh
+
 login:
 	oj login https://atcoder.jp
 
