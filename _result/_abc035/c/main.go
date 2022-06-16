@@ -21,7 +21,6 @@ func main() {
 
 	defer flush()
 
-	o := ""
 	n, q := ni2()
 	ls, rs := ni2s(q, 1)
 	dp := make([]int, n+1)
@@ -30,12 +29,17 @@ func main() {
 		dp[rs[i]+1]--
 	}
 	t := 0
+	r := make([]string, n)
 	for i := 0; i < n; i++ {
 		t += dp[i]
-		o += itoa(t % 2)
+		if t%2 == 0 {
+			r[i] = "0"
+		} else {
+			r[i] = "1"
+		}
 	}
 
-	out(o)
+	out(strings.Join(r, ""))
 }
 
 // ==================================================
