@@ -21,14 +21,16 @@ func main() {
 
 	defer flush()
 
+	o := ""
+
 	x := ns()
 	ns := make([]int, len(x))
 	sum := 0
 	for i, v := range x {
-		ns[i] = int(v) - 48
+		ns[i] = atoi(string(v))
 		sum += ns[i]
 	}
-	rs := make([]int, len(ns))
+	rs := make([]int, len(ns)+1)
 	t := 0
 	for i := 0; i < len(ns); i++ {
 		rs[i] = (sum + t) % 10
@@ -36,15 +38,13 @@ func main() {
 		sum -= ns[len(ns)-i-1]
 	}
 	if t != 0 {
-		outnl(t)
+		o += itoa(t)
 	}
+	r := make([]byte, len(ns))
 	for i := len(ns) - 1; i >= 0; i-- {
-		if i == 0 {
-			out(rs[i])
-		} else {
-			outnl(rs[i])
-		}
+		r[len(ns)-i-1] = byte('0' + rs[i])
 	}
+	o += string(r)
 
 	/*
 		a := ni()
@@ -57,6 +57,7 @@ func main() {
 		}
 	*/
 
+	out(o)
 }
 
 // ==================================================
@@ -125,12 +126,6 @@ func ns() string {
 	return sc.Text()
 }
 
-func outnl(v ...interface{}) {
-	_, e := fmt.Fprint(wtr, v...)
-	if e != nil {
-		panic(e)
-	}
-}
 func out(v ...interface{}) {
 	_, e := fmt.Fprintln(wtr, v...)
 	if e != nil {
