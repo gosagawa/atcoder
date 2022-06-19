@@ -27,62 +27,23 @@ func main() {
 	n := len(a)
 	o = ao - pow10(n-1) + 1
 	k := ni()
-	for i := 1; i < pow2(10); i++ {
-		if popcount(i) != k {
-			continue
-		}
-		nums := make(map[int]bool)
+	t := 0
+	ta := ao
+	for i := 0; i < n; i++ {
 		for j := 0; j < 10; j++ {
-			if hasbit(i, j) {
-				nums[j] = true
+			for l := 0; l < 10; l++ {
+				tt := t
+				tt |= pow2(j)
+				tt |= pow2(l)
+				if popcount(tt) > k {
+					continue
+				}
+				//out(i, j, l, ta, j*pow10(n-i-1), (pow10(n-i-1)-1)/9*l)
+				mins(&o, abs(ta-j*pow10(n-i-1)-(pow10(n-i-1)-1)/9*l))
 			}
 		}
-
-		var dfs func(c, d int)
-		dfs = func(c, d int) {
-			if i == 6 {
-				//out(nums, c, d)
-			}
-			if c == n {
-				//out(nums, d)
-				mins(&o, abs(d))
-				return
-			}
-			if d == 0 {
-				if nums[a[c]] {
-					dfs(c+1, 0)
-				} else {
-					for j := 1; j < 10; j++ {
-						if nums[a[c]-j] || nums[a[c]+j] {
-							if nums[a[c]-j] {
-								dfs(c+1, -pow10(n-c-1)*j)
-							}
-							if nums[a[c]+j] {
-								dfs(c+1, pow10(n-c-1)*j)
-							}
-							break
-						}
-					}
-				}
-			}
-			if d < 0 {
-				for j := 9; j >= 0; j-- {
-					if nums[j] {
-						dfs(c+1, d+pow10(n-c-1)*(j-a[c]))
-						break
-					}
-				}
-			}
-			if d > 0 {
-				for j := 0; j < 10; j++ {
-					if nums[j] {
-						dfs(c+1, d+pow10(n-c-1)*(j-a[c]))
-						break
-					}
-				}
-			}
-		}
-		dfs(0, 0)
+		t |= pow2(a[i])
+		ta -= a[i] * pow10(n-i-1)
 	}
 	out(o)
 }
