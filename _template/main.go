@@ -478,10 +478,11 @@ func (b *binom) get(n, r int) int {
 
 func madd(a, b int) int {
 	a += b
+	if a >= mod || a <= -mod {
+		a %= mod
+	}
 	if a < 0 {
 		a += mod
-	} else if a >= mod {
-		a -= mod
 	}
 	return a
 }
@@ -733,6 +734,14 @@ func stois(s string, baseRune rune) []int {
 	return r
 }
 
+func istos(s []int, baseRune rune) string {
+	r := ""
+	for _, v := range s {
+		r += string(v + int(baseRune))
+	}
+	return r
+}
+
 func reverse(sl []interface{}) {
 	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
 		sl[i], sl[j] = sl[j], sl[i]
@@ -834,7 +843,7 @@ func pointAdd(a, b point) point {
 }
 
 func pointDist(a, b point) float64 {
-	return sqrtf((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y)))
+	return sqrtf((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y))
 }
 
 func pointDistDouble(a, b point) int {
@@ -867,7 +876,69 @@ func pointfDist(a, b pointf) float64 {
 // ==================================================
 
 /*
-	h := &IntHeap{}
+	ih := newIntHeap(asc)
+	ih.Push(v)
+	for !ih.IsEmpty() {
+		v := ih.Pop(h)
+	}
+*/
+type IntHeap struct {
+	sum int
+	pq  *pq
+}
+
+func newIntHeap(order sortOrder) *IntHeap {
+	ih := &IntHeap{}
+	ih.pq = newpq([]compFunc{func(p, q interface{}) int {
+		if p.(int) == q.(int) {
+			return 0
+		}
+		if order == asc {
+			if p.(int) < q.(int) {
+				return -1
+			} else {
+				return 1
+			}
+		} else {
+			if p.(int) > q.(int) {
+				return -1
+			} else {
+				return 1
+			}
+		}
+	}})
+	heap.Init(ih.pq)
+	return ih
+}
+func (ih *IntHeap) Push(x int) {
+	ih.sum += x
+	heap.Push(ih.pq, x)
+}
+
+func (ih *IntHeap) Pop() int {
+	v := heap.Pop(ih.pq).(int)
+	ih.sum -= v
+	return v
+}
+
+func (ih *IntHeap) Len() int {
+	return ih.pq.Len()
+}
+
+func (ih *IntHeap) IsEmpty() bool {
+	return ih.pq.Len() == 0
+}
+
+func (ih *IntHeap) GetRoot() int {
+	return ih.pq.GetRoot().(int)
+}
+
+func (ih *IntHeap) GetSum() int {
+	return ih.sum
+}
+
+/*
+	h := &OrgIntHeap{}
 	heap.Init(h)
 
 	heap.Push(h, v)
@@ -875,17 +946,20 @@ func pointfDist(a, b pointf) float64 {
 		v = heap.Pop(h).(int)
 	}
 */
-type IntHeap []int
+type OrgIntHeap []int
 
-func (h IntHeap) Len() int           { return len(h) }
-func (h IntHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h OrgIntHeap) Len() int { return len(h) }
 
-func (h *IntHeap) Push(x interface{}) {
+// get from bigger
+// func (h OrgIntHeap) Less(i, j int) bool { return h[i] > h[j] }
+func (h OrgIntHeap) Less(i, j int) bool { return h[i] < h[j] }
+func (h OrgIntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *OrgIntHeap) Push(x interface{}) {
 	*h = append(*h, x.(int))
 }
 
-func (h *IntHeap) Pop() interface{} {
+func (h *OrgIntHeap) Pop() interface{} {
 	old := *h
 	n := len(old)
 	x := old[n-1]
@@ -893,36 +967,54 @@ func (h *IntHeap) Pop() interface{} {
 	return x
 }
 
-func (h *IntHeap) IsEmpty() bool {
+func (h *OrgIntHeap) IsEmpty() bool {
 	return h.Len() == 0
 }
 
 // h.Min().(int)
-func (h *IntHeap) Min() interface{} {
+func (h *OrgIntHeap) Min() interface{} {
 	return (*h)[0]
 }
+
+/*
+	type pqst struct {
+		x int
+		y int
+	}
+
+	pq := newpq([]compFunc{func(p, q interface{}) int {
+		if p.(pqst).x != q.(pqst).x {
+			// get from bigger
+			// if p.(pqst).x > q.(pqst).x {
+			if p.(pqst).x < q.(pqst).x {
+				return -1
+			} else {
+				return 1
+			}
+		}
+		if p.(pqst).y != q.(pqst).y {
+			// get from bigger
+			// if p.(pqst).y > q.(pqst).y {
+			if p.(pqst).y < q.(pqst).y {
+				return -1
+			} else {
+				return 1
+			}
+		}
+		return 0
+	}})
+	heap.Init(pq)
+	heap.Push(pq, pqst{x: 1, y: 1})
+	for !pq.IsEmpty() {
+		v := heap.Pop(pq).(pqst)
+	}
+*/
 
 type pq struct {
 	arr   []interface{}
 	comps []compFunc
 }
 
-/*
-	pq := newpq([]compFunc{func(p, q interface{}) int {
-		if p.(edge).cost < q.(edge).cost {
-			return -1
-		} else if p.(edge).cost == q.(edge).cost {
-			return 0
-		}
-		return 1
-	}})
-	heap.Init(pq)
-
-	heap.Push(pq, edge{from: 3, to: 3, cost: 2})
-	for !h.IsEmpty() {
-		v = heap.Pop(pq).(edge)
-	}
-*/
 type compFunc func(p, q interface{}) int
 
 func newpq(comps []compFunc) *pq {
@@ -969,8 +1061,8 @@ func (pq *pq) IsEmpty() bool {
 	return pq.Len() == 0
 }
 
-// pq.Min().(edge)
-func (pq *pq) Min() interface{} {
+// pq.GetRoot().(edge)
+func (pq *pq) GetRoot() interface{} {
 	return pq.arr[0]
 }
 
@@ -979,11 +1071,13 @@ func (pq *pq) Min() interface{} {
 // ==================================================
 
 type cusum struct {
+	l int
 	s []int
 }
 
 func newcusum(sl []int) *cusum {
 	c := &cusum{}
+	c.l = len(sl)
 	c.s = make([]int, len(sl)+1)
 	for i, v := range sl {
 		c.s[i+1] = c.s[i] + v
@@ -991,7 +1085,11 @@ func newcusum(sl []int) *cusum {
 	return c
 }
 
+// get sum f <= i && i <= t
 func (c *cusum) get(f, t int) int {
+	if f > t || f >= c.l {
+		return 0
+	}
 	return c.s[t+1] - c.s[f]
 }
 
@@ -1100,23 +1198,28 @@ func newbit(n int) *bit {
 	}
 }
 
+func (b *bit) culc(i, j int) int {
+	return i + j
+	//return madd(i, j)
+}
+
 func (b *bit) add(i, x int) {
 	for i++; i < b.n && i > 0; i += i & -i {
-		b.b[i] += x
+		b.b[i] = b.culc(b.b[i], x)
 	}
 }
 
 func (b *bit) sum(i int) int {
 	ret := 0
 	for i++; i > 0; i -= i & -i {
-		ret += b.b[i]
+		ret = b.culc(ret, b.b[i])
 	}
 	return ret
 }
 
 // l <= x < r
 func (b *bit) rangesum(l, r int) int {
-	return b.sum(r-1) - b.sum(l-1)
+	return b.culc(b.sum(r-1), -b.sum(l-1))
 }
 
 func (b *bit) lowerBound(x int) int {
