@@ -23,13 +23,8 @@ func main() {
 
 	q := ni()
 	tb := 0
-
-	h := &LowIntHeap{}
-	heap.Init(h)
-	hsum := 0
-	lh := &IntHeap{}
-	lhsum := 0
-	heap.Init(lh)
+	hh := newIntHeap(asc)
+	lh := newIntHeap(desc)
 
 	for i := 0; i < q; i++ {
 		t := ni()
@@ -37,79 +32,31 @@ func main() {
 		case 1:
 			a, b := ni2()
 			tb += b
-			if h.Len() == 0 {
-				heap.Push(h, a)
-				hsum += a
-				continue
-			} else if lh.Len() == 0 {
-				v := heap.Pop(h).(int)
-				hsum -= v
-				if v >= a {
-					heap.Push(h, v)
-					hsum += v
-					heap.Push(lh, a)
-					lhsum += a
-				} else {
-					heap.Push(h, a)
-					hsum += a
-					heap.Push(lh, v)
-					lhsum += v
-				}
-				continue
+			if lh.Len() == 0 {
+				lh.Push(a)
 			} else {
-				if h.Len() == lh.Len() {
-					vl := heap.Pop(lh).(int)
-					lhsum -= vl
-					if a < vl {
-						heap.Push(h, vl)
-						hsum += vl
-						heap.Push(lh, a)
-						lhsum += a
+				if hh.Len() == lh.Len() {
+					if a < hh.GetRoot() {
+						lh.Push(a)
 					} else {
-						heap.Push(lh, vl)
-						lhsum += vl
-						heap.Push(h, a)
-						hsum += a
+						lh.Push(hh.Pop())
+						hh.Push(a)
 					}
 				} else {
-					v := heap.Pop(h).(int)
-					hsum -= v
-					if a < v {
-						heap.Push(h, v)
-						hsum += v
-						heap.Push(lh, a)
-						lhsum += a
+					if a > lh.GetRoot() {
+						hh.Push(a)
 					} else {
-						heap.Push(h, a)
-						hsum += a
-						heap.Push(lh, v)
-						lhsum += v
+						hh.Push(lh.Pop())
+						lh.Push(a)
 					}
 				}
 			}
 		case 2:
-			v := 0
-			if h.Len() != lh.Len() {
-				v = heap.Pop(h).(int)
-			} else {
-				v = heap.Pop(lh).(int)
-			}
+			v := lh.GetRoot()
 			o := tb
-			if h.Len() == lh.Len() {
-				o += hsum - v*(h.Len()+1)
-				o += v*lh.Len() - lhsum
-			} else {
-				o += hsum - v*(h.Len())
-				o += v*(lh.Len()+1) - lhsum
-			}
-			//	out(tb, hsum, lhsum, h.Len()+1, lh.Len())
+			o += hh.GetSum() - v*hh.Len()
+			o += v*lh.Len() - lh.GetSum()
 			out(fmt.Sprintf("%v %v", v, o))
-			if h.Len() == lh.Len() {
-				heap.Push(h, v)
-			} else {
-				heap.Push(lh, v)
-			}
-
 		}
 	}
 }
@@ -963,7 +910,69 @@ func pointfDist(a, b pointf) float64 {
 // ==================================================
 
 /*
-	h := &IntHeap{}
+	ih := newIntHeap(asc)
+	ih.Push(v)
+	for !ih.IsEmpty() {
+		v := ih.Pop(h)
+	}
+*/
+type IntHeap struct {
+	sum int
+	pq  *pq
+}
+
+func newIntHeap(order sortOrder) *IntHeap {
+	ih := &IntHeap{}
+	ih.pq = newpq([]compFunc{func(p, q interface{}) int {
+		if p.(int) == q.(int) {
+			return 0
+		}
+		if order == asc {
+			if p.(int) < q.(int) {
+				return -1
+			} else {
+				return 1
+			}
+		} else {
+			if p.(int) > q.(int) {
+				return -1
+			} else {
+				return 1
+			}
+		}
+	}})
+	heap.Init(ih.pq)
+	return ih
+}
+func (ih *IntHeap) Push(x int) {
+	ih.sum += x
+	heap.Push(ih.pq, x)
+}
+
+func (ih *IntHeap) Pop() int {
+	v := heap.Pop(ih.pq).(int)
+	ih.sum -= v
+	return v
+}
+
+func (ih *IntHeap) Len() int {
+	return ih.pq.Len()
+}
+
+func (ih *IntHeap) IsEmpty() bool {
+	return ih.pq.Len() == 0
+}
+
+func (ih *IntHeap) GetRoot() int {
+	return ih.pq.GetRoot().(int)
+}
+
+func (ih *IntHeap) GetSum() int {
+	return ih.sum
+}
+
+/*
+	h := &OrgIntHeap{}
 	heap.Init(h)
 
 	heap.Push(h, v)
@@ -971,17 +980,20 @@ func pointfDist(a, b pointf) float64 {
 		v = heap.Pop(h).(int)
 	}
 */
-type IntHeap []int
+type OrgIntHeap []int
 
-func (h IntHeap) Len() int           { return len(h) }
-func (h IntHeap) Less(i, j int) bool { return h[i] > h[j] }
-func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h OrgIntHeap) Len() int { return len(h) }
 
-func (h *IntHeap) Push(x interface{}) {
+// get from bigger
+// func (h OrgIntHeap) Less(i, j int) bool { return h[i] > h[j] }
+func (h OrgIntHeap) Less(i, j int) bool { return h[i] < h[j] }
+func (h OrgIntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *OrgIntHeap) Push(x interface{}) {
 	*h = append(*h, x.(int))
 }
 
-func (h *IntHeap) Pop() interface{} {
+func (h *OrgIntHeap) Pop() interface{} {
 	old := *h
 	n := len(old)
 	x := old[n-1]
@@ -989,72 +1001,54 @@ func (h *IntHeap) Pop() interface{} {
 	return x
 }
 
-func (h *IntHeap) IsEmpty() bool {
+func (h *OrgIntHeap) IsEmpty() bool {
 	return h.Len() == 0
 }
 
 // h.Min().(int)
-func (h *IntHeap) Min() interface{} {
+func (h *OrgIntHeap) Min() interface{} {
 	return (*h)[0]
 }
+
+/*
+	type pqst struct {
+		x int
+		y int
+	}
+
+	pq := newpq([]compFunc{func(p, q interface{}) int {
+		if p.(pqst).x != q.(pqst).x {
+			// get from bigger
+			// if p.(pqst).x > q.(pqst).x {
+			if p.(pqst).x < q.(pqst).x {
+				return -1
+			} else {
+				return 1
+			}
+		}
+		if p.(pqst).y != q.(pqst).y {
+			// get from bigger
+			// if p.(pqst).y > q.(pqst).y {
+			if p.(pqst).y < q.(pqst).y {
+				return -1
+			} else {
+				return 1
+			}
+		}
+		return 0
+	}})
+	heap.Init(pq)
+	heap.Push(pq, pqst{x: 1, y: 1})
+	for !pq.IsEmpty() {
+		v := heap.Pop(pq).(pqst)
+	}
+*/
 
 type pq struct {
 	arr   []interface{}
 	comps []compFunc
 }
 
-/*
-	h := &IntHeap{}
-	heap.Init(h)
-
-	heap.Push(h, v)
-	for !h.IsEmpty() {
-		v = heap.Pop(h).(int)
-	}
-*/
-type LowIntHeap []int
-
-func (h LowIntHeap) Len() int           { return len(h) }
-func (h LowIntHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h LowIntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *LowIntHeap) Push(x interface{}) {
-	*h = append(*h, x.(int))
-}
-
-func (h *LowIntHeap) Pop() interface{} {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
-}
-
-func (h *LowIntHeap) IsEmpty() bool {
-	return h.Len() == 0
-}
-
-// h.Min().(int)
-func (h *LowIntHeap) Min() interface{} {
-	return (*h)[0]
-}
-
-/*
-	pq := newpq([]compFunc{func(p, q interface{}) int {
-		if p.(edge).cost < q.(edge).cost {
-			return -1
-		} else if p.(edge).cost == q.(edge).cost {
-			return 0
-		}
-		return 1
-	}})
-	heap.Init(pq)
-
-	heap.Push(pq, edge{from: 3, to: 3, cost: 2})
-	for !h.IsEmpty() {
-		v = heap.Pop(pq).(edge)
-	}
-*/
 type compFunc func(p, q interface{}) int
 
 func newpq(comps []compFunc) *pq {
@@ -1101,8 +1095,8 @@ func (pq *pq) IsEmpty() bool {
 	return pq.Len() == 0
 }
 
-// pq.Min().(edge)
-func (pq *pq) Min() interface{} {
+// pq.GetRoot().(edge)
+func (pq *pq) GetRoot() interface{} {
 	return pq.arr[0]
 }
 
