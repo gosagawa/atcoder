@@ -23,52 +23,41 @@ func main() {
 
 	n, q, x := ni3()
 	ws := nis(n)
-	wsums := make([]int, n*2+1)
-	for i, v := range ws {
-		wsums[i+1] = wsums[i] + v
-	}
-	for i, v := range ws {
-		wsums[i+1+n] = wsums[i+n] + v
-	}
-	//	out(wsums, wsums[n])
-	isl := []int{}
-	iused := is(n, -1)
+	ws = append(ws, ws...)
+	wsc := newcusum(ws)
+	wssum := wsc.get(n - 1)
+
+	order := []int{}
+	iorder := is(n, -1)
 	ansi := make([]int, n)
-	loopFrom := 0
-	loopCount := 0
+	lpf := 0
 	i := 0
 	c := 0
 	for {
-		if iused[i] != -1 {
-			loopFrom = iused[i]
-			loopCount = len(isl) - loopFrom
+		if iorder[i] != -1 {
+			lpf = iorder[i]
 			break
 		}
-		iused[i] = c
-		isl = append(isl, i)
+		iorder[i] = c
+		order = append(order, i)
 
-		ansi[i] = x / wsums[n] * n
-		ni := upperBound(x%wsums[n]+wsums[i]-1, wsums)
-		//		out(i, x, ni)
-		ansi[i] += ni - i
+		ni := wsc.upperBound(x%wssum + wsc.get(i-1) - 1)
+		ansi[i] = x/wssum*n + ni - i
 		i = ni % n
 		c++
 	}
-	//	out(isl, iused, loopFrom, loopCount)
+
+	lpc := len(order) - lpf
 	for i := 0; i < q; i++ {
-		k := ni()
-		k--
-		if k < loopFrom {
-			out(ansi[isl[k]])
+		k := ni() - 1
+
+		if k < lpf {
+			out(ansi[order[k]])
 		} else {
-			k -= loopFrom
-			k %= loopCount
-			k += loopFrom
-			out(ansi[isl[k]])
+			k -= lpf
+			out(ansi[order[lpf+k%lpc]])
 		}
-
 	}
-
 }
 
 // ==================================================
@@ -1130,11 +1119,24 @@ func newcusum(sl []int) *cusum {
 }
 
 // get sum f <= i && i <= t
-func (c *cusum) get(f, t int) int {
+func (c *cusum) getRange(f, t int) int {
 	if f > t || f >= c.l {
 		return 0
 	}
 	return c.s[t+1] - c.s[f]
+}
+
+// get sum 0 to i
+func (c *cusum) get(i int) int {
+	return c.s[i+1]
+}
+
+func (c *cusum) upperBound(i int) int {
+	return upperBound(i, c.s)
+}
+
+func (c *cusum) lowerBound(i int) int {
+	return lowerBound(i, c.s)
 }
 
 /*
