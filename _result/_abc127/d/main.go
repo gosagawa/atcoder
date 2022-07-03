@@ -24,52 +24,26 @@ func main() {
 	o := 0
 	n, m := ni2()
 	as := nis(n)
-	bs, cs := ni2s(m)
-
-	pq := newpq([]compFunc{func(p, q interface{}) int {
-		if p.(edge).cost < q.(edge).cost {
-			return -1
-		} else if p.(edge).cost == q.(edge).cost {
-			return 0
-		}
-		return 1
-	}})
-	heap.Init(pq)
-	for _, v := range as {
-
-		heap.Push(pq, edge{from: 1, cost: v})
-	}
-
-	for i := 0; i < m; i++ {
-		t := 0
-		c := bs[i]
-		for {
-			v := heap.Pop(pq).(edge)
-			if v.cost >= cs[i] {
-				heap.Push(pq, v)
-				break
-			}
-			if c > v.from {
-				t += v.from
-				c -= v.from
-			} else {
-				t += c
-				if v.from != c {
-					heap.Push(pq, edge{from: v.from - c, cost: v.cost})
-				}
+	bcs := ni2a(m)
+	sorti(as)
+	sort2ar(bcs, opt2ar(1, desc))
+	i := 0
+	for _, v := range bcs {
+		for j := 0; j < v[0]; j++ {
+			o += max(as[i], v[1])
+			i++
+			if i == n {
 				break
 			}
 		}
-		if t != 0 {
-			heap.Push(pq, edge{from: t, cost: cs[i]})
+		if i == n {
+			break
 		}
-		//	out(pq)
+	}
+	for j := i; j < n; j++ {
+		o += as[j]
 	}
 
-	for !pq.IsEmpty() {
-		v := heap.Pop(pq).(edge)
-		o += v.from * v.cost
-	}
 	out(o)
 }
 
