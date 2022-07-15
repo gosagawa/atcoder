@@ -22,47 +22,18 @@ func main() {
 	defer flush()
 
 	o := 0
-	n, q := ni2()
-	s := stois(ns(), 'A')
-	tds := make([][2]int, q)
-	for i := 0; i < q; i++ {
-		t := ns()
-		d := ns()
-		tds[i][0] = int(t[0] - 'A')
-		if d == "R" {
-			tds[i][1] = 1
-		} else {
-			tds[i][1] = -1
+	s := stois(ns(), '0')
+	var dfs func(i, c, sum int)
+	dfs = func(i, c, sum int) {
+		//out(i, c, sum)
+		if c == len(s)-1 {
+			o += sum + i + s[c]
+			return
 		}
+		dfs((i+s[c])*10, c+1, sum)
+		dfs(0, c+1, sum+(i+s[c]))
 	}
-	check := func(i int, outRight bool) bool {
-		for _, v := range tds {
-			if s[i] == v[0] {
-				i += v[1]
-			}
-			if i == -1 {
-				return !outRight
-			}
-			if i == n {
-				return outRight
-			}
-		}
-		return false
-	}
-	li := -1
-	if check(0, false) {
-		li = bs(0, n-1, func(c int) bool {
-			return check(c, false)
-		})
-	}
-	ri := n
-	if check(n-1, true) {
-		ri = n - 1 - bs(0, n-1, func(c int) bool {
-			return check(n-1-c, true)
-		})
-	}
-	//out(li, ri)
-	o = ri - li - 1
+	dfs(0, 0, 0)
 
 	out(o)
 }
