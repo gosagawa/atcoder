@@ -164,6 +164,10 @@ func out(v ...interface{}) {
 	}
 }
 
+func outf(f string, v ...interface{}) {
+	out(fmt.Sprintf(f, v...))
+}
+
 func outwoln(v ...interface{}) {
 	_, e := fmt.Fprint(wtr, v...)
 	if e != nil {
@@ -407,24 +411,24 @@ func gcd(a, b int) int {
 	return gcd(b, a%b)
 }
 
-func divisor(n int) ([]int, map[int]struct{}) {
+func divisor(n int) ([]int, map[int]int) {
 	sqrtn := int(math.Sqrt(float64(n)))
 	c := 2
 	divisor := []int{}
-	divisorm := make(map[int]struct{})
+	divisorm := make(map[int]int)
 	for {
 		if n%2 != 0 {
 			break
 		}
 		divisor = append(divisor, 2)
-		divisorm[2] = struct{}{}
+		divisorm[2]++
 		n /= 2
 	}
 	c = 3
 	for {
 		if n%c == 0 {
 			divisor = append(divisor, c)
-			divisorm[c] = struct{}{}
+			divisorm[c]++
 			n /= c
 		} else {
 			c += 2
@@ -435,7 +439,7 @@ func divisor(n int) ([]int, map[int]struct{}) {
 	}
 	if n != 1 {
 		divisor = append(divisor, n)
-		divisorm[n] = struct{}{}
+		divisorm[n]++
 	}
 	return divisor, divisorm
 }
@@ -470,6 +474,37 @@ func (b *binom) get(n, r int) int {
 		return 0
 	}
 	return b.fac[n] * b.finv[r] % mod * b.finv[n-r] % mod
+}
+
+func matPow(a [][]int, n int) [][]int {
+	r := make([][]int, len(a))
+	for i := 0; i < len(a); i++ {
+		r[i] = is(len(a), 0)
+		r[i][i] = 1
+	}
+	for n > 0 {
+		if n&1 != 0 {
+			r = matMul(a, r)
+		}
+		a = matMul(a, a)
+		n = n >> 1
+	}
+	return r
+}
+
+func matMul(a, b [][]int) [][]int {
+	r := make([][]int, len(a))
+	for i := 0; i < len(a); i++ {
+		r[i] = is(len(b[0]), 0)
+	}
+	for i := 0; i < len(a); i++ {
+		for j := 0; j < len(b[0]); j++ {
+			for k := 0; k < len(b); k++ {
+				r[i][j] = madd(r[i][j], mmul(a[i][k], b[k][j]))
+			}
+		}
+	}
+	return r
 }
 
 // ==================================================
@@ -1086,11 +1121,24 @@ func newcusum(sl []int) *cusum {
 }
 
 // get sum f <= i && i <= t
-func (c *cusum) get(f, t int) int {
+func (c *cusum) getRange(f, t int) int {
 	if f > t || f >= c.l {
 		return 0
 	}
 	return c.s[t+1] - c.s[f]
+}
+
+// get sum 0 to i
+func (c *cusum) get(i int) int {
+	return c.s[i+1]
+}
+
+func (c *cusum) upperBound(i int) int {
+	return upperBound(i, c.s)
+}
+
+func (c *cusum) lowerBound(i int) int {
+	return lowerBound(i, c.s)
 }
 
 /*
