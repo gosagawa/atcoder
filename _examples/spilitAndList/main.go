@@ -1,3 +1,4 @@
+// abc054 d
 package main
 
 import (
@@ -21,9 +22,62 @@ func main() {
 
 	defer flush()
 
-	o := 0
-	n := ni()
-	ns := nis(n)
+	o := inf
+	n, ma, mb := ni3()
+	abs := ni3a(n)
+	for i := 0; i < n; i++ {
+		abs[i][0] *= mb
+		abs[i][1] *= ma
+	}
+	middle := 20
+	mp := make(map[int]int)
+	for i := 1; i < pow2(min(n, middle)); i++ {
+		var ta, tb, tc int
+		for j := 0; j < min(n, middle); j++ {
+			if !hasbit(i, j) {
+				continue
+			}
+			ta += abs[j][0]
+			tb += abs[j][1]
+			tc += abs[j][2]
+		}
+		dab := ta - tb
+		if _, ok := mp[dab]; !ok {
+			mp[dab] = tc
+		} else {
+			mp[dab] = min(mp[dab], tc)
+		}
+	}
+	if n <= middle {
+		if _, ok := mp[0]; !ok {
+			out(-1)
+			return
+		}
+		out(mp[0])
+		return
+	}
+	if v, ok := mp[0]; ok {
+		o = v
+	}
+	for i := 1; i < pow2(n-middle); i++ {
+		var ta, tb, tc int
+		for j := 0; j < n-middle; j++ {
+			if !hasbit(i, j) {
+				continue
+			}
+			ta += abs[middle+j][0]
+			tb += abs[middle+j][1]
+			tc += abs[middle+j][2]
+		}
+		dab := ta - tb
+		if dab == 0 {
+			mins(&o, tc)
+		} else {
+			if v, ok := mp[-dab]; ok {
+				mins(&o, v+tc)
+			}
+		}
+	}
 	out(o)
 }
 
@@ -124,19 +178,10 @@ func ni2a(n int) [][2]int {
 	}
 	return a
 }
-
 func ni3a(n int) [][3]int {
 	a := make([][3]int, n)
 	for i := 0; i < n; i++ {
 		a[i][0], a[i][1], a[i][2] = ni3()
-	}
-	return a
-}
-
-func ni4a(n int) [][4]int {
-	a := make([][4]int, n)
-	for i := 0; i < n; i++ {
-		a[i][0], a[i][1], a[i][2], a[i][3] = ni4()
 	}
 	return a
 }

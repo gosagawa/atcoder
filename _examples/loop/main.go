@@ -1,3 +1,4 @@
+// abc258 e
 package main
 
 import (
@@ -21,10 +22,43 @@ func main() {
 
 	defer flush()
 
-	o := 0
-	n := ni()
-	ns := nis(n)
-	out(o)
+	n, q, x := ni3()
+	ws := nis(n)
+	ws = append(ws, ws...)
+	wsc := newcusum(ws)
+	wssum := wsc.get(n - 1)
+
+	order := []int{}
+	iorder := is(n, -1)
+	ansi := make([]int, n)
+	lpf := 0
+	i := 0
+	c := 0
+	for {
+		if iorder[i] != -1 {
+			lpf = iorder[i]
+			break
+		}
+		iorder[i] = c
+		order = append(order, i)
+
+		ni := wsc.upperBound(x%wssum + wsc.get(i-1) - 1)
+		ansi[i] = x/wssum*n + ni - i
+		i = ni % n
+		c++
+	}
+
+	lpc := len(order) - lpf
+	for i := 0; i < q; i++ {
+		k := ni() - 1
+
+		if k < lpf {
+			out(ansi[order[k]])
+		} else {
+			k -= lpf
+			out(ansi[order[lpf+k%lpc]])
+		}
+	}
 }
 
 // ==================================================
@@ -125,22 +159,6 @@ func ni2a(n int) [][2]int {
 	return a
 }
 
-func ni3a(n int) [][3]int {
-	a := make([][3]int, n)
-	for i := 0; i < n; i++ {
-		a[i][0], a[i][1], a[i][2] = ni3()
-	}
-	return a
-}
-
-func ni4a(n int) [][4]int {
-	a := make([][4]int, n)
-	for i := 0; i < n; i++ {
-		a[i][0], a[i][1], a[i][2], a[i][3] = ni4()
-	}
-	return a
-}
-
 func nf() float64 {
 	sc.Scan()
 	f, e := strconv.ParseFloat(sc.Text(), 64)
@@ -178,10 +196,6 @@ func out(v ...interface{}) {
 	if e != nil {
 		panic(e)
 	}
-}
-
-func outf(f string, v ...interface{}) {
-	out(fmt.Sprintf(f, v...))
 }
 
 func outwoln(v ...interface{}) {
@@ -427,24 +441,24 @@ func gcd(a, b int) int {
 	return gcd(b, a%b)
 }
 
-func divisor(n int) ([]int, map[int]int) {
+func divisor(n int) ([]int, map[int]struct{}) {
 	sqrtn := int(math.Sqrt(float64(n)))
 	c := 2
 	divisor := []int{}
-	divisorm := make(map[int]int)
+	divisorm := make(map[int]struct{})
 	for {
 		if n%2 != 0 {
 			break
 		}
 		divisor = append(divisor, 2)
-		divisorm[2]++
+		divisorm[2] = struct{}{}
 		n /= 2
 	}
 	c = 3
 	for {
 		if n%c == 0 {
 			divisor = append(divisor, c)
-			divisorm[c]++
+			divisorm[c] = struct{}{}
 			n /= c
 		} else {
 			c += 2
@@ -455,7 +469,7 @@ func divisor(n int) ([]int, map[int]int) {
 	}
 	if n != 1 {
 		divisor = append(divisor, n)
-		divisorm[n]++
+		divisorm[n] = struct{}{}
 	}
 	return divisor, divisorm
 }
@@ -490,37 +504,6 @@ func (b *binom) get(n, r int) int {
 		return 0
 	}
 	return b.fac[n] * b.finv[r] % mod * b.finv[n-r] % mod
-}
-
-func matPow(a [][]int, n int) [][]int {
-	r := make([][]int, len(a))
-	for i := 0; i < len(a); i++ {
-		r[i] = is(len(a), 0)
-		r[i][i] = 1
-	}
-	for n > 0 {
-		if n&1 != 0 {
-			r = matMul(a, r)
-		}
-		a = matMul(a, a)
-		n = n >> 1
-	}
-	return r
-}
-
-func matMul(a, b [][]int) [][]int {
-	r := make([][]int, len(a))
-	for i := 0; i < len(a); i++ {
-		r[i] = is(len(b[0]), 0)
-	}
-	for i := 0; i < len(a); i++ {
-		for j := 0; j < len(b[0]); j++ {
-			for k := 0; k < len(b); k++ {
-				r[i][j] = madd(r[i][j], mmul(a[i][k], b[k][j]))
-			}
-		}
-	}
-	return r
 }
 
 // ==================================================
@@ -770,17 +753,6 @@ func is(l int, def int) []int {
 	sl := make([]int, l)
 	for i := 0; i < l; i++ {
 		sl[i] = def
-	}
-	return sl
-}
-
-func i2s(l, m int, def int) [][]int {
-	sl := make([][]int, l)
-	for i := 0; i < l; i++ {
-		sl[i] = make([]int, m)
-		for j := 0; j < m; j++ {
-			sl[i][j] = def
-		}
 	}
 	return sl
 }

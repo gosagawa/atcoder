@@ -1,3 +1,4 @@
+// abl e
 package main
 
 import (
@@ -17,14 +18,33 @@ import (
 var sc = bufio.NewScanner(os.Stdin)
 var wtr = bufio.NewWriter(os.Stdout)
 
+var sl10 []int
+var sl11 []int
+
 func main() {
 
 	defer flush()
 
-	o := 0
-	n := ni()
-	ns := nis(n)
-	out(o)
+	n, q := ni2()
+	sl10 = make([]int, n)
+	sl11 = make([]int, n)
+	t10 := 1
+	t11 := 1
+	for i := 0; i < n; i++ {
+		sl10[i] = t10
+		sl11[i] = t11
+		t10 = t10 * 10 % mod
+		t11 = (t11*10 + 1) % mod
+	}
+	t := newlazystree(n, stmax, stset)
+	t.rc(0, n, 1)
+	for i := 0; i < q; i++ {
+		l, r, d := ni3()
+		l, r = n-r, n-l+1
+		t.rc(l, r, d)
+		out(t.query(0, n))
+	}
+
 }
 
 // ==================================================
@@ -34,7 +54,7 @@ func main() {
 const inf = math.MaxInt64
 const mod1000000007 = 1000000007
 const mod998244353 = 998244353
-const mod = mod1000000007
+const mod = mod998244353
 
 func init() {
 	sc.Buffer([]byte{}, math.MaxInt64)
@@ -121,22 +141,6 @@ func ni2a(n int) [][2]int {
 	a := make([][2]int, n)
 	for i := 0; i < n; i++ {
 		a[i][0], a[i][1] = ni2()
-	}
-	return a
-}
-
-func ni3a(n int) [][3]int {
-	a := make([][3]int, n)
-	for i := 0; i < n; i++ {
-		a[i][0], a[i][1], a[i][2] = ni3()
-	}
-	return a
-}
-
-func ni4a(n int) [][4]int {
-	a := make([][4]int, n)
-	for i := 0; i < n; i++ {
-		a[i][0], a[i][1], a[i][2], a[i][3] = ni4()
 	}
 	return a
 }
@@ -427,24 +431,24 @@ func gcd(a, b int) int {
 	return gcd(b, a%b)
 }
 
-func divisor(n int) ([]int, map[int]int) {
+func divisor(n int) ([]int, map[int]struct{}) {
 	sqrtn := int(math.Sqrt(float64(n)))
 	c := 2
 	divisor := []int{}
-	divisorm := make(map[int]int)
+	divisorm := make(map[int]struct{})
 	for {
 		if n%2 != 0 {
 			break
 		}
 		divisor = append(divisor, 2)
-		divisorm[2]++
+		divisorm[2] = struct{}{}
 		n /= 2
 	}
 	c = 3
 	for {
 		if n%c == 0 {
 			divisor = append(divisor, c)
-			divisorm[c]++
+			divisorm[c] = struct{}{}
 			n /= c
 		} else {
 			c += 2
@@ -455,7 +459,7 @@ func divisor(n int) ([]int, map[int]int) {
 	}
 	if n != 1 {
 		divisor = append(divisor, n)
-		divisorm[n]++
+		divisorm[n] = struct{}{}
 	}
 	return divisor, divisorm
 }
@@ -490,37 +494,6 @@ func (b *binom) get(n, r int) int {
 		return 0
 	}
 	return b.fac[n] * b.finv[r] % mod * b.finv[n-r] % mod
-}
-
-func matPow(a [][]int, n int) [][]int {
-	r := make([][]int, len(a))
-	for i := 0; i < len(a); i++ {
-		r[i] = is(len(a), 0)
-		r[i][i] = 1
-	}
-	for n > 0 {
-		if n&1 != 0 {
-			r = matMul(a, r)
-		}
-		a = matMul(a, a)
-		n = n >> 1
-	}
-	return r
-}
-
-func matMul(a, b [][]int) [][]int {
-	r := make([][]int, len(a))
-	for i := 0; i < len(a); i++ {
-		r[i] = is(len(b[0]), 0)
-	}
-	for i := 0; i < len(a); i++ {
-		for j := 0; j < len(b[0]); j++ {
-			for k := 0; k < len(b); k++ {
-				r[i][j] = madd(r[i][j], mmul(a[i][k], b[k][j]))
-			}
-		}
-	}
-	return r
 }
 
 // ==================================================
@@ -770,17 +743,6 @@ func is(l int, def int) []int {
 	sl := make([]int, l)
 	for i := 0; i < l; i++ {
 		sl[i] = def
-	}
-	return sl
-}
-
-func i2s(l, m int, def int) [][]int {
-	sl := make([][]int, l)
-	for i := 0; i < l; i++ {
-		sl[i] = make([]int, m)
-		for j := 0; j < m; j++ {
-			sl[i][j] = def
-		}
 	}
 	return sl
 }
@@ -1482,13 +1444,14 @@ result2 := s.findrightest(l,r,x)
 result3 := s.findlefttest(l,r,x)
 */
 type lazystree struct {
-	on   int
-	n    int
-	b    []int
-	lazy []int
-	def  int
-	cmp  func(i, j int) int
-	culc func(i, j int) int
+	on       int
+	n        int
+	b        []int
+	lazy     []int
+	def      int
+	cmp      func(k, i, j int) int
+	culc     func(i, j int) int
+	culclazy func(i, j int) int
 }
 
 func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
@@ -1503,43 +1466,22 @@ func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
 		lazy: make([]int, 2*tn-1),
 	}
 	switch minmax {
-	case stmin:
-		s.def = inf
-		for i := 0; i < 2*tn-1; i++ {
-			s.b[i] = s.def
-			s.lazy[i] = s.def
-		}
-		s.cmp = func(i, j int) int {
-			return min(i, j)
-		}
 	case stmax:
-		s.cmp = func(i, j int) int {
-			return max(i, j)
+		s.cmp = func(k, i, j int) int {
+			//out("cmp")
+			//out(k, i, j)
+			return (j*sl10[k] + i) % mod
 		}
 	}
 	switch ctype {
-	case stadd:
-		s.culc = func(i, j int) int {
-			if i == s.def {
-				return j
-			}
-			if j == s.def {
-				return i
-			}
-			return i + j
-		}
-	case stmadd:
-		s.culc = func(i, j int) int {
-			if i == s.def {
-				return j
-			}
-			if j == s.def {
-				return i
-			}
-			return madd(i, j)
-		}
 	case stset:
 		s.culc = func(i, j int) int {
+			t := s.n / pow2(int(math.Log2(float64(i+1))))
+			//out("culc")
+			//out(i, j, t, sl11[t-1]*j%mod)
+			return sl11[t-1] * j % mod
+		}
+		s.culclazy = func(i, j int) int {
 			return j
 		}
 	}
@@ -1551,10 +1493,10 @@ func (s lazystree) eval(k int) {
 		return
 	}
 	if k < s.n-1 {
-		s.lazy[k*2+1] = s.culc(s.lazy[k*2+1], s.lazy[k])
-		s.lazy[k*2+2] = s.culc(s.lazy[k*2+2], s.lazy[k])
+		s.lazy[k*2+1] = s.culclazy(k*2+1, s.lazy[k])
+		s.lazy[k*2+2] = s.culclazy(k*2+2, s.lazy[k])
 	}
-	s.b[k] = s.culc(s.b[k], s.lazy[k])
+	s.b[k] = s.culc(k, s.lazy[k])
 	s.lazy[k] = s.def
 }
 
@@ -1564,7 +1506,7 @@ func (s lazystree) add(i, x int) {
 
 	for i > 0 {
 		i = (i - 1) / 2
-		s.b[i] = s.cmp(s.b[i*2+1], s.b[i*2+2])
+		s.b[i] = s.cmp(0, s.b[i*2+1], s.b[i*2+2])
 	}
 }
 
@@ -1574,7 +1516,7 @@ func (s lazystree) set(i, x int) {
 
 	for i > 0 {
 		i = (i - 1) / 2
-		s.b[i] = s.cmp(s.b[i*2+1], s.b[i*2+2])
+		s.b[i] = s.cmp(0, s.b[i*2+1], s.b[i*2+2])
 	}
 }
 
@@ -1584,14 +1526,16 @@ func (s lazystree) rc(a, b, x int) {
 }
 
 func (s lazystree) rcsub(a, b, x, k, l, r int) {
+	//out("rcsub")
+	//out(a, b, x, k, l, r, s.b)
 	s.eval(k)
 	if a <= l && r <= b {
-		s.lazy[k] = s.culc(s.lazy[k], x)
+		s.lazy[k] = s.culclazy(k, x)
 		s.eval(k)
 	} else if l < b && a < r {
 		s.rcsub(a, b, x, k*2+1, l, (l+r)/2)
 		s.rcsub(a, b, x, k*2+2, (l+r)/2, r)
-		s.b[k] = s.cmp(s.b[k*2+1], s.b[k*2+2])
+		s.b[k] = s.cmp((l+r)/2-l, s.b[k*2+1], s.b[k*2+2])
 	}
 }
 
@@ -1604,6 +1548,8 @@ func (s lazystree) query(a, b int) int {
 }
 
 func (s lazystree) querysub(a, b, k, l, r int) int {
+	//out("querysub")
+	//out(a, l, r, b, s.b[k])
 	s.eval(k)
 	if r <= a || b <= l {
 		return s.def
@@ -1612,6 +1558,7 @@ func (s lazystree) querysub(a, b, k, l, r int) int {
 		return s.b[k]
 	}
 	return s.cmp(
+		(l+r)/2-l,
 		s.querysub(a, b, k*2+1, l, (l+r)/2),
 		s.querysub(a, b, k*2+2, (l+r)/2, r),
 	)
