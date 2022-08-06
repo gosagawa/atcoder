@@ -1328,10 +1328,12 @@ type streeminmmax int
 const (
 	stmin streeminmmax = iota
 	stmax
+	stsum
+	stmsum
 )
 
 /*
-s := newstree(n,stmin|stmax,stset|stadd)
+s := newstree(n,stmin|stmax|stsum|stmsum)
 s.set(i,x)
 s.add(i,x)
 result1 := s.query(l,r)
@@ -1339,14 +1341,13 @@ result2 := s.findrightest(l,r,x)
 result3 := s.findlefttest(l,r,x)
 */
 type stree struct {
-	n    int
-	b    []int
-	def  int
-	cmp  func(i, j int) int
-	culc func(i, j int) int
+	n   int
+	b   []int
+	def int
+	cmp func(i, j int) int
 }
 
-func newstree(n int, minmax streeminmmax, ctype streeculctype) *stree {
+func newstree(n int, minmax streeminmmax) *stree {
 	tn := 1
 	for tn < n {
 		tn *= 2
@@ -1368,15 +1369,13 @@ func newstree(n int, minmax streeminmmax, ctype streeculctype) *stree {
 		s.cmp = func(i, j int) int {
 			return max(i, j)
 		}
-	}
-	switch ctype {
-	case stadd:
-		s.culc = func(i, j int) int {
+	case stsum:
+		s.cmp = func(i, j int) int {
 			return i + j
 		}
-	case stset:
-		s.culc = func(i, j int) int {
-			return j
+	case stmsum:
+		s.cmp = func(i, j int) int {
+			return madd(i, j)
 		}
 	}
 	return s
