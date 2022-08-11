@@ -23,99 +23,36 @@ func main() {
 
 	n := ni()
 	ns := stois(ns(), 'A')
-	tc1 := [3]int{}
-	tc2 := [3]int{}
-	for i := 0; i < n; i++ {
-		tc1[ns[i]]++
-		tc2[ns[n+i]]++
+
+	pos := [3][3][]int{}
+	lpos := [3][3]int{}
+	for i := 0; i < n*3; i++ {
+		pos[i/n][ns[i]] = append(pos[i/n][ns[i]], i)
+		lpos[i/n][ns[i]]++
+
 	}
-	//	out(tc1, tc2)
-	tc3 := [6]int{}
-	t := 0
-	for i := 0; i <= tc1[0]; i++ {
-		if tc2[1]-i < 0 || tc2[2]-(tc1[0]-i) < 0 {
-			continue
+	p := []int{0, 1, 2}
+	r := make([]int, n*3)
+	step := 1
+	for {
+		mn := inf
+		for i := 0; i < 3; i++ {
+			mins(&mn, lpos[i][p[i]])
 		}
-		if tc2[1]-i <= tc1[2] && tc1[2] <= tc2[0]+tc2[1]-i {
-			t = i
+		for i := 0; i < 3; i++ {
+			for j := 0; j < mn; j++ {
+				k := lpos[i][p[i]]
+				l := pos[i][p[i]][k-1]
+				lpos[i][p[i]]--
+				r[l] = step
+			}
+		}
+		step++
+
+		if !nextPermutation(sort.IntSlice(p)) {
 			break
 		}
 	}
-	//	out(t)
-	for i := 0; i < tc1[0]; i++ {
-		if i < t {
-			tc2[1]--
-			tc3[0]++
-		} else {
-			tc2[2]--
-			tc3[1]++
-		}
-	}
-	for i := 0; i < tc1[1]; i++ {
-		if tc2[2] > 0 {
-			tc2[2]--
-			tc3[3]++
-		} else {
-			tc2[0]--
-			tc3[2]++
-		}
-	}
-	for i := 0; i < tc1[2]; i++ {
-		if tc2[0] > 0 {
-			tc2[0]--
-			tc3[4]++
-		} else {
-			tc2[1]--
-			tc3[5]++
-		}
-	}
-	//	out(tc3)
-	r := make([]int, n*3)
-	for i := 0; i < 3; i++ {
-		tc4 := [6]int{}
-		tc4 = tc3
-		tc5 := [3]int{}
-		tc6 := [6]int{}
-		if i == 0 {
-			tc5 = [3]int{0, 2, 4}
-			tc6 = [6]int{1, 2, 3, 4, 5, 6}
-		}
-		if i == 1 {
-			tc5 = [3]int{2, 0, 1}
-			tc6 = [6]int{3, 5, 1, 6, 2, 4}
-		}
-		if i == 2 {
-			tc5 = [3]int{3, 1, 0}
-			tc6 = [6]int{4, 6, 2, 5, 1, 3}
-		}
-		for j := 0; j < n; j++ {
-			switch ns[i*n+j] {
-			case 0:
-				if tc4[tc5[0]] > 0 {
-					tc4[tc5[0]]--
-					r[i*n+j] = tc6[0]
-				} else {
-					r[i*n+j] = tc6[1]
-				}
-			case 1:
-				if tc4[tc5[1]] > 0 {
-					tc4[tc5[1]]--
-					r[i*n+j] = tc6[2]
-				} else {
-					r[i*n+j] = tc6[3]
-				}
-			case 2:
-				if tc4[tc5[2]] > 0 {
-					tc4[tc5[2]]--
-					r[i*n+j] = tc6[4]
-				} else {
-					r[i*n+j] = tc6[5]
-				}
-			}
-
-		}
-	}
-
 	outis(r)
 }
 
