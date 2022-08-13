@@ -1,4 +1,4 @@
-//abc222 f
+// tenka1-2012-qualB c
 package main
 
 import (
@@ -17,126 +17,58 @@ import (
 
 var sc = bufio.NewScanner(os.Stdin)
 var wtr = bufio.NewWriter(os.Stdout)
-var ds []int
 
 func main() {
 
 	defer flush()
 
+	o := 0
 	n := ni()
-	edges := make([][]edge, n)
-	for i := 0; i < n-1; i++ {
-		s, t, c := ni3()
-		s--
-		t--
-		tidx := len(edges[t])
-		sidx := len(edges[s])
-		edges[s] = append(edges[s], edge{index: tidx, to: t, cost: c})
-		edges[t] = append(edges[t], edge{index: sidx, to: s, cost: c})
+	ttoi := func(s string) int {
+		ss := strings.Split(s, ":")
+		return atoi(ss[0])*60 + atoi(ss[1])
 	}
-	ds = nis(n)
-	rr := newrerooting(n, 0, edges)
-	rr.exec()
+	ts := make([]int, n)
+	te := make([]int, n)
 	for i := 0; i < n; i++ {
-		out(rr.get(i))
+		ts[i] = ttoi(ns())
+		te[i] = ttoi(ns())
 	}
-}
-
-type T struct {
-	v int
-}
-
-type rerooting struct {
-	size            int
-	root            int
-	edges           [][]edge
-	parent          []int
-	orderidx        int
-	order           []int
-	orderiv         []int
-	childSubtreeRes [][]T
-	nodeRes         []T
-	identity        T
-}
-
-func newrerooting(size int, root int, edges [][]edge) *rerooting {
-	childSubtreeRes := make([][]T, size)
-	for i := 0; i < size; i++ {
-		childSubtreeRes[i] = make([]T, len(edges[i]))
-	}
-	return &rerooting{
-		size:            size,
-		root:            root,
-		edges:           edges,
-		parent:          make([]int, size),
-		orderiv:         make([]int, size),
-		childSubtreeRes: childSubtreeRes,
-		nodeRes:         make([]T, size),
-		identity:        T{0},
-	}
-}
-
-func (t *rerooting) get(i int) int {
-	return t.nodeRes[i].v
-}
-func (t *rerooting) dfs(v, p, d int) {
-	t.orderiv[t.orderidx] = v
-	t.orderidx++
-	t.parent[v] = p
-	for _, nv := range t.edges[v] {
-		if nv.to != p {
-			t.dfs(nv.to, v, d+1)
-		}
-	}
-}
-
-func (t *rerooting) exec() {
-	t.dfs(t.root, -1, 0)
-
-	convert := func(v, j int) T {
-		return T{t.childSubtreeRes[v][j].v + t.edges[v][j].cost}
-	}
-	merge := func(l, r T) T {
-		return T{max(l.v, r.v)}
-	}
-	addNode := func(t T, i int) T {
-		return T{max(t.v, ds[i])}
-	}
-	addNodeToNodeRes := func(t T, i int) T {
-		return T{t.v}
-	}
-
-	for i := t.orderidx - 1; i >= 1; i-- {
-		v := t.orderiv[i]
-		p := t.parent[v]
-		pidx := -1
-		result := t.identity
-
-		for j, nv := range t.edges[v] {
-			if nv.to == p {
-				pidx = nv.index
-				continue
+	dp := is(pow2(n), 100)
+	for i := 1; i < pow2(n); i++ {
+		t := [][2]int{}
+		for j := 0; j < n; j++ {
+			if hasbit(i, j) {
+				t = append(t, [2]int{ts[j], te[j]})
 			}
-			result = merge(result, convert(v, j))
 		}
-		t.childSubtreeRes[p][pidx] = addNode(result, v)
+		sort2ar(t, opt2ar(0, asc))
+		valid := true
+		for j := 0; j < len(t); j++ {
+			if j == 0 {
+				if t[j][0]+24*60 < t[len(t)-1][1] {
+					valid = false
+				}
+			} else {
+				if t[j][0] < t[j-1][1] {
+					valid = false
+				}
+			}
+		}
+		if valid {
+			dp[i] = 1
+		}
 	}
-
-	for i := 0; i < t.orderidx; i++ {
-		v := t.orderiv[i]
-		edgeCount := len(t.edges[v])
-		accumsFromTail := make([]T, edgeCount)
-		accumsFromTail[edgeCount-1] = t.identity
-		for j := edgeCount - 1; j >= 1; j-- {
-			accumsFromTail[j-1] = merge(convert(v, j), accumsFromTail[j])
+	all := pow2(n) - 1
+	for i := 1; i < pow2(n); i++ {
+		op := i ^ all
+		for j := op; j > 0; j = (j - 1) & op {
+			mins(&dp[i|j], dp[i]+dp[j])
 		}
-		accum := t.identity
-		for j := 0; j < edgeCount; j++ {
-			t.childSubtreeRes[t.edges[v][j].to][t.edges[v][j].index] = addNode(merge(accum, accumsFromTail[j]), v)
-			accum = merge(accum, convert(v, j))
-		}
-		t.nodeRes[v] = addNodeToNodeRes(accum, v)
 	}
+	//	out(dp)
+	o = dp[pow2(n)-1]
+	out(o)
 }
 
 // ==================================================
@@ -401,8 +333,16 @@ func pow(a, b int) int {
 	return int(math.Pow(float64(a), float64(b)))
 }
 
+var p2 []int
+
 func pow2(a int) int {
-	return int(math.Pow(2, float64(a)))
+	if len(p2) == 0 {
+		p2 = make([]int, 20)
+		for i := 0; i < 20; i++ {
+			p2[i] = int(math.Pow(2, float64(i)))
+		}
+	}
+	return p2[a]
 }
 
 func pow10(a int) int {
@@ -768,8 +708,16 @@ func nthbit(a int, n int) int {
 	return int((a >> uint(n)) & 1)
 }
 
+var pc []int
+
 func popcount(a int) int {
-	return bits.OnesCount(uint(a))
+	if len(pc) == 0 {
+		pc = make([]int, pow2(16))
+		for i := 0; i < pow2(16); i++ {
+			pc[i] = bits.OnesCount(uint(i))
+		}
+	}
+	return pc[a]
 }
 
 func bitlen(a int) int {
@@ -1810,18 +1758,14 @@ func (s lazystree) debug2() {
 // ==================================================
 
 type tree struct {
-	size            int
-	root            int
-	edges           [][]edge
-	parentsize      int
-	parent          [][]int
-	depth           []int
-	orderidx        int
-	order           []int
-	orderiv         []int
-	childSubtreeRes [][]T
-	nodeRes         []T
-	identity        T
+	size       int
+	root       int
+	edges      [][]edge
+	parentsize int
+	parent     [][]int
+	depth      []int
+	orderidx   int
+	order      []int
 }
 
 /*
@@ -1845,24 +1789,14 @@ func newtree(size int, root int, edges [][]edge) *tree {
 	}
 	depth := make([]int, size)
 	order := make([]int, size)
-	orderiv := make([]int, size)
-	nodeRes := make([]T, size)
-	childSubtreeRes := make([][]T, size)
-	for i := 0; i < size; i++ {
-		childSubtreeRes[i] = make([]T, len(edges[i]))
-	}
 	return &tree{
-		size:            size,
-		root:            root,
-		edges:           edges,
-		parentsize:      parentsize,
-		parent:          parent,
-		depth:           depth,
-		order:           order,
-		orderiv:         orderiv,
-		childSubtreeRes: childSubtreeRes,
-		nodeRes:         nodeRes,
-		identity:        T{0},
+		size:       size,
+		root:       root,
+		edges:      edges,
+		parentsize: parentsize,
+		parent:     parent,
+		depth:      depth,
+		order:      order,
 	}
 }
 
@@ -1881,7 +1815,6 @@ func (t *tree) init() {
 
 func (t *tree) dfs(v, p, d int) {
 	t.order[v] = t.orderidx
-	t.orderiv[t.orderidx] = v
 	t.orderidx++
 	t.parent[0][v] = p
 	t.depth[v] = d
@@ -1927,11 +1860,10 @@ func (t *tree) auxiliarytree(sl []int) []int {
 // ==================================================
 
 type edge struct {
-	index int
-	from  int
-	to    int
-	cost  int
-	rev   int
+	from int
+	to   int
+	cost int
+	rev  int
 }
 
 func setDualEdge(edges [][]edge, s, t, c int) {
