@@ -863,7 +863,7 @@ func delIdx(pos int, sl []int) []int {
 // find x of sl[x] < v. return -1 if no lowerbound found
 func lowerBound(v int, sl []int) int {
 	if len(sl) == 0 {
-		panic("slise len is zero")
+		return -1
 	}
 	idx := bs(0, len(sl)-1, func(c int) bool {
 		return sl[c] < v
@@ -874,7 +874,7 @@ func lowerBound(v int, sl []int) int {
 // find x of v < sl[x]. return len(sl) if no upperbound found
 func upperBound(v int, sl []int) int {
 	if len(sl) == 0 {
-		panic("slise len is zero")
+		return 0
 	}
 	idx := bs(0, len(sl)-1, func(c int) bool {
 		return sl[c] <= v
