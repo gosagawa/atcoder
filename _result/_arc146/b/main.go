@@ -51,22 +51,7 @@ func main() {
 		}
 		return ih.GetSum() <= m
 	}
-	t := 32
-	for {
-		maxi := -1
-		for i := t; i >= 0; i-- {
-			to := o | p2[i]
-			if f(to) {
-				maxi = i
-				break
-			}
-		}
-		if maxi == -1 {
-			break
-		}
-		o |= pow2(maxi)
-		t = maxi - 1
-	}
+	o = bs(0, p2[32], f)
 
 	out(o)
 }
