@@ -1321,15 +1321,8 @@ const (
 	stadd streeculctype = iota
 	stmadd
 	stset
-)
-
-type streeminmmax int
-
-const (
-	stmin streeminmmax = iota
+	stmin
 	stmax
-	stsum
-	stmsum
 )
 
 /*
@@ -1347,7 +1340,7 @@ type stree struct {
 	cmp func(i, j int) int
 }
 
-func newstree(n int, minmax streeminmmax) *stree {
+func newstree(n int, minmax streeculctype) *stree {
 	tn := 1
 	for tn < n {
 		tn *= 2
@@ -1369,12 +1362,24 @@ func newstree(n int, minmax streeminmmax) *stree {
 		s.cmp = func(i, j int) int {
 			return max(i, j)
 		}
-	case stsum:
+	case stadd:
 		s.cmp = func(i, j int) int {
+			if i == s.def {
+				return j
+			}
+			if j == s.def {
+				return i
+			}
 			return i + j
 		}
-	case stmsum:
+	case stmadd:
 		s.cmp = func(i, j int) int {
+			if i == s.def {
+				return j
+			}
+			if j == s.def {
+				return i
+			}
 			return madd(i, j)
 		}
 	}
@@ -1490,7 +1495,7 @@ type lazystree struct {
 	culc func(i, j int) int
 }
 
-func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
+func newlazystree(n int, cmptype streeculctype, culctype streeculctype) lazystree {
 	tn := 1
 	for tn < n {
 		tn *= 2
@@ -1501,7 +1506,7 @@ func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
 		b:    make([]int, 2*tn-1),
 		lazy: make([]int, 2*tn-1),
 	}
-	switch minmax {
+	switch cmptype {
 	case stmin:
 		s.def = inf
 		for i := 0; i < 2*tn-1; i++ {
@@ -1516,7 +1521,7 @@ func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
 			return max(i, j)
 		}
 	}
-	switch ctype {
+	switch culctype {
 	case stadd:
 		s.culc = func(i, j int) int {
 			if i == s.def {
@@ -1536,6 +1541,14 @@ func newlazystree(n int, minmax streeminmmax, ctype streeculctype) lazystree {
 				return i
 			}
 			return madd(i, j)
+		}
+	case stmax:
+		s.culc = func(i, j int) int {
+			return max(i, j)
+		}
+	case stmin:
+		s.culc = func(i, j int) int {
+			return min(i, j)
 		}
 	case stset:
 		s.culc = func(i, j int) int {
@@ -1577,7 +1590,7 @@ func (s lazystree) set(i, x int) {
 	}
 }
 
-// range culc a <= n n <= b
+// range culc a <= n n < b
 func (s lazystree) rc(a, b, x int) {
 	s.rcsub(a, b, x, 0, 0, s.n)
 }
@@ -1686,8 +1699,8 @@ func (s lazystree) debug() {
 }
 
 func (s lazystree) debug2() {
-	l := make([]string, s.n)
-	for i := 0; i < s.on; i++ {
+	l := make([]string, s.n+1)
+	for i := 0; i <= s.on; i++ {
 		l[i] = strconv.Itoa(s.get(i))
 	}
 	out(strings.Join(l, " "))
