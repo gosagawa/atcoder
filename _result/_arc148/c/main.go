@@ -45,9 +45,9 @@ func main() {
 		pa[i] = nv.to
 	}
 
+	us := make([]bool, n+1)
 	for i := 0; i < q; i++ {
 		m := ni()
-		us := make([]bool, n+1)
 		ms := make([]int, m)
 		c := 0
 		for j := 0; j < m; j++ {
@@ -64,6 +64,9 @@ func main() {
 			}
 		}
 		out(c)
+		for j := 0; j < m; j++ {
+			us[ms[j]] = false
+		}
 	}
 }
 
