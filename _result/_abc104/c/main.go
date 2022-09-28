@@ -21,70 +21,31 @@ func main() {
 
 	defer flush()
 
-	n, m := ni2()
-	as, bs := ni2s(m)
-	for i := 0; i < m; i++ {
-		as[i]--
-		bs[i]--
-	}
-	s := ns()
-	ts := strings.Split(s, "p")
-	s = ts[1]
-	ts = strings.Split(s, "w")
-	ts2 := strings.Split(ts[0], "\"")
-	gps := ts2[0]
-	gp := atoi(gps) - 1
-	s = s[len(gps):]
-	ts = strings.Split(s, "\"")
-
-	mp := make([]bool, n)
-	tc := 0
-	if ts[0] == "" {
-		for i := 0; i < n; i++ {
-			mp[i] = true
-			tc++
-		}
-	}
-	for i := 0; i < m; i++ {
-		if ts[0] == "w" {
-			if bs[i] == gp {
-				mp[as[i]] = true
-				tc++
-			}
-		} else {
-			if bs[i] == gp {
-				mp[as[i]] = false
-				tc--
-			}
-		}
-	}
-	for i := 1; i < len(ts); i++ {
-		mpc := make([]int, n)
-		nmp := make([]bool, n)
-		ntc := 0
-		for j := 0; j < m; j++ {
-			if mp[bs[j]] {
-				mpc[as[j]]++
-			}
-		}
-		for j := 0; j < n; j++ {
-			if ts[i] == "ww" {
-				if mpc[j] > 0 {
-					nmp[j] = true
-					ntc++
-				}
+	o := inf
+	d, g := ni2()
+	ps, cs := ni2s(d)
+	for i := 0; i < pow2(d); i++ {
+		maxj := 0
+		tc := 0
+		tg := 0
+		for j := 0; j < d; j++ {
+			if hasbit(i, j) {
+				tg += (j+1)*100*ps[j] + cs[j]
+				tc += ps[j]
 			} else {
-				if mpc[j] != tc {
-					nmp[j] = true
-					ntc++
-				}
+				maxj = j
 			}
-			mp[j] = nmp[j]
 		}
-		tc = ntc
+		if tg > g {
+			mins(&o, tc)
+		} else {
+			tc2 := (g - tg + (maxj+1)*100 - 1) / ((maxj + 1) * 100)
+			if tc2 < ps[maxj] {
+				mins(&o, tc+tc2)
+			}
+		}
 	}
-	out(tc)
-
+	out(o)
 }
 
 // ==================================================
