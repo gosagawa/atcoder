@@ -23,48 +23,31 @@ func main() {
 
 	o := 0
 	n, m, k := ni3()
-	dp := i2s(k+1, n+2, 0)
-	for i := 1; i < n+2; i++ {
-		dp[0][i] = 1
-	}
-	for i := 1; i <= k; i++ {
-		dp[i][0] = 0
-		dp[i][1] = 0
-		for j := 1; j <= n; j++ {
+	dp := make([]*cusum, k+1)
+	ts := is(n+1, 0)
+	ts[0] = 1
+	dp[0] = newcusum(ts)
 
-			dp[i][j+1] += dp[i][j]
-			dp[i][j+1] %= mod
+	for i := 1; i <= k; i++ {
+		ts := is(n+1, 0)
+		for j := 1; j <= n; j++ {
 			f1 := max(j-m, 0)
 			t1 := j - 1
-			//			out(i, j, t1, f1)
-			dp[i][j+1] += dp[i-1][t1+1] - dp[i-1][f1]
-			dp[i][j+1] += mod
-			dp[i][j+1] %= mod
+			ts[j] = dp[i-1].getRange(f1, t1)
 			if j != n && j+m > n {
 				f2 := n - (j + m - n)
 				t2 := n - 1
-				//				out(i, j, t2, f2)
-				dp[i][j+1] += dp[i-1][t2+1] - dp[i-1][f2]
-				dp[i][j+1] += mod
-				dp[i][j+1] %= mod
+				ts[j] += dp[i-1].getRange(f2, t2)
+				ts[j] %= mod
 			}
 		}
+		dp[i] = newcusum(ts)
 	}
-	/*
-			out(dp)
-			for i := 0; i <= k; i++ {
-				r := []int{}
-				for j := 0; j < n+1; j++ {
-					r = append(r, dp[i][j+1]-dp[i][j])
-				}
-				outis(r)
-		      }
-	*/
 
 	t1 := 0
 	t2 := 1
 	for i := k; i > 0; i-- {
-		t1 += (dp[i][n+1] - dp[i][n] + mod) % mod * t2 % mod
+		t1 += dp[i].get(n) * t2 % mod
 		t2 *= m
 		t2 %= mod
 	}
@@ -1188,6 +1171,7 @@ func newcusum(sl []int) *cusum {
 	c.s = make([]int, len(sl)+1)
 	for i, v := range sl {
 		c.s[i+1] = c.s[i] + v
+		c.s[i+1] %= mod
 	}
 	return c
 }
@@ -1197,12 +1181,17 @@ func (c *cusum) getRange(f, t int) int {
 	if f > t || f >= c.l {
 		return 0
 	}
-	return c.s[t+1] - c.s[f]
+	return madd(c.s[t+1], -c.s[f])
 }
 
 // get sum 0 to i
-func (c *cusum) get(i int) int {
+func (c *cusum) getSum(i int) int {
 	return c.s[i+1]
+}
+
+// get value i
+func (c *cusum) get(i int) int {
+	return madd(c.s[i+1], -c.s[i])
 }
 
 func (c *cusum) upperBound(i int) int {
