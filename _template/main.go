@@ -904,6 +904,10 @@ func pointAdd(a, b point) point {
 	return point{x: a.x + b.x, y: a.y + b.y}
 }
 
+func pointSub(a, b point) point {
+	return point{x: a.x - b.x, y: a.y - b.y}
+}
+
 func pointDist(a, b point) float64 {
 	return sqrtf((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y))
 }
@@ -914,6 +918,10 @@ func pointDistDouble(a, b point) int {
 
 func pointfDist(a, b pointf) float64 {
 	return math.Sqrt((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y))
+}
+
+func pointInnerProduct(a, b point) int {
+	return (a.x * b.y) - (b.x * a.y)
 }
 
 // ==================================================
@@ -1204,6 +1212,8 @@ func newcusum2d(sl [][]int) *cusum2d {
 
 // x1 <= x <= x2, y1 <= y <= y2
 func (c *cusum2d) get(x1, y1, x2, y2 int) int {
+	x2++
+	y2++
 	return c.s[x2][y2] + c.s[x1][y1] - c.s[x1][y2] - c.s[x2][y1]
 }
 
