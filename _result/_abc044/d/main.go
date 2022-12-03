@@ -41,21 +41,19 @@ func main() {
 			return
 		}
 	}
-	if n != 1 {
-		for i := sn; i >= 1; i-- {
-			t := s - i
-			if t < 0 {
-				continue
-			}
-			if n%i != t%i {
-				continue
-			}
-			if t >= (n+i)/(i+1) {
-				continue
-			}
-			out((n - t) / i)
-			return
+	for i := sn; i >= 1; i-- {
+		t := s - i
+		if t < 0 {
+			continue
 		}
+		if n%i != t%i {
+			continue
+		}
+		if t >= (n+i)/(i+1) {
+			continue
+		}
+		out((n - t) / i)
+		return
 	}
 	if s == n {
 		out(n + 1)
