@@ -21,21 +21,29 @@ func main() {
 
 	defer flush()
 
-	n, t := ni2()
+	o := 0
+	n, k, d := ni3()
 	ns := nis(n)
-	sum := 0
-	for i := 0; i < n; i++ {
-		sum += ns[i]
-	}
-	t %= sum
-	for i := 0; i < n; i++ {
-		if t >= ns[i] {
-			t -= ns[i]
-		} else {
-			outf("%d %d", i+1, t)
-			return
+	dp := make([][]int, k+1)
+	for i := 0; i < k+1; i++ {
+		dp[i] = make([]int, d)
+		for j := 0; j < d; j++ {
+			dp[i][j] = -1
 		}
 	}
+	dp[0][0] = 0
+	for l := 0; l < n; l++ {
+		for i := k - 1; i >= 0; i-- {
+			for j := 0; j < d; j++ {
+				if dp[i][j] != -1 {
+					maxs(&dp[i+1][(j+ns[l])%d], dp[i][j]+ns[l])
+				}
+			}
+		}
+	}
+	o = dp[k][0]
+
+	out(o)
 }
 
 // ==================================================
