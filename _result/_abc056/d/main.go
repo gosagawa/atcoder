@@ -24,14 +24,7 @@ func main() {
 	o := 0
 	n, k := ni2()
 	ns := nis(n)
-	if n == 1 {
-		if ns[0] >= k {
-			out(0)
-		} else {
-			out(1)
-		}
-		return
-	}
+
 	lss := make([]*cusum, n+1)
 	ts := make([]int, k+1)
 	ts[0] = 1
@@ -55,15 +48,6 @@ func main() {
 	ts = make([]int, k+1)
 	ts[0] = 1
 	for i := 0; i < n; i++ {
-		if i == 0 {
-			t := lss[i+1].getRange(max(k-ns[i], 0), k-1)
-			if t == 0 {
-				o++
-			}
-			ts[min(ns[0], k)] = 1
-			continue
-		}
-		//		out(ts)
 
 		isNotNeed := true
 		for j := 0; j < k; j++ {
