@@ -797,11 +797,11 @@ func stois(s string, baseRune rune) []int {
 }
 
 func istos(s []int, baseRune rune) string {
-	r := ""
-	for _, v := range s {
-		r += string(v + int(baseRune))
+	r := make([]byte, len(s))
+	for i, v := range s {
+		r[i] = byte(v) + byte(baseRune)
 	}
-	return r
+	return string(r)
 }
 
 func reverse(sl []interface{}) {
