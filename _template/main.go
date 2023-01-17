@@ -2126,20 +2126,23 @@ func (g *graph) dinicbfs(s int) {
 	}
 	g.level[s] = 0
 
-	q := list.New()
-	q.PushBack(s)
-	e := q.Front()
-	for e != nil {
-		t := e.Value.(int)
+	q := []int{}
+	q = append(q, s)
+	ti := 0
+	for {
+		if ti >= len(q) {
+			break
+		}
+		t := q[ti]
 
 		for _, e := range g.edges[t] {
 			if e.cost > 0 && g.level[e.to] < 0 {
 				g.level[e.to] = g.level[t] + 1
-				q.PushBack(e.to)
+				q = append(q, e.to)
 			}
 		}
 
-		e = e.Next()
+		ti++
 	}
 }
 
@@ -2147,7 +2150,10 @@ func (g *graph) dinicdfs(v, t, f int) int {
 	if v == t {
 		return f
 	}
-	for i, e := range g.edges[v] {
+	for i := g.iter[v]; i < len(g.edges[v]); i++ {
+		e := g.edges[v][i]
+		g.iter[v] = i
+
 		if e.cost > 0 && g.level[v] < g.level[e.to] {
 			d := g.dinicdfs(e.to, t, min(f, e.cost))
 			if d > 0 {
