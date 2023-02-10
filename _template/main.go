@@ -289,12 +289,22 @@ func pow(a, b int) int {
 	return int(math.Pow(float64(a), float64(b)))
 }
 
-func pow2(a int) int {
-	return int(math.Pow(2, float64(a)))
+var pow2cache [64]int
+
+func pow2(i int) int {
+	if pow2cache[i] == 0 {
+		pow2cache[i] = int(math.Pow(2, float64(i)))
+	}
+	return pow2cache[i]
 }
 
-func pow10(a int) int {
-	return int(math.Pow(10, float64(a)))
+var pow10cache [20]int
+
+func pow10(i int) int {
+	if pow10cache[i] == 0 {
+		pow10cache[i] = int(math.Pow(10, float64(i)))
+	}
+	return pow10cache[i]
 }
 
 func sqrt(i int) int {
