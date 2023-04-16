@@ -21,60 +21,86 @@ func main() {
 
 	defer flush()
 
-	o := 0
-	n := ni()
-	rs, cs, xs := ni3s(n)
-	_, rm := cocom(rs)
-	rss := is(len(rm), 0)
-	_, cm := cocom(cs)
-	//out(rm, cm)
-	if len(rm) == 1 || len(cm) == 1 {
-		for i := 0; i < n; i++ {
-			o += xs[i]
+	o := inf
+	h, w, t := ni3()
+	mp := i2s(h, w, 0)
+	for i := 0; i < h; i++ {
+		for j := 0; j < w; j++ {
+			mp[i][j] = ni()
 		}
-		out(o)
-		return
 	}
-	css := is(len(cm), 0)
-	mp := make([]map[int]bool, int(1e5)*2+10)
-	for i := 0; i < int(1e5)*2+10; i++ {
-		mp[i] = make(map[int]bool)
-	}
-	for i := 0; i < n; i++ {
-		rss[rm[rs[i]]] += xs[i]
-		css[cm[cs[i]]] += xs[i]
-		mp[rm[rs[i]]][cm[cs[i]]] = true
-	}
-	//out(rss, css)
-	trs := [][2]int{}
-	for i, v := range rss {
-		trs = append(trs, [2]int{i, v})
-	}
-	tcs := [][2]int{}
-	for i, v := range css {
-		tcs = append(tcs, [2]int{i, v})
-	}
-	sort2ar(trs, opt2ar(1, desc))
-	sort2ar(tcs, opt2ar(1, desc))
-	//out(trs, tcs)
-	for i := 0; i < n; i++ {
-		to := 0
-		to += rss[rm[rs[i]]]
-		to += css[cm[cs[i]]]
-		to -= xs[i]
-		maxs(&o, to)
-	}
-	for i := 0; i < len(rss); i++ {
-		to := 0
-		to += rss[i]
-		for j := 0; j < len(tcs); j++ {
-			if mp[i][tcs[j][0]] {
-				continue
+
+	cusum2d := newcusum2d(mp)
+	mx := make(map[int]bool)
+	for hf := 0; hf < h; hf++ {
+		for ht := hf; ht < h; ht++ {
+			for wf := 0; wf < w; wf++ {
+				for wt := wf; wt < w; wt++ {
+					mx[cusum2d.get(hf, wf, ht, wt)] = true
+				}
 			}
-			to += tcs[j][1]
-			break
 		}
-		maxs(&o, to)
+	}
+	solve := func(a int) int {
+		var dp [7][7][7][7][37]int
+		for i := 0; i <= h; i++ {
+			for j := 0; j <= h; j++ {
+				for k := 0; k <= w; k++ {
+					for l := 0; l <= w; l++ {
+						for m := 0; m <= h*w; m++ {
+							dp[i][j][k][l][m] = -1
+						}
+					}
+				}
+			}
+		}
+		var dfs func(i, j, k, l, m int) int
+		dfs = func(i, j, k, l, m int) int {
+			if dp[i][j][k][l][m] != -1 {
+				return dp[i][j][k][l][m]
+			}
+			if (j-i+1)*(l-k+1) < m {
+				dp[i][j][k][l][m] = inf
+				return inf
+			}
+			to := inf
+			if m == 1 {
+				to := cusum2d.get(i, k, j-1, l-1)
+				if to < a {
+					to = inf
+				}
+				dp[i][j][k][l][m] = to
+				return to
+			}
+			for mt := 1; mt < m; mt++ {
+				for ht := i; ht < j; ht++ {
+					t1 := dfs(i, ht+1, k, l, mt)
+					t2 := dfs(ht+1, j, k, l, m-mt)
+					if t1 != inf && t2 != inf {
+						mins(&to, max(t1, t2))
+					}
+				}
+				for wt := k; wt < l; wt++ {
+					t1 := dfs(i, j, k, wt+1, mt)
+					t2 := dfs(i, j, wt+1, l, m-mt)
+					if t1 != inf && t2 != inf {
+						mins(&to, max(t1, t2))
+					}
+				}
+			}
+
+			dp[i][j][k][l][m] = to
+			return to
+		}
+		t1 := dfs(0, h, 0, w, t+1)
+		if t1 == inf {
+			return inf
+		}
+
+		return t1 - a
+	}
+	for v := range mx {
+		mins(&o, solve(v))
 	}
 
 	out(o)
