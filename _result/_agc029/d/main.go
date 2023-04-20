@@ -21,22 +21,39 @@ func main() {
 
 	defer flush()
 
-	o := inf
-	n, _, w := ni3()
-	ns := nis(n)
-	ns = append([]int{w}, ns...)
-	dp := make([][2]int, n)
-	for i := n - 1; i >= 0; i-- {
-		tmx := abs(ns[n] - ns[i])
-		tmi := tmx
-		for j := i + 1; j < n; j++ {
-			maxs(&tmx, dp[j][1])
-			mins(&tmi, dp[j][0])
-		}
-		dp[i][0] = tmx
-		dp[i][1] = tmi
+	o := 1
+	h, _, n := ni3()
+	xs, ys := ni2s(n)
+	xys := make([][]int, h+1)
+	for i := 0; i < n; i++ {
+		xys[xs[i]] = append(xys[xs[i]], ys[i])
 	}
-	o = dp[0][0]
+	for i := 0; i <= h; i++ {
+		sorti(xys[i])
+	}
+	ti := 1
+	for i := 1; i < h; i++ {
+		hasAns := false
+		//		out(i, xys[i+1], ti)
+		for _, v := range xys[i+1] {
+			if v <= ti {
+				hasAns = true
+				break
+			}
+			if v == ti+1 {
+				ti--
+				break
+			}
+			if v > ti+1 {
+				break
+			}
+		}
+		ti++
+		if hasAns {
+			break
+		}
+		o++
+	}
 	out(o)
 }
 
@@ -49,6 +66,8 @@ const mod1000000007 = 1000000007
 const mod998244353 = 998244353
 const mod = mod1000000007
 
+var mpowcache map[[3]int]int
+
 func init() {
 	sc.Buffer([]byte{}, math.MaxInt64)
 	sc.Split(bufio.ScanWords)
@@ -59,6 +78,7 @@ func init() {
 		}
 		sc = bufio.NewScanner(strings.NewReader(strings.Replace(string(b), " ", "\n", -1)))
 	}
+	mpowcache = make(map[[3]int]int)
 }
 
 // ==================================================
@@ -302,12 +322,22 @@ func pow(a, b int) int {
 	return int(math.Pow(float64(a), float64(b)))
 }
 
-func pow2(a int) int {
-	return int(math.Pow(2, float64(a)))
+var pow2cache [64]int
+
+func pow2(i int) int {
+	if pow2cache[i] == 0 {
+		pow2cache[i] = int(math.Pow(2, float64(i)))
+	}
+	return pow2cache[i]
 }
 
-func pow10(a int) int {
-	return int(math.Pow(10, float64(a)))
+var pow10cache [20]int
+
+func pow10(i int) int {
+	if pow10cache[i] == 0 {
+		pow10cache[i] = int(math.Pow(10, float64(i)))
+	}
+	return pow10cache[i]
 }
 
 func sqrt(i int) int {
@@ -561,6 +591,11 @@ func mdiv(a, b int) int {
 }
 
 func mpow(a, n, m int) int {
+	if v, ok := mpowcache[[3]int{a, n, m}]; ok {
+		return v
+	}
+	fa := a
+	fn := n
 	if m == 1 {
 		return 0
 	}
@@ -571,6 +606,7 @@ func mpow(a, n, m int) int {
 		}
 		a, n = a*a%m, n>>1
 	}
+	mpowcache[[3]int{fa, fn, m}] = r
 	return r
 }
 
@@ -810,11 +846,11 @@ func stois(s string, baseRune rune) []int {
 }
 
 func istos(s []int, baseRune rune) string {
-	r := ""
-	for _, v := range s {
-		r += string(v + int(baseRune))
+	r := make([]byte, len(s))
+	for i, v := range s {
+		r[i] = byte(v) + byte(baseRune)
 	}
-	return r
+	return string(r)
 }
 
 func reverse(sl []interface{}) {
@@ -1225,6 +1261,8 @@ func newcusum2d(sl [][]int) *cusum2d {
 
 // x1 <= x <= x2, y1 <= y <= y2
 func (c *cusum2d) get(x1, y1, x2, y2 int) int {
+	x2++
+	y2++
 	return c.s[x2][y2] + c.s[x1][y1] - c.s[x1][y2] - c.s[x2][y1]
 }
 
@@ -2137,20 +2175,23 @@ func (g *graph) dinicbfs(s int) {
 	}
 	g.level[s] = 0
 
-	q := list.New()
-	q.PushBack(s)
-	e := q.Front()
-	for e != nil {
-		t := e.Value.(int)
+	q := []int{}
+	q = append(q, s)
+	ti := 0
+	for {
+		if ti >= len(q) {
+			break
+		}
+		t := q[ti]
 
 		for _, e := range g.edges[t] {
 			if e.cost > 0 && g.level[e.to] < 0 {
 				g.level[e.to] = g.level[t] + 1
-				q.PushBack(e.to)
+				q = append(q, e.to)
 			}
 		}
 
-		e = e.Next()
+		ti++
 	}
 }
 
@@ -2158,7 +2199,10 @@ func (g *graph) dinicdfs(v, t, f int) int {
 	if v == t {
 		return f
 	}
-	for i, e := range g.edges[v] {
+	for i := g.iter[v]; i < len(g.edges[v]); i++ {
+		e := g.edges[v][i]
+		g.iter[v] = i
+
 		if e.cost > 0 && g.level[v] < g.level[e.to] {
 			d := g.dinicdfs(e.to, t, min(f, e.cost))
 			if d > 0 {
