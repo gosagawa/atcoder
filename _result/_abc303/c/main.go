@@ -21,24 +21,37 @@ func main() {
 
 	defer flush()
 
-	o := 0
-	n, m := ni2()
-	st := i2s(n, n, 0)
+	n, m, h, k := ni4()
+	s := ns()
+	xy := make(map[point]bool)
 	for i := 0; i < m; i++ {
-		ns := nis(n)
-		for j := 0; j < n-1; j++ {
-			st[ns[j]-1][ns[j+1]-1] = 1
-			st[ns[j+1]-1][ns[j]-1] = 1
-		}
+		x, y := ni2()
+		xy[point{x, y}] = true
 	}
+	pt := point{0, 0}
 	for i := 0; i < n; i++ {
-		for j := i + 1; j < n; j++ {
-			if st[i][j] == 0 {
-				o++
-			}
+		switch string(s[i]) {
+		case "R":
+			pt.x++
+		case "L":
+			pt.x--
+		case "U":
+			pt.y++
+		case "D":
+			pt.y--
+		}
+		h--
+		if h < 0 {
+			out("No")
+			return
+		}
+		if xy[pt] && h < k {
+			h = k
+			xy[pt] = false
 		}
 	}
-	out(o)
+	out("Yes")
+	return
 }
 
 // ==================================================
