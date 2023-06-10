@@ -19,58 +19,42 @@ var wtr = bufio.NewWriter(os.Stdout)
 
 func main() {
 
-	defer flush()
-
-	v, e, k := ni3()
-	edges := make([][]edge, v)
-	for i := 0; i < e; i++ {
-		s, t := ni2()
-		s--
-		t--
-		edges[s] = append(edges[s], edge{to: t})
-		edges[t] = append(edges[t], edge{to: s})
-	}
-	ps, hs := ni2s(k)
-	st := is(v, 0)
-	type pqst struct {
-		x int
-		y int
-	}
-	pq := newpq([]compFunc{func(p, q interface{}) int {
-		if p.(pqst).y != q.(pqst).y {
-			if p.(pqst).y > q.(pqst).y {
-				return -1
-			} else {
-				return 1
-			}
-		}
-		return 0
-	}})
-	heap.Init(pq)
-	for i := 0; i < k; i++ {
-		st[ps[i]-1] = hs[i]
-		heap.Push(pq, pqst{x: ps[i] - 1, y: hs[i]})
-
-	}
+	v, e := ni2()
+	_ = e
+	ci := 0
 	used := make([]bool, v)
-	r := []int{}
-	for !pq.IsEmpty() {
-		st := heap.Pop(pq).(pqst)
-		if used[st.x] {
-			continue
+	ng := make([]bool, v)
+	ws := is(v+10, 0)
+	wi := 0
+	used[0] = true
+	for {
+		ts := ns()
+		if ts == "OK" {
+			break
 		}
-		used[st.x] = true
-		r = append(r, st.x+1)
-
-		if st.y != 0 {
-			for _, nv := range edges[st.x] {
-				heap.Push(pq, pqst{x: nv.to, y: st.y - 1})
+		n := atoi(ts)
+		ns := nis(n)
+		nomove := true
+		for _, nv := range ns {
+			nv--
+			if used[nv] || ng[nv] {
+				continue
 			}
+			nomove = false
+			used[nv] = true
+			wi++
+			ws[wi] = nv
+			ci = nv
+			break
 		}
+		if nomove {
+			ng[ci] = true
+			wi--
+			ci = ws[wi]
+		}
+		//out(ts, ns, nomove, ws, wi)
+		out(ci + 1)
 	}
-	sorti(r)
-	out(len(r))
-	outis(r)
 
 }
 
@@ -228,6 +212,8 @@ func out(v ...interface{}) {
 	if e != nil {
 		panic(e)
 	}
+	flush()
+
 }
 
 func outf(f string, v ...interface{}) {
