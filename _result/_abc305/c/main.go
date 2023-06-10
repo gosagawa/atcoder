@@ -21,27 +21,41 @@ func main() {
 
 	defer flush()
 
-	o := 0
-	ns := nis(3)
-	sortir(ns)
-	if ns[0]%2 == ns[1]%2 && ns[0]%2 != ns[2]%2 {
-		ns[0]++
-		ns[2]++
-		o++
+	h, w := ni2()
+	mp := i2s(h, w, 0)
+	for i := 0; i < h; i++ {
+		mp[i] = stois(ns(), '.')
 	}
-	if ns[0]%2 == ns[2]%2 && ns[0]%2 != ns[1]%2 {
-		ns[0]++
-		ns[1]++
-		o++
-	}
-	o += (ns[0] - ns[1]) / 2
-	o += (ns[0] - ns[2]) / 2
-	if ns[0]%2 == ns[1]%2 && ns[0]%2 == ns[2]%2 {
-	} else {
-		o++
-	}
+	hmx := -1
+	hmi := inf
+	wmx := -1
+	wmi := inf
 
-	out(o)
+	for i := 0; i < h; i++ {
+		for j := 0; j < w; j++ {
+			if mp[i][j] == 0 {
+				continue
+			}
+			maxs(&hmx, i)
+			mins(&hmi, i)
+			maxs(&wmx, j)
+			mins(&wmi, j)
+		}
+	}
+	for i := 0; i < h; i++ {
+		for j := 0; j < w; j++ {
+			if i < hmi || hmx < i {
+				continue
+			}
+			if j < wmi || wmx < j {
+				continue
+			}
+			if mp[i][j] == 0 {
+				outf("%d %d", i+1, j+1)
+				return
+			}
+		}
+	}
 }
 
 // ==================================================
