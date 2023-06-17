@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"math/big"
 	"math/bits"
 	"os"
 	"sort"
@@ -21,10 +22,12 @@ func main() {
 
 	defer flush()
 
-	o := 0
+	o := big.NewInt(0)
 	ns := nis(64)
 	for i, v := range ns {
-		o += pow2(i) * v
+		if v == 1 {
+			o.Add(o, big.NewInt(2).Exp(big.NewInt(2), big.NewInt(int64(i)), nil))
+		}
 	}
 
 	out(o)
