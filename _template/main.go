@@ -36,6 +36,8 @@ const mod1000000007 = 1000000007
 const mod998244353 = 998244353
 const mod = mod1000000007
 
+var mpowcache map[[3]int]int
+
 func init() {
 	sc.Buffer([]byte{}, math.MaxInt64)
 	sc.Split(bufio.ScanWords)
@@ -46,6 +48,7 @@ func init() {
 		}
 		sc = bufio.NewScanner(strings.NewReader(strings.Replace(string(b), " ", "\n", -1)))
 	}
+	mpowcache = make(map[[3]int]int)
 }
 
 // ==================================================
@@ -558,6 +561,11 @@ func mdiv(a, b int) int {
 }
 
 func mpow(a, n, m int) int {
+	if v, ok := mpowcache[[3]int{a, n, m}]; ok {
+		return v
+	}
+	fa := a
+	fn := n
 	if m == 1 {
 		return 0
 	}
@@ -568,6 +576,7 @@ func mpow(a, n, m int) int {
 		}
 		a, n = a*a%m, n>>1
 	}
+	mpowcache[[3]int{fa, fn, m}] = r
 	return r
 }
 
