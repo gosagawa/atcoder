@@ -23,25 +23,95 @@ func main() {
 
 	o := 0
 	n := ni()
-	ns := stois(ns(), '0')
-	dp := i2s(n, 2, 0)
-	for i := 0; i < n; i++ {
-		if i == 0 {
-			dp[0][ns[i]] = 1
-			o += dp[0][1]
-			continue
+	ns := nis(n)
+	dp := make(map[[11]int]int)
+	dp[[11]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}] = 1
+	var check func(idx int, cnt int, st [11]int) bool
+	check = func(idx int, cnt int, st [11]int) bool {
+		if idx == 11 {
+			return false
 		}
-		if ns[i] == 0 {
-			dp[i][1] += dp[i-1][0]
-			dp[i][1] += dp[i-1][1]
-		} else {
-			dp[i][1] += dp[i-1][0]
-			dp[i][0] += dp[i-1][1]
+		for j := 0; j <= st[idx]; j++ {
+			ncnt := cnt + j*idx
+			if ncnt > 10 {
+				return false
+			}
+			if ncnt == 10 {
+				return true
+			}
+			r := check(idx+1, ncnt, st)
+			if r {
+				return true
+			}
 		}
-		dp[i][ns[i]]++
-		o += dp[i][1]
-
+		return false
 	}
+	checkmap := make(map[[11]int]bool)
+	checkst := func(st [11]int) bool {
+		if v, ok := checkmap[st]; ok {
+			return v
+		}
+		r := check(0, 0, st)
+		checkmap[st] = r
+		return r
+	}
+	add := func(i int, st [11]int) [11]int {
+		if checkst(st) {
+			return st
+		}
+		st[i]++
+		if i == 1 {
+			if st[i] > 10 {
+				st[i] = 10
+			}
+		} else if i <= 2 {
+			if st[i] > 5 {
+				st[i] = 5
+			}
+		} else if i <= 3 {
+			if st[i] > 3 {
+				st[i] = 3
+			}
+		} else if i <= 5 {
+			if st[i] > 2 {
+				st[i] = 2
+			}
+		} else {
+			if st[i] > 1 {
+				st[i] = 1
+			}
+		}
+		return st
+	}
+	for i := 0; i < n; i++ {
+		ndp := make(map[[11]int]int)
+		for j := 1; j <= min(ns[i], 10); j++ {
+			for st, v := range dp {
+				ndp[add(j, st)] += v
+				ndp[add(j, st)] %= mod
+			}
+		}
+		if ns[i] > 10 {
+			for st, v := range dp {
+				ndp[st] += mmul(v, ns[i]-10)
+				ndp[st] %= mod
+			}
+		}
+		dp = ndp
+	}
+	valid := 0
+	for st, v := range dp {
+		//out(st, v, valid, check(0, 0, st))
+		if checkst(st) {
+			valid += v
+			valid %= mod
+		}
+	}
+	all := 1
+	for i := 0; i < n; i++ {
+		all = mmul(all, ns[i])
+	}
+	o = mdiv(valid, all)
 	out(o)
 }
 
@@ -52,7 +122,7 @@ func main() {
 const inf = math.MaxInt64
 const mod1000000007 = 1000000007
 const mod998244353 = 998244353
-const mod = mod1000000007
+const mod = mod998244353
 
 var mpowcache map[[3]int]int
 
