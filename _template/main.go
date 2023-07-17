@@ -1505,234 +1505,318 @@ func (s *stree) debug() {
 	out(strings.Join(l, " "))
 }
 
-/*
-s := newlazystree(n,stmin|stmax,stset|stadd|stmadd)
-s.set(i,x)
-s.add(i,x)
-s.rc(l,r,x)
-result1 := s.query(l,r)
-result2 := s.findrightest(l,r,x)
-result3 := s.findlefttest(l,r,x)
-*/
-type lazystree struct {
-	on   int
-	n    int
-	b    []int
-	lazy []int
-	def  int
-	cmp  func(i, j int) int
-	culc func(i, j int) int
+type segstruct struct {
+	x int
+	y int
 }
 
-func newlazystree(n int, cmptype streeculctype, culctype streeculctype) lazystree {
-	tn := 1
-	for tn < n {
-		tn *= 2
-	}
-	s := lazystree{
-		on:   n,
-		n:    tn,
-		b:    make([]int, 2*tn-1),
-		lazy: make([]int, 2*tn-1),
-	}
-	switch cmptype {
-	case stmin:
-		s.def = inf
-		for i := 0; i < 2*tn-1; i++ {
-			s.b[i] = s.def
-			s.lazy[i] = s.def
-		}
-		s.cmp = func(i, j int) int {
-			return min(i, j)
-		}
-	case stmax:
-		s.cmp = func(i, j int) int {
-			return max(i, j)
-		}
-	}
-	switch culctype {
-	case stadd:
-		s.culc = func(i, j int) int {
-			if i == s.def {
-				return j
-			}
-			if j == s.def {
-				return i
-			}
-			return i + j
-		}
-	case stmadd:
-		s.culc = func(i, j int) int {
-			if i == s.def {
-				return j
-			}
-			if j == s.def {
-				return i
-			}
-			return madd(i, j)
-		}
-	case stmax:
-		s.culc = func(i, j int) int {
-			return max(i, j)
-		}
-	case stmin:
-		s.culc = func(i, j int) int {
-			return min(i, j)
-		}
-	case stset:
-		s.culc = func(i, j int) int {
-			return j
-		}
-	}
-	return s
+type segfstruct struct {
+	x int
+	y int
 }
 
-func (s lazystree) eval(k int) {
-	if s.lazy[k] == s.def {
+func newlazysegtree(
+	n int,
+	v []segstruct,
+	op func(segstruct, segstruct) segstruct,
+	e func() segstruct,
+	mapping func(segfstruct, segstruct) segstruct,
+	composition func(segfstruct, segfstruct) segfstruct,
+	id func() segfstruct,
+) *lazysegtree {
+
+	l := &lazysegtree{
+		n:           n,
+		op:          op,
+		e:           e,
+		mapping:     mapping,
+		composition: composition,
+		id:          id,
+	}
+	l.size = pow2(bitlen(n))
+	l.log = bitlen(n)
+	l.d = make([]segstruct, l.size*2)
+	for i := range l.d {
+		l.d[i] = e()
+	}
+	l.lz = make([]segfstruct, l.size)
+	for i := range l.lz {
+		l.lz[i] = id()
+	}
+	if len(v) > 0 {
+		if len(v) != n {
+			panic("invalid v value")
+		}
+		for i := 0; i < l.n; i++ {
+			l.d[l.size+i] = v[i]
+		}
+		for i := l.size - 1; i >= 1; i-- {
+			l.update(i)
+		}
+	}
+	return l
+
+}
+
+func (l *lazysegtree) set(p int, x segstruct) {
+	if p < 0 || p > l.n {
+		panic(fmt.Sprintf("invalid p value n=%v p=%v", l.n, p))
+	}
+	p += l.size
+	for i := l.log; i >= 1; i-- {
+		l.push(p >> i)
+	}
+	l.d[p] = x
+	for i := 1; i <= l.log; i++ {
+		l.update(p >> i)
+	}
+}
+
+func (l *lazysegtree) get(p int) segstruct {
+	if p < 0 || p > l.n {
+		panic(fmt.Sprintf("invalid p value n=%v p=%v", l.n, p))
+	}
+	p += l.size
+	for i := l.log; i >= 1; i-- {
+		l.push(p >> i)
+	}
+	return l.d[p]
+}
+
+func (l *lazysegtree) prod(le, ri int) segstruct {
+	if le < 0 || le > l.n {
+		panic(fmt.Sprintf("invalid le value n=%v ri=%v", l.n, le))
+	}
+	if ri < 0 || ri > l.n {
+		panic(fmt.Sprintf("invalid ri value n=%v ri=%v", l.n, ri))
+	}
+	if ri < le {
+		panic(fmt.Sprintf("invalid le value le=%v ri=%v", le, ri))
+	}
+	if le == ri {
+		return l.e()
+	}
+
+	le += l.size
+	ri += l.size
+
+	for i := l.log; i >= 1; i-- {
+		if ((le >> i) << i) != le {
+			l.push(le >> i)
+		}
+		if ((ri >> i) << i) != ri {
+			l.push((ri - 1) >> i)
+		}
+	}
+
+	sml := l.e()
+	smr := l.e()
+	for {
+		if le >= ri {
+			break
+		}
+		if le&1 == 1 {
+			sml = l.op(sml, l.d[le])
+			le++
+		}
+		if ri&1 == 1 {
+			ri--
+			smr = l.op(l.d[ri], smr)
+		}
+		le >>= 1
+		ri >>= 1
+
+	}
+
+	return l.op(sml, smr)
+}
+
+func (l *lazysegtree) allprod() segstruct {
+	return l.d[1]
+}
+
+func (l *lazysegtree) apply(p int, f segfstruct) {
+	if p < 0 || p > l.n {
+		panic(fmt.Sprintf("invalid p value n=%v p=%v", l.n, p))
+	}
+	p += l.size
+	for i := l.log; i >= 1; i-- {
+		l.push(p >> i)
+	}
+	l.d[p] = l.mapping(f, l.d[p])
+	for i := 1; i <= l.log; i++ {
+		l.update(p >> i)
+	}
+}
+
+func (l *lazysegtree) applyrange(le, ri int, f segfstruct) {
+	if le < 0 || le > l.n {
+		panic(fmt.Sprintf("invalid le value n=%v ri=%v", l.n, le))
+	}
+	if ri < 0 || ri > l.n {
+		panic(fmt.Sprintf("invalid ri value n=%v ri=%v", l.n, ri))
+	}
+	if ri < le {
+		panic(fmt.Sprintf("invalid le value le=%v ri=%v", le, ri))
+	}
+
+	if le == ri {
 		return
 	}
-	if k < s.n-1 {
-		s.lazy[k*2+1] = s.culc(s.lazy[k*2+1], s.lazy[k])
-		s.lazy[k*2+2] = s.culc(s.lazy[k*2+2], s.lazy[k])
-	}
-	s.b[k] = s.culc(s.b[k], s.lazy[k])
-	s.lazy[k] = s.def
-}
 
-func (s lazystree) add(i, x int) {
-	i += s.n - 1
-	s.b[i] += x
+	le += l.size
+	ri += l.size
 
-	for i > 0 {
-		i = (i - 1) / 2
-		s.b[i] = s.cmp(s.b[i*2+1], s.b[i*2+2])
-	}
-}
-
-func (s lazystree) set(i, x int) {
-	i += s.n - 1
-	s.b[i] = x
-
-	for i > 0 {
-		i = (i - 1) / 2
-		s.b[i] = s.cmp(s.b[i*2+1], s.b[i*2+2])
-	}
-}
-
-// range culc a <= n n < b
-func (s lazystree) rc(a, b, x int) {
-	s.rcsub(a, b, x, 0, 0, s.n)
-}
-
-func (s lazystree) rcsub(a, b, x, k, l, r int) {
-	s.eval(k)
-	if a <= l && r <= b {
-		s.lazy[k] = s.culc(s.lazy[k], x)
-		s.eval(k)
-	} else if l < b && a < r {
-		s.rcsub(a, b, x, k*2+1, l, (l+r)/2)
-		s.rcsub(a, b, x, k*2+2, (l+r)/2, r)
-		s.b[k] = s.cmp(s.b[k*2+1], s.b[k*2+2])
-	}
-}
-
-func (s lazystree) get(a int) int {
-	return s.query(a, a+1)
-}
-
-func (s lazystree) query(a, b int) int {
-	return s.querysub(a, b, 0, 0, s.n)
-}
-
-func (s lazystree) querysub(a, b, k, l, r int) int {
-	s.eval(k)
-	if r <= a || b <= l {
-		return s.def
-	}
-	if a <= l && r <= b {
-		return s.b[k]
-	}
-	return s.cmp(
-		s.querysub(a, b, k*2+1, l, (l+r)/2),
-		s.querysub(a, b, k*2+2, (l+r)/2, r),
-	)
-}
-
-func (s lazystree) findrightest(a, b, x int) int {
-	return s.findrightestsub(a, b, x, 0, 0, s.n)
-}
-
-func (s lazystree) findrightestsub(a, b, x, k, l, r int) int {
-	if s.b[k] > x || r <= a || b <= l {
-		return a - 1
-	} else if k >= s.n-1 {
-		return k - s.n + 1
-	}
-	vr := s.findrightestsub(a, b, x, 2*k+2, (l+r)/2, r)
-	if vr != a-1 {
-		return vr
-	}
-	return s.findrightestsub(a, b, x, 2*k+1, l, (l+r)/2)
-}
-
-func (s lazystree) findleftest(a, b, x int) int {
-	return s.findleftestsub(a, b, x, 0, 0, s.n)
-}
-
-func (s lazystree) findleftestsub(a, b, x, k, l, r int) int {
-	if s.b[k] > x || r <= a || b <= l {
-		return b
-	} else if k >= s.n-1 {
-		return k - s.n + 1
-	}
-	vl := s.findleftestsub(a, b, x, 2*k+1, l, (l+r)/2)
-	if vl != b {
-		return vl
-	}
-	return s.findleftestsub(a, b, x, 2*k+2, (l+r)/2, r)
-}
-
-func (s lazystree) debug() {
-	l := []string{}
-	t := 2
-	out("data")
-	for i := 0; i < 2*s.n-1; i++ {
-		if i+1 == t {
-			t *= 2
-			out(strings.Join(l, " "))
-			l = []string{}
+	for i := l.log; i >= 1; i-- {
+		if ((le >> i) << i) != le {
+			l.push(le >> i)
 		}
-		if s.b[i] == inf {
-			l = append(l, "∞")
-		} else {
-			l = append(l, strconv.Itoa(s.b[i]))
+		if ((ri >> i) << i) != ri {
+			l.push((ri - 1) >> i)
 		}
 	}
-	out(strings.Join(l, " "))
-	out("lazy")
-	l = []string{}
-	t = 2
-	for i := 0; i < 2*s.n-1; i++ {
-		if i+1 == t {
-			t *= 2
-			out(strings.Join(l, " "))
-			l = []string{}
+
+	{
+		le2 := le
+		ri2 := ri
+		for {
+			if le >= ri {
+				break
+			}
+			if le&1 == 1 {
+				l.allApply(le, f)
+				le++
+			}
+			if ri&1 == 1 {
+				ri--
+				l.allApply(ri, f)
+			}
+			le >>= 1
+			ri >>= 1
 		}
-		if s.lazy[i] == inf {
-			l = append(l, "∞")
-		} else {
-			l = append(l, strconv.Itoa(s.lazy[i]))
+		le = le2
+		ri = ri2
+	}
+
+	for i := 1; i <= l.log; i++ {
+		if ((le >> i) << i) != le {
+			l.update(le >> i)
+		}
+		if ((ri >> i) << i) != ri {
+			l.update((ri - 1) >> i)
 		}
 	}
-	out(strings.Join(l, " "))
 }
 
-func (s lazystree) debug2() {
-	l := make([]string, s.n+1)
-	for i := 0; i <= s.on; i++ {
-		l[i] = strconv.Itoa(s.get(i))
+func (l *lazysegtree) maxright(le int, g func(segstruct) bool) int {
+
+	if le < 0 || le > l.n {
+		panic(fmt.Sprintf("invalid le value n=%v ri=%v", l.n, le))
 	}
-	out(strings.Join(l, " "))
+	if !g(l.e()) {
+		panic("invalid g func")
+	}
+	if le == l.n {
+		return l.n
+	}
+	le += l.size
+	for i := l.log; i >= 1; i-- {
+		l.push(le >> i)
+	}
+	sm := l.e()
+	for {
+		for {
+			if le%2 != 0 {
+				break
+			}
+			le >>= 1
+		}
+		if !g(l.op(sm, l.d[le])) {
+			for {
+
+				if le >= l.size {
+					break
+				}
+				l.push(le)
+				le = (2 * le)
+				if g(l.op(sm, l.d[le])) {
+					sm = l.op(sm, l.d[le])
+					le++
+				}
+			}
+			return le - l.size
+		}
+		sm = l.op(sm, l.d[le])
+		le++
+		if (le & -le) == le {
+			break
+		}
+	}
+	return l.n
+}
+
+func (l *lazysegtree) maxleft(ri int, g func(segstruct) bool) int {
+	if ri < 0 || ri > l.n {
+		panic("invalid ri value")
+	}
+	if !g(l.e()) {
+		panic("invalid g func")
+	}
+
+	if ri == 0 {
+		return 0
+	}
+	ri += l.size
+	for i := l.log; i >= 1; i-- {
+		l.push((ri - 1) >> i)
+	}
+	sm := l.e()
+	for {
+		ri--
+		for {
+			if ri > 1 && (ri%2 == 1) {
+			} else {
+				break
+			}
+			ri >>= 1
+		}
+		if !g(l.op(l.d[ri], sm)) {
+			for {
+				if ri >= l.size {
+					break
+				}
+				l.push(ri)
+				ri = (2*ri + 1)
+				if g(l.op(l.d[ri], sm)) {
+					sm = l.op(l.d[ri], sm)
+					ri--
+				}
+			}
+			return ri + 1 - l.size
+		}
+		sm = l.op(l.d[ri], sm)
+		if (ri & -ri) == ri {
+			break
+		}
+	}
+	return 0
+}
+
+func (l *lazysegtree) update(k int) {
+	l.d[k] = l.op(l.d[2*k], l.d[2*k+1])
+}
+
+func (l *lazysegtree) allApply(k int, f segfstruct) {
+	l.d[k] = l.mapping(f, l.d[k])
+	if k < l.size {
+		l.lz[k] = l.composition(f, l.lz[k])
+	}
+}
+
+func (l *lazysegtree) push(k int) {
+	l.allApply(2*k, l.lz[k])
+	l.allApply(2*k+1, l.lz[k])
+	l.lz[k] = l.id()
 }
 
 // ==================================================
