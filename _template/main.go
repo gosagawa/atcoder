@@ -1515,6 +1515,19 @@ type segfstruct struct {
 	y int
 }
 
+type lazysegtree struct {
+	n           int
+	size        int
+	log         int
+	d           []segstruct
+	lz          []segfstruct
+	op          func(segstruct, segstruct) segstruct
+	e           func() segstruct
+	mapping     func(segfstruct, segstruct) segstruct
+	composition func(segfstruct, segfstruct) segfstruct
+	id          func() segfstruct
+}
+
 func newlazysegtree(
 	n int,
 	v []segstruct,
