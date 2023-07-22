@@ -21,27 +21,57 @@ func main() {
 
 	defer flush()
 
-	o := 0
-	n, d := ni2()
-	td := is(d, 0)
+	n := ni()
+	as := nis(n)
+	edges := make([][]edge, n)
 	for i := 0; i < n; i++ {
-		s := stois(ns(), 'o')
-		for j, v := range s {
-			if v == 0 {
-				td[j]++
+		s, t := i, as[i]-1
+		edges[s] = append(edges[s], edge{to: t})
+	}
+	used := make([]bool, n)
+	used2 := make([]bool, n)
+	r := []int{}
+	loopFrom := -1
+	for i := 0; i < n; i++ {
+		if used[i] {
+			continue
+		}
+		var dfs func(v, p int) bool
+		dfs = func(v, p int) bool {
+			//			out(v, p, used, r, used, used2)
+			if used[v] {
+				return false
 			}
+			used[v] = true
+			used2[v] = true
+
+			for _, nv := range edges[v] {
+				if used2[nv.to] {
+					r = append(r, v+1)
+					loopFrom = nv.to
+					return true
+				}
+				t := dfs(nv.to, v)
+				if t {
+					r = append(r, v+1)
+					if v == loopFrom {
+						return false
+					}
+					return true
+				}
+			}
+			used2[v] = false
+			return false
+		}
+		dfs(i, -1)
+		if len(r) > 0 {
+			break
 		}
 	}
-	t := 0
-	for i := 0; i < d; i++ {
-		if td[i] == n {
-			t++
-			maxs(&o, t)
-		} else {
-			t = 0
-		}
-	}
-	out(o)
+	reversei(r)
+	out(len(r))
+	outis(r)
+
 }
 
 // ==================================================
