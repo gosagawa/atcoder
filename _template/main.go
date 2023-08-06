@@ -35,6 +35,8 @@ const inf = math.MaxInt64
 const mod1000000007 = 1000000007
 const mod998244353 = 998244353
 const mod = mod1000000007
+const baseRune = 'a'
+const maxlogn = 62
 
 var mpowcache map[[3]int]int
 
@@ -162,6 +164,12 @@ func nsis() []int {
 	sc.Scan()
 	s := sc.Text()
 	return stois(s, '0')
+}
+
+func nsais() []int {
+	sc.Scan()
+	s := sc.Text()
+	return stois(s, baseRune)
 }
 
 func scani() int {
@@ -823,6 +831,15 @@ func istos(s []int, baseRune rune) string {
 	return string(r)
 }
 
+func issum(sl []int) int {
+	r := 0
+	for _, v := range sl {
+		r += v
+		r %= mod
+	}
+	return r
+}
+
 func reverse(sl []interface{}) {
 	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
 		sl[i], sl[j] = sl[j], sl[i]
@@ -899,6 +916,83 @@ func upperBound(v int, sl []int) int {
 		return sl[c] <= v
 	})
 	return idx + 1
+}
+
+// ==================================================
+// matrix
+// ==================================================
+
+func matrixmul(a, b [][]int) [][]int {
+	ac := len(a)
+	ar := len(a[0])
+	bc := len(b)
+	br := len(b[0])
+	if ar != bc {
+		panic(fmt.Sprintf("invalid matrix mul ar:%v bc:%v", ar, bc))
+	}
+
+	r := i2s(ac, br, 0)
+	for i := 0; i < ac; i++ {
+		for j := 0; j < br; j++ {
+			for k := 0; k < ar; k++ {
+				r[i][j] += mmul(a[i][k], b[k][j])
+				r[i][j] %= mod
+			}
+		}
+	}
+	return r
+}
+
+func slmatrixmul(a []int, b [][]int) []int {
+	ar := len(a)
+	bc := len(b)
+	br := len(b[0])
+	if ar != bc {
+		panic(fmt.Sprintf("invalid matrix mul ar:%v bc:%v", ar, bc))
+	}
+	r := is(br, 0)
+	for i := 0; i < br; i++ {
+		for j := 0; j < ar; j++ {
+			r[i] += mmul(a[j], b[j][i])
+			r[i] %= mod
+		}
+	}
+	return r
+}
+
+type matrixExponentation struct {
+	size int
+	base [][][]int
+	id   [][]int
+}
+
+func newMatrixExponentation(size int, base [][]int) *matrixExponentation {
+	me := &matrixExponentation{
+		size: size,
+	}
+
+	me.base = make([][][]int, maxlogn)
+	me.base[0] = base
+	for i := 0; i < maxlogn-1; i++ {
+		me.base[i+1] = matrixmul(me.base[i], me.base[i])
+	}
+	me.id = i2s(size, size, 0)
+	for i := 0; i < size; i++ {
+		me.id[i][i] = 1
+	}
+	return me
+
+}
+
+func (me *matrixExponentation) getpow(n int) [][]int {
+	r := i2s(me.size, me.size, 0)
+	copy(r, me.id)
+	for i := 0; i < maxlogn; i++ {
+		if hasbit(n, i) {
+			r = matrixmul(r, me.base[i])
+		}
+	}
+	return r
 }
 
 // ==================================================
