@@ -960,36 +960,22 @@ func slmatrixmul(a []int, b [][]int) []int {
 	return r
 }
 
-type matrixExponentation struct {
-	size int
-	base [][][]int
-	id   [][]int
-}
+func matrixpow(n int, matrix [][]int) [][]int {
 
-func newMatrixExponentation(size int, base [][]int) *matrixExponentation {
-	me := &matrixExponentation{
-		size: size,
-	}
-
-	me.base = make([][][]int, maxlogn)
-	me.base[0] = base
+	size := len(matrix)
+	base := make([][][]int, maxlogn)
+	base[0] = matrix
 	for i := 0; i < maxlogn-1; i++ {
-		me.base[i+1] = matrixmul(me.base[i], me.base[i])
+		base[i+1] = matrixmul(base[i], base[i])
 	}
-	me.id = i2s(size, size, 0)
+	r := i2s(size, size, 0)
 	for i := 0; i < size; i++ {
-		me.id[i][i] = 1
+		r[i][i] = 1
 	}
-	return me
 
-}
-
-func (me *matrixExponentation) getpow(n int) [][]int {
-	r := i2s(me.size, me.size, 0)
-	copy(r, me.id)
 	for i := 0; i < maxlogn; i++ {
 		if hasbit(n, i) {
-			r = matrixmul(r, me.base[i])
+			r = matrixmul(r, base[i])
 		}
 	}
 	return r
