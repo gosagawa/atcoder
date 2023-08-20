@@ -163,13 +163,13 @@ func ns() string {
 func nsis() []int {
 	sc.Scan()
 	s := sc.Text()
-	return stois(s, '0')
+	return stois(s, baseRune)
 }
 
-func nsais() []int {
+func nsiis() []int {
 	sc.Scan()
 	s := sc.Text()
-	return stois(s, baseRune)
+	return stois(s, '0')
 }
 
 func scani() int {
@@ -284,6 +284,32 @@ func min(a, b int) int {
 }
 
 func mins(a *int, b int) {
+	if *a > b {
+		*a = b
+	}
+}
+
+func maxf(a, b float64) float64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func maxsf(a *float64, b float64) {
+	if *a < b {
+		*a = b
+	}
+}
+
+func minf(a, b float64) float64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func minsf(a *float64, b float64) {
 	if *a > b {
 		*a = b
 	}
@@ -995,8 +1021,16 @@ type pointf struct {
 	y float64
 }
 
-func (p point) isValid(x, y int) bool {
-	return 0 <= p.x && p.x < x && 0 <= p.y && p.y < y
+func newPoint(x, y int) point {
+	return point{x, y}
+}
+
+func (p point) isValid(h, w int) bool {
+	return 0 <= p.x && p.x < h && 0 <= p.y && p.y < w
+}
+
+func (p point) dist(to point) bool {
+	return pointDist(p, to)
 }
 
 func pointAdd(a, b point) point {
@@ -1048,7 +1082,7 @@ func pointInnerProduct(a, b point) int {
 	ih := newIntHeap(asc)
 	ih.Push(v)
 	for !ih.IsEmpty() {
-		v := ih.Pop(h)
+		v := ih.Pop()
 	}
 */
 type IntHeap struct {
