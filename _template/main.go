@@ -1029,7 +1029,7 @@ func (p point) isValid(h, w int) bool {
 	return 0 <= p.x && p.x < h && 0 <= p.y && p.y < w
 }
 
-func (p point) dist(to point) bool {
+func (p point) dist(to point) float64 {
 	return pointDist(p, to)
 }
 
