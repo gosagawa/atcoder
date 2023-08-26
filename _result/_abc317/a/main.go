@@ -21,11 +21,13 @@ func main() {
 
 	defer flush()
 
-	x, a, b := ni3()
-	if abs(x-a) > abs(x-b) {
-		out("B")
-	} else {
-		out("A")
+	n, h, x := ni3()
+	ns := nis(n)
+	for i := 0; i < n; i++ {
+		if ns[i]+h >= x {
+			out(i + 1)
+			return
+		}
 	}
 }
 
