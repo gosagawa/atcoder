@@ -39,6 +39,7 @@ const baseRune = 'a'
 const maxlogn = 62
 
 var mpowcache map[[3]int]int
+var debugFlg bool
 
 func init() {
 	sc.Buffer([]byte{}, math.MaxInt64)
@@ -49,6 +50,7 @@ func init() {
 			panic(e)
 		}
 		sc = bufio.NewScanner(strings.NewReader(strings.Replace(string(b), " ", "\n", -1)))
+		debugFlg = true
 	}
 	mpowcache = make(map[[3]int]int)
 }
@@ -191,6 +193,13 @@ func out(v ...interface{}) {
 	}
 }
 
+func debug(v ...interface{}) {
+	if !debugFlg {
+		return
+	}
+	out(v...)
+}
+
 func outf(f string, v ...interface{}) {
 	out(fmt.Sprintf(f, v...))
 }
@@ -255,8 +264,15 @@ func itoa(i int) string {
 	return strconv.Itoa(i)
 }
 
-func btoi(b byte) int {
+func bytoi(b byte) int {
 	return atoi(string(b))
+}
+
+func btoi(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 // ==================================================
@@ -472,6 +488,11 @@ func gcd(a, b int) int {
 		return a
 	}
 	return gcd(b, a%b)
+}
+
+func gcm(a, b int) int {
+	t := gcd(a, b)
+	return a * b / t
 }
 
 func divisor(n int) ([]int, map[int]int) {
@@ -2062,6 +2083,19 @@ type edge struct {
 func setDualEdge(edges [][]edge, s, t, c int) {
 	edges[s] = append(edges[s], edge{to: t, cost: c, rev: len(edges[t])})
 	edges[t] = append(edges[t], edge{to: s, cost: 0, rev: len(edges[s]) - 1})
+}
+
+func reverseEdgeCost(edges [][]edge, from, i int) {
+	redge := edges[from][i]
+	t := edges[redge.to][redge.rev].cost
+	edges[redge.to][redge.rev].cost = redge.cost
+	edges[redge.from][i].cost = t
+}
+
+func eraseEdgeCost(edges [][]edge, from, i int) {
+	redge := edges[from][i]
+	edges[redge.to][redge.rev].cost = 0
+	edges[redge.from][i].cost = 0
 }
 
 type state struct {
