@@ -882,6 +882,14 @@ func issum(sl []int) int {
 	r := 0
 	for _, v := range sl {
 		r += v
+	}
+	return r
+}
+
+func issummod(sl []int) int {
+	r := 0
+	for _, v := range sl {
+		r += v
 		r %= mod
 	}
 	return r
