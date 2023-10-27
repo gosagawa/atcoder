@@ -596,6 +596,8 @@ func matMul(a, b [][]int) [][]int {
 // ==================================================
 
 func madd(a, b int) int {
+	a %= mod
+	b %= mod
 	a += b
 	if a >= mod || a <= -mod {
 		a %= mod
@@ -607,11 +609,16 @@ func madd(a, b int) int {
 }
 
 func mmul(a, b int) int {
+	a %= mod
+	b %= mod
 	return a * b % mod
 }
 
 func mdiv(a, b int) int {
 	a %= mod
+	if b <= 0 || b >= mod {
+		panic("invalid division")
+	}
 	return a * minvfermat(b, mod) % mod
 }
 
@@ -971,6 +978,17 @@ func upperBound(v int, sl []int) int {
 		return sl[c] <= v
 	})
 	return idx + 1
+}
+
+func rotate(sl [][]int) [][]int {
+	n := len(sl)
+	r := i2s(n, n, 0)
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			r[i][j] = sl[n-1-j][i]
+		}
+	}
+	return r
 }
 
 // ==================================================
