@@ -21,22 +21,39 @@ func main() {
 
 	defer flush()
 
-	o := inf
+	o := 1
 	n, k := ni2()
-	ns := nis(n)
-	for i := 0; i <= n-k; i++ {
-		l := ns[i]
-		r := ns[i+k-1]
-		if r <= 0 {
-			mins(&o, abs(l))
-			continue
+	mp := i2s(n, n, 0)
+	for i := 0; i < n; i++ {
+		mp[i] = nis(n)
+	}
+	cf := newcombFactorial(100)
+	check := func(i, j int) bool {
+		for l := 0; l < n; l++ {
+			if mp[l][i]+mp[l][j] > k {
+				return false
+			}
 		}
-		if l >= 0 {
-			mins(&o, abs(r))
-			continue
+		return true
+	}
+	for m := 0; m < 2; m++ {
+		uf := newUnionFind(n)
+		for i := 0; i < n; i++ {
+			for j := i + 1; j < n; j++ {
+				if check(i, j) {
+					uf.unite(i, j)
+				}
+			}
 		}
-		mins(&o, abs(r)*2+abs(l))
-		mins(&o, abs(r)+abs(l)*2)
+		st := make([]bool, n)
+		for i := 0; i < n; i++ {
+			if st[uf.root(i)] {
+				continue
+			}
+			st[uf.root(i)] = true
+			o = mmul(o, cf.factorial(uf.size(i)))
+		}
+		mp = rotate(mp)
 	}
 	out(o)
 }
@@ -48,9 +65,12 @@ func main() {
 const inf = math.MaxInt64
 const mod1000000007 = 1000000007
 const mod998244353 = 998244353
-const mod = mod1000000007
+const mod = mod998244353
+const baseRune = 'a'
+const maxlogn = 62
 
 var mpowcache map[[3]int]int
+var debugFlg bool
 
 func init() {
 	sc.Buffer([]byte{}, math.MaxInt64)
@@ -61,6 +81,7 @@ func init() {
 			panic(e)
 		}
 		sc = bufio.NewScanner(strings.NewReader(strings.Replace(string(b), " ", "\n", -1)))
+		debugFlg = true
 	}
 	mpowcache = make(map[[3]int]int)
 }
@@ -175,6 +196,12 @@ func ns() string {
 func nsis() []int {
 	sc.Scan()
 	s := sc.Text()
+	return stois(s, baseRune)
+}
+
+func nsiis() []int {
+	sc.Scan()
+	s := sc.Text()
 	return stois(s, '0')
 }
 
@@ -195,6 +222,13 @@ func out(v ...interface{}) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+func debug(v ...interface{}) {
+	if !debugFlg {
+		return
+	}
+	out(v...)
 }
 
 func outf(f string, v ...interface{}) {
@@ -261,8 +295,15 @@ func itoa(i int) string {
 	return strconv.Itoa(i)
 }
 
-func btoi(b byte) int {
+func bytoi(b byte) int {
 	return atoi(string(b))
+}
+
+func btoi(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 // ==================================================
@@ -290,6 +331,32 @@ func min(a, b int) int {
 }
 
 func mins(a *int, b int) {
+	if *a > b {
+		*a = b
+	}
+}
+
+func maxf(a, b float64) float64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func maxsf(a *float64, b float64) {
+	if *a < b {
+		*a = b
+	}
+}
+
+func minf(a, b float64) float64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func minsf(a *float64, b float64) {
 	if *a > b {
 		*a = b
 	}
@@ -454,6 +521,11 @@ func gcd(a, b int) int {
 	return gcd(b, a%b)
 }
 
+func gcm(a, b int) int {
+	t := gcd(a, b)
+	return a * b / t
+}
+
 func divisor(n int) ([]int, map[int]int) {
 	sqrtn := int(math.Sqrt(float64(n)))
 	c := 2
@@ -555,6 +627,8 @@ func matMul(a, b [][]int) [][]int {
 // ==================================================
 
 func madd(a, b int) int {
+	a %= mod
+	b %= mod
 	a += b
 	if a >= mod || a <= -mod {
 		a %= mod
@@ -566,11 +640,16 @@ func madd(a, b int) int {
 }
 
 func mmul(a, b int) int {
+	a %= mod
+	b %= mod
 	return a * b % mod
 }
 
 func mdiv(a, b int) int {
 	a %= mod
+	if b <= 0 || b >= mod {
+		panic("invalid division")
+	}
 	return a * minvfermat(b, mod) % mod
 }
 
@@ -837,6 +916,23 @@ func istos(s []int, baseRune rune) string {
 	return string(r)
 }
 
+func issum(sl []int) int {
+	r := 0
+	for _, v := range sl {
+		r += v
+	}
+	return r
+}
+
+func issummod(sl []int) int {
+	r := 0
+	for _, v := range sl {
+		r += v
+		r %= mod
+	}
+	return r
+}
+
 func reverse(sl []interface{}) {
 	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
 		sl[i], sl[j] = sl[j], sl[i]
@@ -915,6 +1011,80 @@ func upperBound(v int, sl []int) int {
 	return idx + 1
 }
 
+func rotate(sl [][]int) [][]int {
+	n := len(sl)
+	r := i2s(n, n, 0)
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			r[i][j] = sl[n-1-j][i]
+		}
+	}
+	return r
+}
+
+// ==================================================
+// matrix
+// ==================================================
+
+func matrixmul(a, b [][]int) [][]int {
+	ac := len(a)
+	ar := len(a[0])
+	bc := len(b)
+	br := len(b[0])
+	if ar != bc {
+		panic(fmt.Sprintf("invalid matrix mul ar:%v bc:%v", ar, bc))
+	}
+
+	r := i2s(ac, br, 0)
+	for i := 0; i < ac; i++ {
+		for j := 0; j < br; j++ {
+			for k := 0; k < ar; k++ {
+				r[i][j] += mmul(a[i][k], b[k][j])
+				r[i][j] %= mod
+			}
+		}
+	}
+	return r
+}
+
+func slmatrixmul(a []int, b [][]int) []int {
+	ar := len(a)
+	bc := len(b)
+	br := len(b[0])
+	if ar != bc {
+		panic(fmt.Sprintf("invalid matrix mul ar:%v bc:%v", ar, bc))
+	}
+	r := is(br, 0)
+	for i := 0; i < br; i++ {
+		for j := 0; j < ar; j++ {
+			r[i] += mmul(a[j], b[j][i])
+			r[i] %= mod
+		}
+	}
+	return r
+}
+
+func matrixpow(n int, matrix [][]int) [][]int {
+
+	size := len(matrix)
+	base := make([][][]int, maxlogn)
+	base[0] = matrix
+	for i := 0; i < maxlogn-1; i++ {
+		base[i+1] = matrixmul(base[i], base[i])
+	}
+	r := i2s(size, size, 0)
+	for i := 0; i < size; i++ {
+		r[i][i] = 1
+	}
+
+	for i := 0; i < maxlogn; i++ {
+		if hasbit(n, i) {
+			r = matrixmul(r, base[i])
+		}
+	}
+	return r
+}
+
 // ==================================================
 // point
 // ==================================================
@@ -929,8 +1099,16 @@ type pointf struct {
 	y float64
 }
 
-func (p point) isValid(x, y int) bool {
-	return 0 <= p.x && p.x < x && 0 <= p.y && p.y < y
+func newPoint(x, y int) point {
+	return point{x, y}
+}
+
+func (p point) isValid(h, w int) bool {
+	return 0 <= p.x && p.x < h && 0 <= p.y && p.y < w
+}
+
+func (p point) dist(to point) float64 {
+	return pointDist(p, to)
 }
 
 func pointAdd(a, b point) point {
@@ -982,7 +1160,7 @@ func pointInnerProduct(a, b point) int {
 	ih := newIntHeap(asc)
 	ih.Push(v)
 	for !ih.IsEmpty() {
-		v := ih.Pop(h)
+		v := ih.Pop()
 	}
 */
 type IntHeap struct {
@@ -1519,234 +1697,331 @@ func (s *stree) debug() {
 	out(strings.Join(l, " "))
 }
 
-/*
-s := newlazystree(n,stmin|stmax,stset|stadd|stmadd)
-s.set(i,x)
-s.add(i,x)
-s.rc(l,r,x)
-result1 := s.query(l,r)
-result2 := s.findrightest(l,r,x)
-result3 := s.findlefttest(l,r,x)
-*/
-type lazystree struct {
-	on   int
-	n    int
-	b    []int
-	lazy []int
-	def  int
-	cmp  func(i, j int) int
-	culc func(i, j int) int
+type segstruct struct {
+	x int
+	y int
 }
 
-func newlazystree(n int, cmptype streeculctype, culctype streeculctype) lazystree {
-	tn := 1
-	for tn < n {
-		tn *= 2
-	}
-	s := lazystree{
-		on:   n,
-		n:    tn,
-		b:    make([]int, 2*tn-1),
-		lazy: make([]int, 2*tn-1),
-	}
-	switch cmptype {
-	case stmin:
-		s.def = inf
-		for i := 0; i < 2*tn-1; i++ {
-			s.b[i] = s.def
-			s.lazy[i] = s.def
-		}
-		s.cmp = func(i, j int) int {
-			return min(i, j)
-		}
-	case stmax:
-		s.cmp = func(i, j int) int {
-			return max(i, j)
-		}
-	}
-	switch culctype {
-	case stadd:
-		s.culc = func(i, j int) int {
-			if i == s.def {
-				return j
-			}
-			if j == s.def {
-				return i
-			}
-			return i + j
-		}
-	case stmadd:
-		s.culc = func(i, j int) int {
-			if i == s.def {
-				return j
-			}
-			if j == s.def {
-				return i
-			}
-			return madd(i, j)
-		}
-	case stmax:
-		s.culc = func(i, j int) int {
-			return max(i, j)
-		}
-	case stmin:
-		s.culc = func(i, j int) int {
-			return min(i, j)
-		}
-	case stset:
-		s.culc = func(i, j int) int {
-			return j
-		}
-	}
-	return s
+type segfstruct struct {
+	x int
+	y int
 }
 
-func (s lazystree) eval(k int) {
-	if s.lazy[k] == s.def {
+type lazysegtree struct {
+	n           int
+	size        int
+	log         int
+	d           []segstruct
+	lz          []segfstruct
+	op          func(segstruct, segstruct) segstruct
+	e           func() segstruct
+	mapping     func(segfstruct, segstruct) segstruct
+	composition func(segfstruct, segfstruct) segfstruct
+	id          func() segfstruct
+}
+
+func newlazysegtree(
+	n int,
+	v []segstruct,
+	op func(segstruct, segstruct) segstruct,
+	e func() segstruct,
+	mapping func(segfstruct, segstruct) segstruct,
+	composition func(segfstruct, segfstruct) segfstruct,
+	id func() segfstruct,
+) *lazysegtree {
+
+	l := &lazysegtree{
+		n:           n,
+		op:          op,
+		e:           e,
+		mapping:     mapping,
+		composition: composition,
+		id:          id,
+	}
+	l.size = pow2(bitlen(n))
+	l.log = bitlen(n)
+	l.d = make([]segstruct, l.size*2)
+	for i := range l.d {
+		l.d[i] = e()
+	}
+	l.lz = make([]segfstruct, l.size)
+	for i := range l.lz {
+		l.lz[i] = id()
+	}
+	if len(v) > 0 {
+		if len(v) != n {
+			panic("invalid v value")
+		}
+		for i := 0; i < l.n; i++ {
+			l.d[l.size+i] = v[i]
+		}
+		for i := l.size - 1; i >= 1; i-- {
+			l.update(i)
+		}
+	}
+	return l
+
+}
+
+func (l *lazysegtree) set(p int, x segstruct) {
+	if p < 0 || p > l.n {
+		panic(fmt.Sprintf("invalid p value n=%v p=%v", l.n, p))
+	}
+	p += l.size
+	for i := l.log; i >= 1; i-- {
+		l.push(p >> i)
+	}
+	l.d[p] = x
+	for i := 1; i <= l.log; i++ {
+		l.update(p >> i)
+	}
+}
+
+func (l *lazysegtree) get(p int) segstruct {
+	if p < 0 || p > l.n {
+		panic(fmt.Sprintf("invalid p value n=%v p=%v", l.n, p))
+	}
+	p += l.size
+	for i := l.log; i >= 1; i-- {
+		l.push(p >> i)
+	}
+	return l.d[p]
+}
+
+func (l *lazysegtree) prod(le, ri int) segstruct {
+	if le < 0 || le > l.n {
+		panic(fmt.Sprintf("invalid le value n=%v ri=%v", l.n, le))
+	}
+	if ri < 0 || ri > l.n {
+		panic(fmt.Sprintf("invalid ri value n=%v ri=%v", l.n, ri))
+	}
+	if ri < le {
+		panic(fmt.Sprintf("invalid le value le=%v ri=%v", le, ri))
+	}
+	if le == ri {
+		return l.e()
+	}
+
+	le += l.size
+	ri += l.size
+
+	for i := l.log; i >= 1; i-- {
+		if ((le >> i) << i) != le {
+			l.push(le >> i)
+		}
+		if ((ri >> i) << i) != ri {
+			l.push((ri - 1) >> i)
+		}
+	}
+
+	sml := l.e()
+	smr := l.e()
+	for {
+		if le >= ri {
+			break
+		}
+		if le&1 == 1 {
+			sml = l.op(sml, l.d[le])
+			le++
+		}
+		if ri&1 == 1 {
+			ri--
+			smr = l.op(l.d[ri], smr)
+		}
+		le >>= 1
+		ri >>= 1
+
+	}
+
+	return l.op(sml, smr)
+}
+
+func (l *lazysegtree) allprod() segstruct {
+	return l.d[1]
+}
+
+func (l *lazysegtree) apply(p int, f segfstruct) {
+	if p < 0 || p > l.n {
+		panic(fmt.Sprintf("invalid p value n=%v p=%v", l.n, p))
+	}
+	p += l.size
+	for i := l.log; i >= 1; i-- {
+		l.push(p >> i)
+	}
+	l.d[p] = l.mapping(f, l.d[p])
+	for i := 1; i <= l.log; i++ {
+		l.update(p >> i)
+	}
+}
+
+func (l *lazysegtree) applyrange(le, ri int, f segfstruct) {
+	if le < 0 || le > l.n {
+		panic(fmt.Sprintf("invalid le value n=%v ri=%v", l.n, le))
+	}
+	if ri < 0 || ri > l.n {
+		panic(fmt.Sprintf("invalid ri value n=%v ri=%v", l.n, ri))
+	}
+	if ri < le {
+		panic(fmt.Sprintf("invalid le value le=%v ri=%v", le, ri))
+	}
+
+	if le == ri {
 		return
 	}
-	if k < s.n-1 {
-		s.lazy[k*2+1] = s.culc(s.lazy[k*2+1], s.lazy[k])
-		s.lazy[k*2+2] = s.culc(s.lazy[k*2+2], s.lazy[k])
-	}
-	s.b[k] = s.culc(s.b[k], s.lazy[k])
-	s.lazy[k] = s.def
-}
 
-func (s lazystree) add(i, x int) {
-	i += s.n - 1
-	s.b[i] += x
+	le += l.size
+	ri += l.size
 
-	for i > 0 {
-		i = (i - 1) / 2
-		s.b[i] = s.cmp(s.b[i*2+1], s.b[i*2+2])
-	}
-}
-
-func (s lazystree) set(i, x int) {
-	i += s.n - 1
-	s.b[i] = x
-
-	for i > 0 {
-		i = (i - 1) / 2
-		s.b[i] = s.cmp(s.b[i*2+1], s.b[i*2+2])
-	}
-}
-
-// range culc a <= n n < b
-func (s lazystree) rc(a, b, x int) {
-	s.rcsub(a, b, x, 0, 0, s.n)
-}
-
-func (s lazystree) rcsub(a, b, x, k, l, r int) {
-	s.eval(k)
-	if a <= l && r <= b {
-		s.lazy[k] = s.culc(s.lazy[k], x)
-		s.eval(k)
-	} else if l < b && a < r {
-		s.rcsub(a, b, x, k*2+1, l, (l+r)/2)
-		s.rcsub(a, b, x, k*2+2, (l+r)/2, r)
-		s.b[k] = s.cmp(s.b[k*2+1], s.b[k*2+2])
-	}
-}
-
-func (s lazystree) get(a int) int {
-	return s.query(a, a+1)
-}
-
-func (s lazystree) query(a, b int) int {
-	return s.querysub(a, b, 0, 0, s.n)
-}
-
-func (s lazystree) querysub(a, b, k, l, r int) int {
-	s.eval(k)
-	if r <= a || b <= l {
-		return s.def
-	}
-	if a <= l && r <= b {
-		return s.b[k]
-	}
-	return s.cmp(
-		s.querysub(a, b, k*2+1, l, (l+r)/2),
-		s.querysub(a, b, k*2+2, (l+r)/2, r),
-	)
-}
-
-func (s lazystree) findrightest(a, b, x int) int {
-	return s.findrightestsub(a, b, x, 0, 0, s.n)
-}
-
-func (s lazystree) findrightestsub(a, b, x, k, l, r int) int {
-	if s.b[k] > x || r <= a || b <= l {
-		return a - 1
-	} else if k >= s.n-1 {
-		return k - s.n + 1
-	}
-	vr := s.findrightestsub(a, b, x, 2*k+2, (l+r)/2, r)
-	if vr != a-1 {
-		return vr
-	}
-	return s.findrightestsub(a, b, x, 2*k+1, l, (l+r)/2)
-}
-
-func (s lazystree) findleftest(a, b, x int) int {
-	return s.findleftestsub(a, b, x, 0, 0, s.n)
-}
-
-func (s lazystree) findleftestsub(a, b, x, k, l, r int) int {
-	if s.b[k] > x || r <= a || b <= l {
-		return b
-	} else if k >= s.n-1 {
-		return k - s.n + 1
-	}
-	vl := s.findleftestsub(a, b, x, 2*k+1, l, (l+r)/2)
-	if vl != b {
-		return vl
-	}
-	return s.findleftestsub(a, b, x, 2*k+2, (l+r)/2, r)
-}
-
-func (s lazystree) debug() {
-	l := []string{}
-	t := 2
-	out("data")
-	for i := 0; i < 2*s.n-1; i++ {
-		if i+1 == t {
-			t *= 2
-			out(strings.Join(l, " "))
-			l = []string{}
+	for i := l.log; i >= 1; i-- {
+		if ((le >> i) << i) != le {
+			l.push(le >> i)
 		}
-		if s.b[i] == inf {
-			l = append(l, "∞")
-		} else {
-			l = append(l, strconv.Itoa(s.b[i]))
+		if ((ri >> i) << i) != ri {
+			l.push((ri - 1) >> i)
 		}
 	}
-	out(strings.Join(l, " "))
-	out("lazy")
-	l = []string{}
-	t = 2
-	for i := 0; i < 2*s.n-1; i++ {
-		if i+1 == t {
-			t *= 2
-			out(strings.Join(l, " "))
-			l = []string{}
+
+	{
+		le2 := le
+		ri2 := ri
+		for {
+			if le >= ri {
+				break
+			}
+			if le&1 == 1 {
+				l.allApply(le, f)
+				le++
+			}
+			if ri&1 == 1 {
+				ri--
+				l.allApply(ri, f)
+			}
+			le >>= 1
+			ri >>= 1
 		}
-		if s.lazy[i] == inf {
-			l = append(l, "∞")
-		} else {
-			l = append(l, strconv.Itoa(s.lazy[i]))
+		le = le2
+		ri = ri2
+	}
+
+	for i := 1; i <= l.log; i++ {
+		if ((le >> i) << i) != le {
+			l.update(le >> i)
+		}
+		if ((ri >> i) << i) != ri {
+			l.update((ri - 1) >> i)
 		}
 	}
-	out(strings.Join(l, " "))
 }
 
-func (s lazystree) debug2() {
-	l := make([]string, s.n+1)
-	for i := 0; i <= s.on; i++ {
-		l[i] = strconv.Itoa(s.get(i))
+func (l *lazysegtree) maxright(le int, g func(segstruct) bool) int {
+
+	if le < 0 || le > l.n {
+		panic(fmt.Sprintf("invalid le value n=%v ri=%v", l.n, le))
 	}
-	out(strings.Join(l, " "))
+	if !g(l.e()) {
+		panic("invalid g func")
+	}
+	if le == l.n {
+		return l.n
+	}
+	le += l.size
+	for i := l.log; i >= 1; i-- {
+		l.push(le >> i)
+	}
+	sm := l.e()
+	for {
+		for {
+			if le%2 != 0 {
+				break
+			}
+			le >>= 1
+		}
+		if !g(l.op(sm, l.d[le])) {
+			for {
+
+				if le >= l.size {
+					break
+				}
+				l.push(le)
+				le = (2 * le)
+				if g(l.op(sm, l.d[le])) {
+					sm = l.op(sm, l.d[le])
+					le++
+				}
+			}
+			return le - l.size
+		}
+		sm = l.op(sm, l.d[le])
+		le++
+		if (le & -le) == le {
+			break
+		}
+	}
+	return l.n
+}
+
+func (l *lazysegtree) maxleft(ri int, g func(segstruct) bool) int {
+	if ri < 0 || ri > l.n {
+		panic("invalid ri value")
+	}
+	if !g(l.e()) {
+		panic("invalid g func")
+	}
+
+	if ri == 0 {
+		return 0
+	}
+	ri += l.size
+	for i := l.log; i >= 1; i-- {
+		l.push((ri - 1) >> i)
+	}
+	sm := l.e()
+	for {
+		ri--
+		for {
+			if ri > 1 && (ri%2 == 1) {
+			} else {
+				break
+			}
+			ri >>= 1
+		}
+		if !g(l.op(l.d[ri], sm)) {
+			for {
+				if ri >= l.size {
+					break
+				}
+				l.push(ri)
+				ri = (2*ri + 1)
+				if g(l.op(l.d[ri], sm)) {
+					sm = l.op(l.d[ri], sm)
+					ri--
+				}
+			}
+			return ri + 1 - l.size
+		}
+		sm = l.op(l.d[ri], sm)
+		if (ri & -ri) == ri {
+			break
+		}
+	}
+	return 0
+}
+
+func (l *lazysegtree) update(k int) {
+	l.d[k] = l.op(l.d[2*k], l.d[2*k+1])
+}
+
+func (l *lazysegtree) allApply(k int, f segfstruct) {
+	l.d[k] = l.mapping(f, l.d[k])
+	if k < l.size {
+		l.lz[k] = l.composition(f, l.lz[k])
+	}
+}
+
+func (l *lazysegtree) push(k int) {
+	l.allApply(2*k, l.lz[k])
+	l.allApply(2*k+1, l.lz[k])
+	l.lz[k] = l.id()
 }
 
 // ==================================================
@@ -1865,6 +2140,19 @@ type edge struct {
 func setDualEdge(edges [][]edge, s, t, c int) {
 	edges[s] = append(edges[s], edge{to: t, cost: c, rev: len(edges[t])})
 	edges[t] = append(edges[t], edge{to: s, cost: 0, rev: len(edges[s]) - 1})
+}
+
+func reverseEdgeCost(edges [][]edge, from, i int) {
+	redge := edges[from][i]
+	t := edges[redge.to][redge.rev].cost
+	edges[redge.to][redge.rev].cost = redge.cost
+	edges[redge.from][i].cost = t
+}
+
+func eraseEdgeCost(edges [][]edge, from, i int) {
+	redge := edges[from][i]
+	edges[redge.to][redge.rev].cost = 0
+	edges[redge.from][i].cost = 0
 }
 
 type state struct {
