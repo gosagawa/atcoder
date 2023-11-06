@@ -148,6 +148,14 @@ func ni4a(n int) [][4]int {
 	return a
 }
 
+func ni2d(n, m int) [][]int {
+	a := i2s(n, m, 0)
+	for i := 0; i < n; i++ {
+		a[i] = nis(m)
+	}
+	return a
+}
+
 func nf() float64 {
 	sc.Scan()
 	f, e := strconv.ParseFloat(sc.Text(), 64)
@@ -166,6 +174,43 @@ func nsis() []int {
 	sc.Scan()
 	s := sc.Text()
 	return stois(s, baseRune)
+}
+
+func nsi2s(n int) [][]int {
+	mp := make([][]int, n)
+	for i := 0; i < n; i++ {
+		mp[i] = nsis()
+	}
+	return mp
+}
+
+// mp = convidxi2s(nsi2s(n), map[string]int{".": 0, "#": 1})
+func convidxi2s(sl [][]int, conv map[string]int) [][]int {
+	imap := make(map[int]int)
+	for s, v := range conv {
+		imap[ctoi(s)] = v
+	}
+	for i, sl2 := range sl {
+		for j, v := range sl2 {
+			sl[i][j] = imap[v]
+		}
+	}
+	return sl
+}
+
+func convidxis(sl []int, conv map[string]int) []int {
+	imap := make(map[int]int)
+	for s, v := range conv {
+		imap[ctoi(s)] = v
+	}
+	for i, v := range sl {
+		sl[i] = imap[v]
+	}
+	return sl
+}
+
+func ctoi(c string) int {
+	return int(rune(c[0]) - baseRune)
 }
 
 func nsiis() []int {
@@ -217,6 +262,12 @@ func outis(sl []int) {
 		r[i] = itoa(v)
 	}
 	out(strings.Join(r, " "))
+}
+
+func outisnr(sl []int) {
+	for _, v := range sl {
+		out(v)
+	}
 }
 
 func flush() {
@@ -1666,6 +1717,7 @@ func (s *stree) debug() {
 	out(strings.Join(l, " "))
 }
 
+/*
 type segstruct struct {
 	x int
 	y int
@@ -1675,6 +1727,11 @@ type segfstruct struct {
 	x int
 	y int
 }
+*/
+
+type segstruct int
+
+type segfstruct int
 
 type lazysegtree struct {
 	n           int
@@ -1688,6 +1745,30 @@ type lazysegtree struct {
 	composition func(segfstruct, segfstruct) segfstruct
 	id          func() segfstruct
 }
+
+/*
+	lst := newlazysegtree(
+		n,
+		make([]segstruct, n),
+		func(i segstruct, j segstruct) segstruct {
+			return segstruct(max(int(i), int(j)))
+		},
+		func() segstruct {
+			return segstruct(0)
+		},
+		func(i segfstruct, j segstruct) segstruct {
+			return segstruct(int(i) + int(j))
+		},
+		func(i segfstruct, j segfstruct) segfstruct {
+			return segfstruct(int(i) + int(j))
+		},
+		func() segfstruct {
+			return segfstruct(0)
+		},
+	)
+	lst.applyrange(f, t, segfstruct(v))
+	o := int(t.allprod()))
+*/
 
 func newlazysegtree(
 	n int,
