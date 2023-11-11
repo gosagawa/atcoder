@@ -21,21 +21,9 @@ func main() {
 
 	defer flush()
 
-	o := ""
-	ss := nsis()
-	ts := []int{}
-	for _, v := range ss {
-		ts = append(ts, v)
-		if len(ts) <= 2 {
-			continue
-		}
-		if ts[len(ts)-3] == 0 && ts[len(ts)-2] == 1 && ts[len(ts)-1] == 2 {
-			ts = ts[:len(ts)-3]
-		}
-	}
-
-	o = istos(ts, baseRune)
-
+	o := 0
+	n := ni()
+	ns := nis(n)
 	out(o)
 }
 
@@ -47,7 +35,7 @@ const inf = math.MaxInt64
 const mod1000000007 = 1000000007
 const mod998244353 = 998244353
 const mod = mod1000000007
-const baseRune = 'A'
+const baseRune = 'a'
 const maxlogn = 62
 
 var mpowcache map[[3]int]int
