@@ -28,52 +28,16 @@ func main() {
 		bs[i]--
 	}
 	uf := newUnionFind(n)
-	edges := make([][]edge, n)
-	for i := 0; i < q; i++ {
-		if uf.issame(as[i], bs[i]) {
-			continue
-		}
-		uf.unite(as[i], bs[i])
-		s := as[i]
-		t := bs[i]
-		c := ds[i]
-		edges[s] = append(edges[s], edge{to: t, cost: c})
-		edges[t] = append(edges[t], edge{to: s, cost: -c})
-	}
-	dist := is(n, inf)
-	used := make([]bool, n)
-	for i := 0; i < n; i++ {
-		if used[i] {
-			continue
-		}
-		used[i] = true
-		dist[i] = 0
-
-		q := list.New()
-		q.PushBack(i)
-		ee := q.Front()
-		for ee != nil {
-			p := ee.Value.(int)
-
-			for _, nv := range edges[p] {
-				if used[nv.to] == true {
-					continue
-				}
-				used[nv.to] = true
-				dist[nv.to] = dist[p] + nv.cost
-				q.PushBack(nv.to)
-			}
-			ee = ee.Next()
-		}
-	}
-	debug(dist)
 	rs := []int{}
 	for i := 0; i < q; i++ {
-		s := as[i]
-		t := bs[i]
-		if dist[t]-dist[s] == ds[i] {
-			rs = append(rs, i+1)
+		if uf.issame(as[i], bs[i]) {
+			if uf.diff(as[i], bs[i]) == ds[i] {
+				rs = append(rs, i+1)
+			}
+			continue
 		}
+		uf.unite(as[i], bs[i], ds[i])
+		rs = append(rs, i+1)
 	}
 	outis(rs)
 
@@ -1505,12 +1469,14 @@ func (c *cusum2d) get(x1, y1, x2, y2 int) int {
 // ==================================================
 
 type unionFind struct {
-	par []int
+	par     []int
+	weights []int
 }
 
 func newUnionFind(n int) *unionFind {
 	u := &unionFind{
-		par: make([]int, n),
+		par:     make([]int, n),
+		weights: make([]int, n),
 	}
 	for i := range u.par {
 		u.par[i] = -1
@@ -1522,11 +1488,20 @@ func (u *unionFind) root(x int) int {
 	if u.par[x] < 0 {
 		return x
 	}
-	u.par[x] = u.root(u.par[x])
+	px := u.par[x]
+	u.par[x] = u.root(px)
+	u.weights[x] += u.weights[px]
 	return u.par[x]
 }
 
-func (u *unionFind) unite(x, y int) {
+func (u *unionFind) unite(x, y int, arg ...int) {
+
+	w := 0
+	if len(arg) == 1 {
+		w = arg[0]
+	}
+	w += u.weight(x)
+	w -= u.weight(y)
 	x = u.root(x)
 	y = u.root(y)
 	if x == y {
@@ -1534,9 +1509,11 @@ func (u *unionFind) unite(x, y int) {
 	}
 	if u.size(x) < u.size(y) {
 		x, y = y, x
+		w = -w
 	}
 	u.par[x] += u.par[y]
 	u.par[y] = x
+	u.weights[y] = w
 }
 
 func (u *unionFind) issame(x, y int) bool {
@@ -1548,6 +1525,15 @@ func (u *unionFind) issame(x, y int) bool {
 
 func (u *unionFind) size(x int) int {
 	return -u.par[u.root(x)]
+}
+
+func (u *unionFind) weight(x int) int {
+	u.root(x)
+	return u.weights[x]
+}
+
+func (u *unionFind) diff(x, y int) int {
+	return u.weight(y) - u.weight(x)
 }
 
 // ==================================================
