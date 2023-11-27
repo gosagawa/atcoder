@@ -1741,13 +1741,8 @@ func (s *stree) debug() {
 
 /*
 type segstruct struct {
-	x int
-	y int
-}
-
-type segfstruct struct {
-	x int
-	y int
+	v    int
+	size int
 }
 */
 
@@ -1769,27 +1764,65 @@ type lazysegtree struct {
 }
 
 /*
+	// 区間加算・区間和取得
+	op := func(a segstruct, b segstruct) segstruct {
+		return segstruct{a.v + b.v, a.size + b.size}
+	}
+	e := func() segstruct {
+		return segstruct{0, 0}
+	}
+	id := func() segfstruct {
+		return segfstruct(inf)
+	}
+	mapping := func(f segfstruct, x segstruct) segstruct {
+		if f == id() {
+			return x
+		}
+		return segstruct{x.v + int(f) * x.size, x.size}
+	}
+	compostion := func(f segfstruct, g segfstruct) segfstruct {
+		if f == id() {
+			return g
+		}
+		return segfstruct(int(f) + int(g))
+	}
+
+	// 区間変更・区間最小値取得
+	op := func(a segstruct, b segstruct) segstruct {
+		return segstruct(min(int(a), int(b)))
+	}
+	e := func() segstruct {
+		return segstruct(inf)
+	}
+	id := func() segfstruct {
+		return segfstruct(inf)
+	}
+	mapping := func(f segfstruct, x segstruct) segstruct {
+		if f == id() {
+			return x
+		}
+		return segstruct(int(f))
+	}
+	compostion := func(f segfstruct, g segfstruct) segfstruct {
+		if i == id() {
+			return g
+		}
+		return f
+	}
+
 	lst := newlazysegtree(
 		n,
-		make([]segstruct, n),
-		func(i segstruct, j segstruct) segstruct {
-			return segstruct(max(int(i), int(j)))
-		},
-		func() segstruct {
-			return segstruct(0)
-		},
-		func(i segfstruct, j segstruct) segstruct {
-			return segstruct(int(i) + int(j))
-		},
-		func(i segfstruct, j segfstruct) segfstruct {
-			return segfstruct(int(i) + int(j))
-		},
-		func() segfstruct {
-			return segfstruct(0)
-		},
+		base,
+		op,
+		e,
+		mapping,
+		compostion,
+		id,
 	)
 	lst.applyrange(f, t, segfstruct(v))
-	o := int(t.allprod()))
+	iv := int(lst.get(i))
+	rv := int(lst.prod(l,r)
+	av := int(t.allprod()))
 */
 
 func newlazysegtree(
