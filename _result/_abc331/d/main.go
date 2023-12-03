@@ -25,40 +25,18 @@ func main() {
 	mp := convidxi2s(nsi2s(n), map[string]int{"W": 0, "B": 1})
 	debug(mp)
 	cusum2d := newcusum2d(mp)
+	ac := func(x, y int) int {
+		t := 0
+		t += (x / n) * (y / n) * cusum2d.get(0, 0, n-1, n-1)
+		t += (x / n) * cusum2d.get(0, 0, n-1, y%n)
+		t += (y / n) * cusum2d.get(0, 0, x%n, n-1)
+		t += cusum2d.get(0, 0, x%n, y%n)
+		return t
+	}
 
 	for qi := 0; qi < q; qi++ {
 		a, b, c, d := ni4()
-		if a >= n {
-			t := a / n
-			a -= t * n
-			c -= t * n
-		}
-		if b >= n {
-			t := b / n
-			b -= t * n
-			d -= t * n
-		}
-		o := 0
-		ts := [9]int{}
-		ac := ((c / n) - (a / n) - 1)
-		bd := ((d / n) - (b / n) - 1)
-		abcd := ac * bd
-		ts[0] = cusum2d.get(a, b, n-1, n-1)
-		ts[1] = cusum2d.get(0, b, c%n, n-1)
-		ts[2] = cusum2d.get(a, 0, n-1, d%n)
-		ts[3] = cusum2d.get(0, 0, c%n, d%n)
-		ts[4] = bd * cusum2d.get(a, 0, n-1, n-1)
-		ts[5] = bd * cusum2d.get(0, 0, c%n, n-1)
-		ts[6] = ac * cusum2d.get(0, b, n-1, n-1)
-		ts[7] = ac * cusum2d.get(0, 0, n-1, d%n)
-		ts[8] = abcd * cusum2d.get(0, 0, n-1, n-1)
-		debug(ts)
-		for _, v := range ts {
-			o += v
-		}
-
-		out(o)
-
+		out(ac(c, d) - ac(a-1, d) - ac(c, b-1) + ac(a-1, b-1))
 	}
 }
 
