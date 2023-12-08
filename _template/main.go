@@ -61,11 +61,7 @@ func init() {
 
 func ni() int {
 	sc.Scan()
-	i, e := strconv.Atoi(sc.Text())
-	if e != nil {
-		panic(e)
-	}
-	return i
+	return atoi(sc.Text())
 }
 
 func ni2() (int, int) {
@@ -774,6 +770,49 @@ func bs3fl(low, high float64, c int, f func(float64) float64) float64 {
 		}
 	}
 	return low
+}
+
+func bs3i(low, high int, f func(int) int) (int, int) {
+
+	for high-low > 2 {
+		c1 := (low*2 + high) / 3
+		c2 := (low + high*2) / 3
+		fc1 := f(c1)
+		fc2 := f(c2)
+
+		if fc1 > fc2 {
+			low = c1
+		} else {
+			high = c2
+		}
+	}
+	if high-low == 2 {
+		fc1 := f(low)
+		fc2 := f(high)
+		//	out(high, low, c1, c2, fc1, fc2)
+
+		if fc1 > fc2 {
+			low++
+		} else {
+			high--
+		}
+	}
+	ri := 0
+	rv := 0
+	if high-low == 1 {
+		fc1 := f(low)
+		fc2 := f(high)
+		//	out(high, low, c1, c2, fc1, fc2)
+
+		if fc1 > fc2 {
+			ri = high
+			rv = fc2
+		} else {
+			ri = low
+			rv = fc1
+		}
+	}
+	return ri, rv
 }
 
 // ==================================================
