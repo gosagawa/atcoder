@@ -1211,6 +1211,41 @@ func pointInnerProduct(a, b point) int {
     }
 */
 
+type IntQueue struct {
+	sum   int
+	queue []int
+	size  int
+}
+
+func newIntQueue() *IntQueue {
+	return &IntQueue{}
+}
+
+func (iq *IntQueue) push(v int) {
+	iq.queue = append(iq.queue, v)
+	iq.sum += v
+	//iq.sum = madd(iq.sum, v)
+	iq.size++
+}
+
+func (iq *IntQueue) pop() int {
+	v := iq.queue[0]
+	iq.queue = iq.queue[1:]
+	iq.sum -= v
+	//iq.sum = madd(iq.sum, -v)
+	iq.size--
+	return v
+}
+
+func (iq *IntQueue) shrink(l int) {
+	for {
+		if iq.size <= l {
+			break
+		}
+		iq.pop()
+	}
+}
+
 // ==================================================
 // heap
 // ==================================================
