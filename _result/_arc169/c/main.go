@@ -25,20 +25,11 @@ func main() {
 	n := ni()
 	ns := nis(n)
 	n++
-	st := i2s(n, n, 0)
-	sts := is(n, 0)
-	ls := i2s(n, n, -1)
-	for j := 1; j < n; j++ {
-		for i := 0; i < n-1; i++ {
-			if ns[i] == -1 || ns[i] == j {
-				if i != 0 && ls[j][i-1] != -1 {
-					ls[j][i] = ls[j][i-1]
-				} else {
-					ls[j][i] = i
-				}
-			}
-		}
+	st := make([]*IntQueue, n)
+	for i := 0; i < n; i++ {
+		st[i] = newIntQueue()
 	}
+
 	dp := i2s(n, n, 0)
 	ts := 0
 	for i := 0; i < n-1; i++ {
@@ -50,25 +41,20 @@ func main() {
 		} else {
 			for j := 1; j < n; j++ {
 				if ns[i] != j {
-					sts[j] = 0
+					st[j].shrink(0)
 				}
 			}
 		}
 		for j := f; j <= t; j++ {
 			if i == 0 {
-				st[j][i] = 1
-				sts[j] = 1
+				st[j].push(1)
 				dp[i][j] = 1
 				nts++
 			} else {
 				v := madd(ts, -dp[i-1][j])
-				st[j][i] += v
-				sts[j] += v
-				if i-j >= ls[j][i] {
-					sts[j] = madd(sts[j], -st[j][i-j])
-				}
-
-				dp[i][j] = sts[j]
+				st[j].push(v)
+				st[j].shrink(j)
+				dp[i][j] = st[j].sum
 				nts += dp[i][j]
 				nts %= mod
 			}
@@ -1268,6 +1254,39 @@ func pointInnerProduct(a, b point) int {
 		e = e.Next()
     }
 */
+
+type IntQueue struct {
+	sum   int
+	queue []int
+	size  int
+}
+
+func newIntQueue() *IntQueue {
+	return &IntQueue{}
+}
+
+func (iq *IntQueue) push(v int) {
+	iq.queue = append(iq.queue, v)
+	iq.sum = madd(iq.sum, v)
+	iq.size++
+}
+
+func (iq *IntQueue) pop() int {
+	v := iq.queue[0]
+	iq.queue = iq.queue[1:]
+	iq.sum = madd(iq.sum, -v)
+	iq.size--
+	return v
+}
+
+func (iq *IntQueue) shrink(l int) {
+	for {
+		if iq.size <= l {
+			break
+		}
+		iq.pop()
+	}
+}
 
 // ==================================================
 // heap
