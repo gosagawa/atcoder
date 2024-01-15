@@ -266,6 +266,22 @@ func outisnr(sl []int) {
 	}
 }
 
+func out2d(i, j int) {
+	outf("%v %v", i, j)
+}
+
+func outsj(sl []string) {
+	out(sj(sl))
+}
+
+func outsjsp(sl []string) {
+	out(sjsp(sl))
+}
+
+func outfl(v float64) {
+	outf("%.15f", v)
+}
+
 func flush() {
 	e := wtr.Flush()
 	if e != nil {
@@ -954,6 +970,18 @@ func i2s(l, m int, def int) [][]int {
 		}
 	}
 	return sl
+}
+
+func ss(l int) []string {
+	return make([]string, l)
+}
+
+func sj(sl []string) string {
+	return strings.Join(sl, "")
+}
+
+func sjsp(sl []string) string {
+	return strings.Join(sl, " ")
 }
 
 //	out(stois("abcde", 'a'))
