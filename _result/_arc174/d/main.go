@@ -21,149 +21,49 @@ func main() {
 
 	defer flush()
 
-	n, h, w := ni3()
-	gl := [10][10]bool{}
-	for i := 0; i < h; i++ {
-		for j := 0; j < w; j++ {
-			gl[i][j] = true
-		}
+	t := ni()
+	for i := 0; i < t; i++ {
+		n := ni()
+		solve(n)
 	}
-
-	as, bs := ni2s(n)
-	ts := is(n, 0)
-	for i := 0; i < n; i++ {
-		ts[i] = i
-	}
-	st := [10][10]bool{}
-	var dfs func(i, a, b, sh, sw int, st [10][10]bool) bool
-	dfs = func(ii, a, b, sh, sw int, st [10][10]bool) bool {
-		if sh+a > h {
-			return false
-		}
-		if sw+b > w {
-			return false
-		}
-		for i := sh; i < sh+a; i++ {
-			for j := sw; j < sw+b; j++ {
-				if st[i][j] {
-					return false
-				}
-			}
-		}
-		for i := sh; i < sh+a; i++ {
-			for j := sw; j < sw+b; j++ {
-				st[i][j] = true
-			}
-		}
-		if st == gl {
-			return true
-		}
-
-		si, sj := -1, -1
-		for i := 0; i < h; i++ {
-			for j := 0; j < w; j++ {
-				if st[i][j] == false {
-					si, sj = i, j
-					break
-				}
-			}
-			if si >= 0 {
-				break
-			}
-		}
-		if ii == n-1 {
-			return false
-		}
-
-		na, nb := as[ts[ii+1]], bs[ts[ii+1]]
-		if dfs(ii+1, na, nb, si, sj, st) {
-			return true
-		}
-		if dfs(ii+1, nb, na, si, sj, st) {
-			return true
-		}
-		for i := sh; i < sh+a; i++ {
-			for j := sw; j < sw+b; j++ {
-				st[i][j] = false
-			}
-		}
-		return false
-
-	}
-	for {
-
-		a, b := as[ts[0]], bs[ts[0]]
-		if dfs(0, a, b, 0, 0, st) {
-			out("Yes")
-			return
-		}
-		if dfs(0, b, a, 0, 0, st) {
-			out("Yes")
-			return
-		}
-
-		if !nextPermutation(sort.IntSlice(ts)) {
-			break
-		}
-	}
-	out("No")
-	return
-
+}
+func solve(n int) {
+	o := 1
 	/*
-		ts := make([]map[[2]int]bool, pow2(n))
-		for i := 0; i < pow2(n); i++ {
-			ts[i] = make(map[[2]int]bool)
-		}
-		hasAns := false
-		set := func(i, a, b int) {
-			if a < b {
-				a, b = b, a
-			}
-			if a > h || b > w {
-				return
-			}
-			if a == h && b == w {
-				hasAns = true
-			}
-			ts[i][[2]int{a, b}] = true
-		}
-		for i := 0; i < n; i++ {
-			a, b := as[i], bs[i]
-			set(pow2(i), a, b)
-		}
-		if hasAns {
-			out("Yes")
-			return
-		}
-		for i := 1; i < pow2(n); i++ {
-			for j := i; j > 0; j = (j - 1) & i {
-				for k := range ts[j] {
-					for l := range ts[i^j] {
-						if k[0] == l[0] {
-							set(i, k[0], l[1]+k[1])
-						}
-						if k[1] == l[1] {
-							set(i, k[1], l[0]+k[0])
-						}
-						if k[0] == l[1] {
-							set(i, k[0], l[0]+k[1])
-						}
-						if k[1] == l[0] {
-							set(i, k[1], l[1]+k[0])
-						}
-					}
-					if hasAns {
-						debug(ts)
-						out("Yes")
-						return
-					}
-				}
+		mp := make(map[int]int)
+		for i := 0; i <= 1000000; i++ {
+			t1 := itoa(i)
+			t2 := itoa(sqrt(i))
+			if t2 == t1[:len(t2)] {
+				mp[sqrt(i)]++
 			}
 		}
+		out(mp)
 	*/
-	debug(ts)
-	out("No")
-	return
+
+	for i := 1; i <= 9; i++ {
+		ts := []int{pow10(i) - 2, pow10(i) - 1, pow10(i)}
+		for j := 0; j < 3; j++ {
+			t := ts[j]
+			tl := len(itoa(t))
+			tt := t * t
+			tt2 := (t + 1) * (t + 1)
+			ttl := len(itoa(tt))
+
+			t1f := t * pow10(ttl-tl)
+			t1t := min(tt2-1, (t+1)*pow10(ttl-tl)-1)
+
+			if n > t1t {
+				o += t1t - t1f + 1
+			} else if n >= t1f {
+				o += n - t1f + 1
+			}
+
+			debug(t, t1f, t1t, o)
+		}
+
+	}
+	out(o)
 }
 
 // ==================================================
