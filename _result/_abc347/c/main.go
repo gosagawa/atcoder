@@ -34,25 +34,19 @@ func main() {
 		ns[i] -= mn
 		mp[ns[i]] = true
 	}
-	if len(mp) == 2 {
-		ts := []int{}
-		for v := range mp {
-			ts = append(ts, v)
-		}
-		sorti(ts)
-		if ts[1] >= a && ab-ts[1] >= a {
-			out("No")
+	ts := []int{}
+	for v := range mp {
+		ts = append(ts, v)
+	}
+	sorti(ts)
+	debug(ts)
+	for i := 0; i < len(ts); i++ {
+		if ((ts[(i+1)%len(ts)]-ts[i])+ab)%ab > b {
+			out("Yes")
 			return
 		}
-	} else {
-		for i := 0; i < n; i++ {
-			if ns[i] >= a {
-				out("No")
-				return
-			}
-		}
 	}
-	out("Yes")
+	out("No")
 	return
 
 }
