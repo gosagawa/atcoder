@@ -24,14 +24,9 @@ func main() {
 	n, a, b := ni3()
 	ns := nis(n)
 	ab := a + b
-	mn := inf
+	mp := make(map[int]bool)
 	for i := 0; i < n; i++ {
 		ns[i] %= ab
-		mn = min(mn, ns[i])
-	}
-	mp := make(map[int]bool)
-	for i := range ns {
-		ns[i] -= mn
 		mp[ns[i]] = true
 	}
 	ts := []int{}
@@ -40,8 +35,12 @@ func main() {
 	}
 	sorti(ts)
 	debug(ts)
+	if len(ts) == 1 {
+		out("Yes")
+		return
+	}
 	for i := 0; i < len(ts); i++ {
-		if ((ts[(i+1)%len(ts)]-ts[i])+ab)%ab > b {
+		if (ts[(i+1)%len(ts)]-ts[i]+ab)%ab > b {
 			out("Yes")
 			return
 		}
