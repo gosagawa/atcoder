@@ -24,7 +24,7 @@ func main() {
 	a, b, c := ni3()
 	pc := popcount(c)
 	if a+b < pc {
-		out("No")
+		out(-1)
 		return
 	}
 	td := a + b - pc
@@ -37,7 +37,10 @@ func main() {
 		out(-1)
 		return
 	}
-	debug(td, d)
+	if d > min(a, b) {
+		out(-1)
+		return
+	}
 	var ra, rb int
 	od := d
 	for i := 0; i < 60; i++ {
