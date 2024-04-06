@@ -180,7 +180,7 @@ func nsi2s(n int) [][]int {
 	return mp
 }
 
-// mp = convidxi2s(nsi2s(n), map[string]int{".": 0, "#": 1})
+// mp := convidxi2s(nsi2s(n), map[string]int{".": 0, "#": 1})
 func convidxi2s(sl [][]int, conv map[string]int) [][]int {
 	imap := make(map[int]int)
 	for s, v := range conv {
@@ -194,6 +194,7 @@ func convidxi2s(sl [][]int, conv map[string]int) [][]int {
 	return sl
 }
 
+// mp := convidxis(nsis(), map[string]int{".": 0, "#": 1})
 func convidxis(sl []int, conv map[string]int) []int {
 	imap := make(map[int]int)
 	for s, v := range conv {
@@ -239,6 +240,16 @@ func debug(v ...interface{}) {
 		return
 	}
 	out(v...)
+}
+
+func debugi2s(sl [][]int) {
+	if !debugFlg {
+		return
+	}
+	for _, v := range sl {
+		outis(v)
+	}
+	out("")
 }
 
 func outf(f string, v ...interface{}) {
@@ -589,6 +600,21 @@ func divisor(n int) ([]int, map[int]int) {
 		divisorm[n]++
 	}
 	return divisor, divisorm
+}
+
+func alldivisor(n int) []int {
+	sqrtn := int(math.Sqrt(float64(n)))
+	divisor := []int{}
+	for i := 1; i <= sqrtn; i++ {
+		if n%i != 0 {
+			continue
+		}
+		divisor = append(divisor, i)
+		if n/i != i {
+			divisor = append(divisor, n/i)
+		}
+	}
+	return divisor
 }
 
 type binom struct {
@@ -1885,6 +1911,9 @@ type lazysegtree struct {
 	compostion := func(f segfstruct, g segfstruct) segfstruct {
 		if f == id() {
 			return g
+		}
+		if g == id() {
+			return f
 		}
 		return segfstruct(int(f) + int(g))
 	}
