@@ -617,6 +617,34 @@ func alldivisor(n int) []int {
 	return divisor
 }
 
+func mmod(a, m int) int {
+	return (a%m + m) % m
+}
+
+func extGcd(a, b int) (int, int, int) {
+	return extGcdSub(b, a%b, 0, 0)
+}
+
+func extGcdSub(a, b, p, q int) (int, int, int) {
+	if b == 0 {
+		return 1, 0, a
+	}
+	q, p, d := extGcdSub(b, a%b, q, p)
+	q -= a / b * p
+	return p, q, d
+}
+
+func chineseRem(b1, m1, b2, m2 int) (bool, int, int) {
+	p, _, d := extGcd(m1, m2)
+	if (b2-b1)%d != 0 {
+		return false, 0, 0
+	}
+	m := m1 * (m2 / d)
+	tmp := (b2 - b1) / d * p % (m2 / d)
+	r := mmod(b1+m1*tmp, m)
+	return true, r, m
+}
+
 type binom struct {
 	fac  []int
 	finv []int
