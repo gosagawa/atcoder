@@ -51,7 +51,7 @@ func main() {
 		}
 	}
 	for _, e := range g.Edges() {
-		if e.from == s || e.to == t || e.flow == 1 {
+		if e.from == s || e.to == t || e.flow == 0 {
 			continue
 		}
 		rs[e.from][e.to-n] = "X"
@@ -214,7 +214,7 @@ func (m *McfGraph) Slope(s, t int, arg ...int) [][2]int {
 	}
 
 	for i := 0; i < m.m; i++ {
-		e := m.edgelists[m.edges[i].to][m.edges[i].rev]
+		e := m.edgelists[m.edges[i].from][m.edges[i].idx]
 		m.edges[i].flow = m.edges[i].cap - e.cap
 	}
 
