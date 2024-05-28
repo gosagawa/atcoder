@@ -235,14 +235,14 @@ func out(v ...interface{}) {
 	}
 }
 
-func debug(v ...interface{}) {
+func dbg(v ...interface{}) {
 	if !debugFlg {
 		return
 	}
 	out(v...)
 }
 
-func debugi2s(sl [][]int) {
+func dbgi2s(sl [][]int) {
 	if !debugFlg {
 		return
 	}
