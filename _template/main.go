@@ -1277,6 +1277,61 @@ func pointInnerProduct(a, b point) int {
 }
 
 // ==================================================
+// bfs / dfs
+// ==================================================
+
+/*
+snippet dfs "dfs"
+var dfs func(v, p int)
+dfs = func(v, p int) {
+	for _, nv := range edges[v] {
+		if nv.to == p {
+			continue
+		}
+		dfs(nv.to, v)
+	}
+}
+endsnippet
+
+snippet bfs "bfs"
+	q := list.New()
+	q.PushBack(val)
+	e := q.Front()
+	for e != nil {
+		t := e.Value.(int)
+
+		// Do something
+
+		e = e.Next()
+	}
+endsnippet
+
+snippet bfsgrid "bfsgrid"
+	q := list.New()
+	q.PushBack(point{0, 0})
+	e := q.Front()
+	dx := []int{1, 0, -1, 0, 1, 1, -1, -1}
+	dy := []int{0, 1, 0, -1, 1, -1, 1, -1}
+	dist := i2s(h, w, inf)
+	dist[0][0] = 0
+	for e != nil {
+		t := e.Value.(point)
+
+		for k := 0; k < 4; k++ {
+			np := point{t.x + dx[k], t.y + dy[k]}
+			if !np.isValid(h, w) || dist[np.x][np.y] != inf {
+				continue
+			}
+			dist[np.x][np.y] = dist[t.x][t.y] + 1
+			q.PushBack(np)
+		}
+
+		e = e.Next()
+	}
+endsnippet
+*/
+
+// ==================================================
 // queue
 // ==================================================
 
