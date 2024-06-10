@@ -23,84 +23,84 @@ func main() {
 
 	o := 0
 	n := ni()
-	as := nis(n)
-	for i := 0; i < n; i++ {
-		as[i]--
-	}
-	used := is(n, 0)
-	used2 := make([]bool, n)
-	rs := is(n, 0)
-	for i := 0; i < n; i++ {
-		if used[i] != 0 {
-			continue
-		}
-		ti := i
-		ts := []int{}
-		used[i]++
-		for {
-			ts = append(ts, ti)
-			ti = as[ti]
-			if used2[ti] || used[ti] == 2 {
-				break
-			}
-			used[ti]++
-		}
-		ui := uniquei(ts)
-		lc := 0
-		for _, v := range ui {
-			if used[v] == 2 {
-				lc++
-			}
-			used2[v] = true
-		}
-		for _, v := range ui {
-			if used[v] == 2 {
-				rs[v] = lc
-			}
-		}
-		dbg(ui, ts, used, lc)
-	}
-	dbg(rs)
+	ns := nis(n)
 	edges := make([][]edge, n)
+	redges := make([][]edge, n)
+	for i := 0; i < n; i++ {
+		ns[i]--
+		s := i
+		t := ns[i]
+		edges[s] = append(edges[s], edge{to: t})
+		redges[t] = append(redges[t], edge{to: s})
+	}
+
+	seen := make([]bool, n)
+	finished := make([]bool, n)
+	history := newIntQueue()
+	rs := is(n, 0)
 	q := list.New()
 	for i := 0; i < n; i++ {
-		s := as[i]
-		t := i
-		if used[t] == 2 {
-			q.PushBack(t)
-			continue
+		var dfs func(v, p int) bool
+		dfs = func(v, p int) bool {
+			seen[v] = true
+			history.push(v)
+			for _, nv := range edges[v] {
+				if finished[nv.to] {
+					continue
+				}
+
+				if seen[nv.to] && !finished[nv.to] {
+					history.push(nv.to)
+					return true
+				}
+				r := dfs(nv.to, v)
+				if r {
+					return true
+				}
+			}
+			finished[v] = true
+			history.pop()
+			return false
 		}
-		edges[s] = append(edges[s], edge{to: t, cost: 1})
+		dfs(i, -1)
+
+		lp := []int{}
+		fn := false
+		for !history.isEmpty() {
+			v := history.popBack()
+			if len(lp) != 0 && v == lp[0] {
+				fn = true
+			}
+			finished[v] = true
+			if !fn {
+				lp = append(lp, v)
+			}
+		}
+		for _, v := range lp {
+			rs[v] = len(lp)
+			q.PushBack(v)
+		}
 	}
+	dbg(rs)
 
 	e := q.Front()
 	for e != nil {
-		t := e.Value.(int)
+		v := e.Value.(int)
 
-		for _, nv := range edges[t] {
-			dbg(t, nv.to)
-			rs[nv.to] = rs[t] + 1
+		for _, nv := range redges[v] {
+			if rs[nv.to] != 0 {
+				continue
+			}
+			rs[nv.to] = rs[v] + 1
 			q.PushBack(nv.to)
 		}
 
 		e = e.Next()
 	}
+	dbg(rs)
 	o = issum(rs)
-	out(o)
 
-	/*
-		deg := make([]int, n)
-		for i := 0; i < n; i++ {
-			s := i
-			t := as[i] - 1
-			edges[s] = append(edges[s], edge{to: t, cost: 1})
-			deg[t]++
-		}
-		graph := newgraph(n, edges)
-		isdag, r := graph.topologicalSort(deg)
-		dbg(isdag, r)
-		out(o)
-	*/
+	out(o)
 }
 
 // ==================================================
@@ -1353,6 +1353,61 @@ func pointInnerProduct(a, b point) int {
 }
 
 // ==================================================
+// bfs / dfs
+// ==================================================
+
+/*
+snippet dfs "dfs"
+var dfs func(v, p int)
+dfs = func(v, p int) {
+	for _, nv := range edges[v] {
+		if nv.to == p {
+			continue
+		}
+		dfs(nv.to, v)
+	}
+}
+endsnippet
+
+snippet bfs "bfs"
+	q := list.New()
+	q.PushBack(val)
+	e := q.Front()
+	for e != nil {
+		t := e.Value.(int)
+
+		// Do something
+
+		e = e.Next()
+	}
+endsnippet
+
+snippet bfsgrid "bfsgrid"
+	q := list.New()
+	q.PushBack(point{0, 0})
+	e := q.Front()
+	dx := []int{1, 0, -1, 0, 1, 1, -1, -1}
+	dy := []int{0, 1, 0, -1, 1, -1, 1, -1}
+	dist := i2s(h, w, inf)
+	dist[0][0] = 0
+	for e != nil {
+		t := e.Value.(point)
+
+		for k := 0; k < 4; k++ {
+			np := point{t.x + dx[k], t.y + dy[k]}
+			if !np.isValid(h, w) || dist[np.x][np.y] != inf {
+				continue
+			}
+			dist[np.x][np.y] = dist[t.x][t.y] + 1
+			q.PushBack(np)
+		}
+
+		e = e.Next()
+	}
+endsnippet
+*/
+
+// ==================================================
 // queue
 // ==================================================
 
@@ -1395,6 +1450,15 @@ func (iq *IntQueue) pop() int {
 	return v
 }
 
+func (iq *IntQueue) popBack() int {
+	v := iq.queue[len(iq.queue)-1]
+	iq.queue = iq.queue[:len(iq.queue)-1]
+	iq.sum -= v
+	//iq.sum = madd(iq.sum, -v)
+	iq.size--
+	return v
+}
+
 func (iq *IntQueue) shrink(l int) {
 	for {
 		if iq.size <= l {
@@ -1402,6 +1466,10 @@ func (iq *IntQueue) shrink(l int) {
 		}
 		iq.pop()
 	}
+}
+
+func (iq *IntQueue) isEmpty() bool {
+	return iq.size == 0
 }
 
 // ==================================================
