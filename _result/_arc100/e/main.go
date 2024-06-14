@@ -27,9 +27,8 @@ func main() {
 	for i, v := range ns {
 		dp[i][0] = v
 	}
-	set := func(a, b [2]int) [2]int {
+	op := func(a, b [2]int) [2]int {
 		for i := 0; i < 2; i++ {
-
 			if a[0] <= b[i] {
 				a[1] = a[0]
 				a[0] = b[i]
@@ -38,15 +37,8 @@ func main() {
 			}
 		}
 		return a
-
 	}
-	for j := 0; j < n; j++ {
-		for i := 0; i < pow2(n); i++ {
-			if hasbit(i, j) {
-				dp[i] = set(dp[i], dp[i^pow2(j)])
-			}
-		}
-	}
+	fastZetaTransform(n, dp, op)
 
 	t := 0
 	for i, v := range dp {
@@ -55,6 +47,16 @@ func main() {
 		}
 		maxs(&t, v[0]+v[1])
 		out(t)
+	}
+}
+
+func fastZetaTransform[T any](n int, arr []T, op func(T, T) T) {
+	for i := 0; i < n; i++ {
+		for mask := 0; mask < pow2(n); mask++ {
+			if mask&(1<<i) != 0 {
+				arr[mask] = op(arr[mask], arr[mask^(1<<i)])
+			}
+		}
 	}
 }
 
