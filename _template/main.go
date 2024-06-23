@@ -34,7 +34,7 @@ func main() {
 const inf = math.MaxInt64
 const mod1000000007 = 1000000007
 const mod998244353 = 998244353
-const mod = mod1000000007
+const mod = mod998244353
 const baseRune = 'a'
 const maxlogn = 62
 
