@@ -45,3 +45,5 @@ load:
 login:
 	oj login https://atcoder.jp
 
+setc:
+	./shell/setcontest.sh
