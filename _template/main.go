@@ -467,6 +467,14 @@ func getAngle(x, y float64) float64 {
 	return math.Atan2(y, x) * 180 / math.Pi
 }
 
+func addAngle(a1, a2 float64) float64 {
+	r := a1 + a2
+	if r >= 360 {
+		r -= 360
+	}
+	return r
+}
+
 func permutation(n int, k int) int {
 	if k > n || k <= 0 {
 		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
@@ -1240,16 +1248,16 @@ type pointf struct {
 	y float64
 }
 
-func newPoint(x, y int) point {
-	return point{x, y}
-}
-
 func (p point) isValid(h, w int) bool {
 	return 0 <= p.x && p.x < h && 0 <= p.y && p.y < w
 }
 
 func (p point) dist(to point) float64 {
 	return pointDist(p, to)
+}
+
+func (p point) getAngle(f point) float64 {
+	return math.Atan2(float64(p.y-f.y), float64(p.x-f.x))*180/math.Pi + 180
 }
 
 func pointAdd(a, b point) point {
