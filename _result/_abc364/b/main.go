@@ -21,7 +21,7 @@ func main() {
 
 	defer flush()
 
-	h, _ := ni2()
+	h, w := ni2()
 	si, sj := ni2()
 	mp := convidxi2s(nsi2s(h), map[string]int{".": 0, "#": 1})
 	x := ns()
@@ -38,7 +38,7 @@ func main() {
 		case "R":
 			npt = point{pt.x, pt.y + 1}
 		}
-		if npt.isValid(h, h) && mp[npt.x][npt.y] == 0 {
+		if npt.isValid(h, w) && mp[npt.x][npt.y] == 0 {
 			pt = npt
 		}
 	}
