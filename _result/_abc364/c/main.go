@@ -21,29 +21,29 @@ func main() {
 
 	defer flush()
 
-	h, w := ni2()
-	si, sj := ni2()
-	mp := convidxi2s(nsi2s(h), map[string]int{".": 0, "#": 1})
-	x := ns()
-	pt := point{si - 1, sj - 1}
-	for i := 0; i < len(x); i++ {
-		npt := point{pt.x, pt.y}
-		switch string(x[i]) {
-		case "U":
-			npt = point{pt.x - 1, pt.y}
-		case "D":
-			npt = point{pt.x + 1, pt.y}
-		case "L":
-			npt = point{pt.x, pt.y - 1}
-		case "R":
-			npt = point{pt.x, pt.y + 1}
-		}
-		if npt.isValid(h, w) && mp[npt.x][npt.y] == 0 {
-			pt = npt
+	n, x, y := ni3()
+	o := n
+	as := nis(n)
+	bs := nis(n)
+	sortir(as)
+	sortir(bs)
+	t := 0
+	for i := 0; i < n; i++ {
+		t += as[i]
+		if t > x {
+			mins(&o, i+1)
+			break
 		}
 	}
-	out2d(pt.x+1, pt.y+1)
+	t = 0
+	for i := 0; i < n; i++ {
+		t += bs[i]
+		if t > y {
+			mins(&o, i+1)
+		}
+	}
 
+	out(o)
 }
 
 // ==================================================
