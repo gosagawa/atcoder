@@ -630,7 +630,12 @@ func mmod(a, m int) int {
 }
 
 func extGcd(a, b int) (int, int, int) {
-	return extGcdSub(b, a%b, 0, 0)
+	if b == 0 {
+		return 1, 0, a
+	}
+	q, p, d := extGcdSub(b, a%b, 0, 0)
+	q -= a / b * p
+	return p, q, d
 }
 
 func extGcdSub(a, b, p, q int) (int, int, int) {
