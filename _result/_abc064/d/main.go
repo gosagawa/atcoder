@@ -21,9 +21,37 @@ func main() {
 
 	defer flush()
 
-	o := 0
+	o := ""
 	n := ni()
-	ns := nis(n)
+	s := ns()
+	t := 0
+	oc := 0
+	cc := 0
+	for i := 0; i < n; i++ {
+		if string(s[i]) == ")" {
+			t++
+		} else {
+			t--
+		}
+		maxs(&oc, t)
+	}
+	t = 0
+	for i := n - 1; i >= 0; i-- {
+		if string(s[i]) == "(" {
+			t++
+		} else {
+			t--
+		}
+		maxs(&cc, t)
+	}
+	for i := 0; i < oc; i++ {
+		o += "("
+	}
+	o += s
+	for i := 0; i < cc; i++ {
+		o += ")"
+	}
+
 	out(o)
 }
 
@@ -34,7 +62,7 @@ func main() {
 const inf = math.MaxInt64
 const mod1000000007 = 1000000007
 const mod998244353 = 998244353
-const mod = mod1000000007
+const mod = mod998244353
 const baseRune = 'a'
 const maxlogn = 62
 
@@ -180,7 +208,7 @@ func nsi2s(n int) [][]int {
 	return mp
 }
 
-// mp = convidxi2s(nsi2s(n), map[string]int{".": 0, "#": 1})
+// mp := convidxi2s(nsi2s(n), map[string]int{".": 0, "#": 1})
 func convidxi2s(sl [][]int, conv map[string]int) [][]int {
 	imap := make(map[int]int)
 	for s, v := range conv {
@@ -194,6 +222,7 @@ func convidxi2s(sl [][]int, conv map[string]int) [][]int {
 	return sl
 }
 
+// mp := convidxis(nsis(), map[string]int{".": 0, "#": 1})
 func convidxis(sl []int, conv map[string]int) []int {
 	imap := make(map[int]int)
 	for s, v := range conv {
@@ -234,11 +263,21 @@ func out(v ...interface{}) {
 	}
 }
 
-func debug(v ...interface{}) {
+func dbg(v ...interface{}) {
 	if !debugFlg {
 		return
 	}
 	out(v...)
+}
+
+func dbgi2s(sl [][]int) {
+	if !debugFlg {
+		return
+	}
+	for _, v := range sl {
+		outis(v)
+	}
+	out("")
 }
 
 func outf(f string, v ...interface{}) {
@@ -456,6 +495,14 @@ func getAngle(x, y float64) float64 {
 	return math.Atan2(y, x) * 180 / math.Pi
 }
 
+func addAngle(a1, a2 float64) float64 {
+	r := a1 + a2
+	if r >= 360 {
+		r -= 360
+	}
+	return r
+}
+
 func permutation(n int, k int) int {
 	if k > n || k <= 0 {
 		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
@@ -589,6 +636,54 @@ func divisor(n int) ([]int, map[int]int) {
 		divisorm[n]++
 	}
 	return divisor, divisorm
+}
+
+func alldivisor(n int) []int {
+	sqrtn := int(math.Sqrt(float64(n)))
+	divisor := []int{}
+	for i := 1; i <= sqrtn; i++ {
+		if n%i != 0 {
+			continue
+		}
+		divisor = append(divisor, i)
+		if n/i != i {
+			divisor = append(divisor, n/i)
+		}
+	}
+	return divisor
+}
+
+func mmod(a, m int) int {
+	return (a%m + m) % m
+}
+
+func extGcd(a, b int) (int, int, int) {
+	if b == 0 {
+		return 1, 0, a
+	}
+	q, p, d := extGcdSub(b, a%b, 0, 0)
+	q -= a / b * p
+	return p, q, d
+}
+
+func extGcdSub(a, b, p, q int) (int, int, int) {
+	if b == 0 {
+		return 1, 0, a
+	}
+	q, p, d := extGcdSub(b, a%b, q, p)
+	q -= a / b * p
+	return p, q, d
+}
+
+func chineseRem(b1, m1, b2, m2 int) (bool, int, int) {
+	p, _, d := extGcd(m1, m2)
+	if (b2-b1)%d != 0 {
+		return false, 0, 0
+	}
+	m := m1 * (m2 / d)
+	tmp := (b2 - b1) / d * p % (m2 / d)
+	r := mmod(b1+m1*tmp, m)
+	return true, r, m
 }
 
 type binom struct {
@@ -1186,16 +1281,16 @@ type pointf struct {
 	y float64
 }
 
-func newPoint(x, y int) point {
-	return point{x, y}
-}
-
 func (p point) isValid(h, w int) bool {
 	return 0 <= p.x && p.x < h && 0 <= p.y && p.y < w
 }
 
 func (p point) dist(to point) float64 {
 	return pointDist(p, to)
+}
+
+func (p point) getAngle(f point) float64 {
+	return math.Atan2(float64(p.y-f.y), float64(p.x-f.x))*180/math.Pi + 180
 }
 
 func pointAdd(a, b point) point {
@@ -1221,6 +1316,61 @@ func pointfDist(a, b pointf) float64 {
 func pointInnerProduct(a, b point) int {
 	return (a.x * b.y) - (b.x * a.y)
 }
+
+// ==================================================
+// bfs / dfs
+// ==================================================
+
+/*
+snippet dfs "dfs"
+var dfs func(v, p int)
+dfs = func(v, p int) {
+	for _, nv := range edges[v] {
+		if nv.to == p {
+			continue
+		}
+		dfs(nv.to, v)
+	}
+}
+endsnippet
+
+snippet bfs "bfs"
+	q := list.New()
+	q.PushBack(val)
+	e := q.Front()
+	for e != nil {
+		t := e.Value.(int)
+
+		// Do something
+
+		e = e.Next()
+	}
+endsnippet
+
+snippet bfsgrid "bfsgrid"
+	q := list.New()
+	q.PushBack(point{0, 0})
+	e := q.Front()
+	dx := []int{1, 0, -1, 0, 1, 1, -1, -1}
+	dy := []int{0, 1, 0, -1, 1, -1, 1, -1}
+	dist := i2s(h, w, inf)
+	dist[0][0] = 0
+	for e != nil {
+		t := e.Value.(point)
+
+		for k := 0; k < 4; k++ {
+			np := point{t.x + dx[k], t.y + dy[k]}
+			if !np.isValid(h, w) || dist[np.x][np.y] != inf {
+				continue
+			}
+			dist[np.x][np.y] = dist[t.x][t.y] + 1
+			q.PushBack(np)
+		}
+
+		e = e.Next()
+	}
+endsnippet
+*/
 
 // ==================================================
 // queue
@@ -1885,6 +2035,9 @@ type lazysegtree struct {
 	compostion := func(f segfstruct, g segfstruct) segfstruct {
 		if f == id() {
 			return g
+		}
+		if g == id() {
+			return f
 		}
 		return segfstruct(int(f) + int(g))
 	}
