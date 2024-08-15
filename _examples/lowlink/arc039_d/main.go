@@ -1,4 +1,4 @@
-// abc334_g
+// arc039_d
 package main
 
 import (
@@ -22,91 +22,83 @@ func main() {
 
 	defer flush()
 
-	o := 0
-	h, w := ni2()
-	mp := convidxi2s(nsi2s(h), map[string]int{".": 0, "#": 1})
-	dx := []int{1, 0, -1, 0, 1, 1, -1, -1}
-	dy := []int{0, 1, 0, -1, 1, -1, 1, -1}
-	edges := make([][]edge, h*w)
-	pc := 0
-	for i := 0; i < h; i++ {
-		for j := 0; j < w; j++ {
-			if mp[i][j] == 0 {
-				continue
-			}
+	n, m := ni2()
 
-			pc++
-			for k := 0; k < 4; k++ {
-				ni := i + dx[k]
-				nj := j + dy[k]
-				if ni < 0 || h <= ni || nj < 0 || w <= nj {
-					continue
-				}
-				if mp[ni][nj] == 1 {
-					s := i*w + j
-					t := ni*w + nj
-					edges[s] = append(edges[s], edge{from: s, to: t})
-					edges[t] = append(edges[t], edge{from: t, to: s})
-				}
-			}
-		}
+	edges := make([][]edge, n)
+	alledges := make([]edge, m)
+	for i := 0; i < m; i++ {
+		s, t := ni2()
+		s--
+		t--
+		edges[s] = append(edges[s], edge{from: s, to: t, cost: 1, idx: i})
+		edges[t] = append(edges[t], edge{from: t, to: s, cost: 1, idx: i})
+		alledges = append(alledges, edge{from: s, to: t, cost: 1, idx: i})
 	}
-	graph := newgraph(h*w, edges)
+
+	graph := newgraph(n, edges)
 	_, bridge := graph.lowlink()
-	dbg(bridge)
-	dbg(graph.lowlinktree)
-	roots := []int{}
-	for _, v := range graph.roots {
-		if mp[v/w][v%w] == 1 {
-			roots = append(roots, v)
+	debug(bridge)
+	bi := is(m, 0)
+	for _, v := range bridge {
+		bi[v.idx] = 1
+	}
+	uf := newUnionFind(n)
+	for _, v := range alledges {
+		if bi[v.idx] == 0 {
+			uf.unite(v.from, v.to)
 		}
 	}
-	dbg(roots)
-	dbg(graph.ord)
-	dbg(graph.low)
-	base := len(roots)
-	sum := 0
-	for _, root := range roots {
-		var dfs func(v, p int)
-		dfs = func(v, p int) {
-			apc := 0
-			for _, nv := range graph.lowlinktree[v] {
-				if nv.to == p {
-					continue
-				}
-				if graph.ord[v] <= graph.low[nv.to] {
-					apc++
-				}
-				dfs(nv.to, v)
-			}
-			t := 0
-			if p == -1 {
-				t = base - 1 + apc
-			} else {
-				t = base + apc
-			}
-			dbg([2]int{v / w, v % w}, t)
-			sum += t
-		}
-		dfs(root, -1)
-	}
-	dbg(sum, pc)
-	o = mdiv(sum, pc)
 
-	out(o)
+	nn := len(bridge) + 1
+	edges = make([][]edge, nn)
+	mp := make(map[int]int)
+	for i := 0; i < nn-1; i++ {
+		var s, t int
+		if v, ok := mp[uf.root(bridge[i].from)]; ok {
+			s = v
+		} else {
+			s = len(mp)
+			mp[uf.root(bridge[i].from)] = s
+		}
+		if v, ok := mp[uf.root(bridge[i].to)]; ok {
+			t = v
+		} else {
+			t = len(mp)
+			mp[uf.root(bridge[i].to)] = t
+		}
+		edges[s] = append(edges[s], edge{to: t})
+		edges[t] = append(edges[t], edge{to: s})
+	}
+	tree := newtree(n, 0, edges)
+	tree.init()
+	q := ni()
+	for qi := 0; qi < q; qi++ {
+		a, b, c := ni3()
+		a--
+		b--
+		c--
+		ab := tree.dist(mp[uf.root(a)], mp[uf.root(b)])
+		bc := tree.dist(mp[uf.root(b)], mp[uf.root(c)])
+		ac := tree.dist(mp[uf.root(a)], mp[uf.root(c)])
+		debug(ac, ab, bc)
+
+		if ac == ab+bc {
+			out("OK")
+		} else {
+			out("NG")
+		}
+	}
 }
 
 func (g *graph) lowlink() ([]int, []edge) {
 	g.used = make([]bool, g.size)
 	g.ord = make([]int, g.size)
 	g.low = make([]int, g.size)
-	g.lowlinktree = make([][]edge, g.size)
 	k := 0
 	for i := 0; i < g.size; i++ {
 		if g.used[i] {
 			continue
 		}
-		g.roots = append(g.roots, i)
 		g.lowlinkdfs(k, i, -1)
 	}
 
@@ -123,7 +115,6 @@ func (g *graph) lowlinkdfs(k, v, p int) int {
 	for _, nv := range g.edges[v] {
 		if !g.used[nv.to] {
 			c++
-			g.lowlinktree[v] = append(g.lowlinktree[v], nv)
 			k = g.lowlinkdfs(k, nv.to, v)
 			mins(&g.low[v], g.low[nv.to])
 			if p != -1 && g.ord[v] <= g.low[nv.to] {
@@ -152,7 +143,7 @@ func (g *graph) lowlinkdfs(k, v, p int) int {
 const inf = math.MaxInt64
 const mod1000000007 = 1000000007
 const mod998244353 = 998244353
-const mod = mod998244353
+const mod = mod1000000007
 const baseRune = 'a'
 const maxlogn = 62
 
@@ -179,7 +170,11 @@ func init() {
 
 func ni() int {
 	sc.Scan()
-	return atoi(sc.Text())
+	i, e := strconv.Atoi(sc.Text())
+	if e != nil {
+		panic(e)
+	}
+	return i
 }
 
 func ni2() (int, int) {
@@ -262,14 +257,6 @@ func ni4a(n int) [][4]int {
 	return a
 }
 
-func ni2d(n, m int) [][]int {
-	a := i2s(n, m, 0)
-	for i := 0; i < n; i++ {
-		a[i] = nis(m)
-	}
-	return a
-}
-
 func nf() float64 {
 	sc.Scan()
 	f, e := strconv.ParseFloat(sc.Text(), 64)
@@ -288,44 +275,6 @@ func nsis() []int {
 	sc.Scan()
 	s := sc.Text()
 	return stois(s, baseRune)
-}
-
-func nsi2s(n int) [][]int {
-	mp := make([][]int, n)
-	for i := 0; i < n; i++ {
-		mp[i] = nsis()
-	}
-	return mp
-}
-
-// mp := convidxi2s(nsi2s(n), map[string]int{".": 0, "#": 1})
-func convidxi2s(sl [][]int, conv map[string]int) [][]int {
-	imap := make(map[int]int)
-	for s, v := range conv {
-		imap[ctoi(s)] = v
-	}
-	for i, sl2 := range sl {
-		for j, v := range sl2 {
-			sl[i][j] = imap[v]
-		}
-	}
-	return sl
-}
-
-// mp := convidxis(nsis(), map[string]int{".": 0, "#": 1})
-func convidxis(sl []int, conv map[string]int) []int {
-	imap := make(map[int]int)
-	for s, v := range conv {
-		imap[ctoi(s)] = v
-	}
-	for i, v := range sl {
-		sl[i] = imap[v]
-	}
-	return sl
-}
-
-func ctoi(c string) int {
-	return int(rune(c[0]) - baseRune)
 }
 
 func nsiis() []int {
@@ -353,21 +302,11 @@ func out(v ...interface{}) {
 	}
 }
 
-func dbg(v ...interface{}) {
+func debug(v ...interface{}) {
 	if !debugFlg {
 		return
 	}
 	out(v...)
-}
-
-func dbgi2s(sl [][]int) {
-	if !debugFlg {
-		return
-	}
-	for _, v := range sl {
-		outis(v)
-	}
-	out("")
 }
 
 func outf(f string, v ...interface{}) {
@@ -387,28 +326,6 @@ func outis(sl []int) {
 		r[i] = itoa(v)
 	}
 	out(strings.Join(r, " "))
-}
-
-func outisnr(sl []int) {
-	for _, v := range sl {
-		out(v)
-	}
-}
-
-func out2d(i, j int) {
-	outf("%v %v", i, j)
-}
-
-func outsj(sl []string) {
-	out(sj(sl))
-}
-
-func outsjsp(sl []string) {
-	out(sjsp(sl))
-}
-
-func outfl(v float64) {
-	outf("%.15f", v)
 }
 
 func flush() {
@@ -585,14 +502,6 @@ func getAngle(x, y float64) float64 {
 	return math.Atan2(y, x) * 180 / math.Pi
 }
 
-func addAngle(a1, a2 float64) float64 {
-	r := a1 + a2
-	if r >= 360 {
-		r -= 360
-	}
-	return r
-}
-
 func permutation(n int, k int) int {
 	if k > n || k <= 0 {
 		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
@@ -728,54 +637,6 @@ func divisor(n int) ([]int, map[int]int) {
 	return divisor, divisorm
 }
 
-func alldivisor(n int) []int {
-	sqrtn := int(math.Sqrt(float64(n)))
-	divisor := []int{}
-	for i := 1; i <= sqrtn; i++ {
-		if n%i != 0 {
-			continue
-		}
-		divisor = append(divisor, i)
-		if n/i != i {
-			divisor = append(divisor, n/i)
-		}
-	}
-	return divisor
-}
-
-func mmod(a, m int) int {
-	return (a%m + m) % m
-}
-
-func extGcd(a, b int) (int, int, int) {
-	if b == 0 {
-		return 1, 0, a
-	}
-	q, p, d := extGcdSub(b, a%b, 0, 0)
-	q -= a / b * p
-	return p, q, d
-}
-
-func extGcdSub(a, b, p, q int) (int, int, int) {
-	if b == 0 {
-		return 1, 0, a
-	}
-	q, p, d := extGcdSub(b, a%b, q, p)
-	q -= a / b * p
-	return p, q, d
-}
-
-func chineseRem(b1, m1, b2, m2 int) (bool, int, int) {
-	p, _, d := extGcd(m1, m2)
-	if (b2-b1)%d != 0 {
-		return false, 0, 0
-	}
-	m := m1 * (m2 / d)
-	tmp := (b2 - b1) / d * p % (m2 / d)
-	r := mmod(b1+m1*tmp, m)
-	return true, r, m
-}
-
 type binom struct {
 	fac  []int
 	finv []int
@@ -844,8 +705,6 @@ func matMul(a, b [][]int) [][]int {
 // ==================================================
 
 func madd(a, b int) int {
-	a %= mod
-	b %= mod
 	a += b
 	if a >= mod || a <= -mod {
 		a %= mod
@@ -857,16 +716,11 @@ func madd(a, b int) int {
 }
 
 func mmul(a, b int) int {
-	a %= mod
-	b %= mod
 	return a * b % mod
 }
 
 func mdiv(a, b int) int {
 	a %= mod
-	if b <= 0 || b >= mod {
-		panic("invalid division")
-	}
 	return a * minvfermat(b, mod) % mod
 }
 
@@ -971,49 +825,6 @@ func bs3fl(low, high float64, c int, f func(float64) float64) float64 {
 		}
 	}
 	return low
-}
-
-func bs3i(low, high int, f func(int) int) (int, int) {
-
-	for high-low > 2 {
-		c1 := (low*2 + high) / 3
-		c2 := (low + high*2) / 3
-		fc1 := f(c1)
-		fc2 := f(c2)
-
-		if fc1 > fc2 {
-			low = c1
-		} else {
-			high = c2
-		}
-	}
-	if high-low == 2 {
-		fc1 := f(low)
-		fc2 := f(high)
-		//	out(high, low, c1, c2, fc1, fc2)
-
-		if fc1 > fc2 {
-			low++
-		} else {
-			high--
-		}
-	}
-	ri := 0
-	rv := 0
-	if high-low == 1 {
-		fc1 := f(low)
-		fc2 := f(high)
-		//	out(high, low, c1, c2, fc1, fc2)
-
-		if fc1 > fc2 {
-			ri = high
-			rv = fc2
-		} else {
-			ri = low
-			rv = fc1
-		}
-	}
-	return ri, rv
 }
 
 // ==================================================
@@ -1157,18 +968,6 @@ func i2s(l, m int, def int) [][]int {
 	return sl
 }
 
-func ss(l int) []string {
-	return make([]string, l)
-}
-
-func sj(sl []string) string {
-	return strings.Join(sl, "")
-}
-
-func sjsp(sl []string) string {
-	return strings.Join(sl, " ")
-}
-
 //	out(stois("abcde", 'a'))
 //	out(stois("abcde", 'a'-1))
 //	out(stois("12345", '0'))
@@ -1283,17 +1082,6 @@ func upperBound(v int, sl []int) int {
 	return idx + 1
 }
 
-func rotate(sl [][]int) [][]int {
-	n := len(sl)
-	r := i2s(n, n, 0)
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			r[i][j] = sl[n-1-j][i]
-		}
-	}
-	return r
-}
-
 // ==================================================
 // matrix
 // ==================================================
@@ -1371,16 +1159,16 @@ type pointf struct {
 	y float64
 }
 
+func newPoint(x, y int) point {
+	return point{x, y}
+}
+
 func (p point) isValid(h, w int) bool {
 	return 0 <= p.x && p.x < h && 0 <= p.y && p.y < w
 }
 
 func (p point) dist(to point) float64 {
 	return pointDist(p, to)
-}
-
-func (p point) getAngle(f point) float64 {
-	return math.Atan2(float64(p.y-f.y), float64(p.x-f.x))*180/math.Pi + 180
 }
 
 func pointAdd(a, b point) point {
@@ -1408,61 +1196,6 @@ func pointInnerProduct(a, b point) int {
 }
 
 // ==================================================
-// bfs / dfs
-// ==================================================
-
-/*
-snippet dfs "dfs"
-var dfs func(v, p int)
-dfs = func(v, p int) {
-	for _, nv := range edges[v] {
-		if nv.to == p {
-			continue
-		}
-		dfs(nv.to, v)
-	}
-}
-endsnippet
-
-snippet bfs "bfs"
-	q := list.New()
-	q.PushBack(val)
-	e := q.Front()
-	for e != nil {
-		t := e.Value.(int)
-
-		// Do something
-
-		e = e.Next()
-	}
-endsnippet
-
-snippet bfsgrid "bfsgrid"
-	q := list.New()
-	q.PushBack(point{0, 0})
-	e := q.Front()
-	dx := []int{1, 0, -1, 0, 1, 1, -1, -1}
-	dy := []int{0, 1, 0, -1, 1, -1, 1, -1}
-	dist := i2s(h, w, inf)
-	dist[0][0] = 0
-	for e != nil {
-		t := e.Value.(point)
-
-		for k := 0; k < 4; k++ {
-			np := point{t.x + dx[k], t.y + dy[k]}
-			if !np.isValid(h, w) || dist[np.x][np.y] != inf {
-				continue
-			}
-			dist[np.x][np.y] = dist[t.x][t.y] + 1
-			q.PushBack(np)
-		}
-
-		e = e.Next()
-	}
-endsnippet
-*/
-
-// ==================================================
 // queue
 // ==================================================
 
@@ -1478,41 +1211,6 @@ endsnippet
 		e = e.Next()
     }
 */
-
-type IntQueue struct {
-	sum   int
-	queue []int
-	size  int
-}
-
-func newIntQueue() *IntQueue {
-	return &IntQueue{}
-}
-
-func (iq *IntQueue) push(v int) {
-	iq.queue = append(iq.queue, v)
-	iq.sum += v
-	//iq.sum = madd(iq.sum, v)
-	iq.size++
-}
-
-func (iq *IntQueue) pop() int {
-	v := iq.queue[0]
-	iq.queue = iq.queue[1:]
-	iq.sum -= v
-	//iq.sum = madd(iq.sum, -v)
-	iq.size--
-	return v
-}
-
-func (iq *IntQueue) shrink(l int) {
-	for {
-		if iq.size <= l {
-			break
-		}
-		iq.pop()
-	}
-}
 
 // ==================================================
 // heap
@@ -1795,14 +1493,12 @@ func (c *cusum2d) get(x1, y1, x2, y2 int) int {
 // ==================================================
 
 type unionFind struct {
-	par     []int
-	weights []int
+	par []int
 }
 
 func newUnionFind(n int) *unionFind {
 	u := &unionFind{
-		par:     make([]int, n),
-		weights: make([]int, n),
+		par: make([]int, n),
 	}
 	for i := range u.par {
 		u.par[i] = -1
@@ -1814,20 +1510,11 @@ func (u *unionFind) root(x int) int {
 	if u.par[x] < 0 {
 		return x
 	}
-	px := u.par[x]
-	u.par[x] = u.root(px)
-	u.weights[x] += u.weights[px]
+	u.par[x] = u.root(u.par[x])
 	return u.par[x]
 }
 
-func (u *unionFind) unite(x, y int, arg ...int) {
-
-	w := 0
-	if len(arg) == 1 {
-		w = arg[0]
-	}
-	w += u.weight(x)
-	w -= u.weight(y)
+func (u *unionFind) unite(x, y int) {
 	x = u.root(x)
 	y = u.root(y)
 	if x == y {
@@ -1835,11 +1522,9 @@ func (u *unionFind) unite(x, y int, arg ...int) {
 	}
 	if u.size(x) < u.size(y) {
 		x, y = y, x
-		w = -w
 	}
 	u.par[x] += u.par[y]
 	u.par[y] = x
-	u.weights[y] = w
 }
 
 func (u *unionFind) issame(x, y int) bool {
@@ -1851,15 +1536,6 @@ func (u *unionFind) issame(x, y int) bool {
 
 func (u *unionFind) size(x int) int {
 	return -u.par[u.root(x)]
-}
-
-func (u *unionFind) weight(x int) int {
-	u.root(x)
-	return u.weights[x]
-}
-
-func (u *unionFind) diff(x, y int) int {
-	return u.weight(y) - u.weight(x)
 }
 
 // ==================================================
@@ -2081,16 +1757,15 @@ func (s *stree) debug() {
 	out(strings.Join(l, " "))
 }
 
-/*
 type segstruct struct {
-	v    int
-	size int
+	x int
+	y int
 }
-*/
 
-type segstruct int
-
-type segfstruct int
+type segfstruct struct {
+	x int
+	y int
+}
 
 type lazysegtree struct {
 	n           int
@@ -2104,71 +1779,6 @@ type lazysegtree struct {
 	composition func(segfstruct, segfstruct) segfstruct
 	id          func() segfstruct
 }
-
-/*
-	// 区間加算・区間和取得
-	op := func(a segstruct, b segstruct) segstruct {
-		return segstruct{a.v + b.v, a.size + b.size}
-	}
-	e := func() segstruct {
-		return segstruct{0, 0}
-	}
-	id := func() segfstruct {
-		return segfstruct(inf)
-	}
-	mapping := func(f segfstruct, x segstruct) segstruct {
-		if f == id() {
-			return x
-		}
-		return segstruct{x.v + int(f) * x.size, x.size}
-	}
-	compostion := func(f segfstruct, g segfstruct) segfstruct {
-		if f == id() {
-			return g
-		}
-		if g == id() {
-			return f
-		}
-		return segfstruct(int(f) + int(g))
-	}
-
-	// 区間変更・区間最小値取得
-	op := func(a segstruct, b segstruct) segstruct {
-		return segstruct(min(int(a), int(b)))
-	}
-	e := func() segstruct {
-		return segstruct(inf)
-	}
-	id := func() segfstruct {
-		return segfstruct(inf)
-	}
-	mapping := func(f segfstruct, x segstruct) segstruct {
-		if f == id() {
-			return x
-		}
-		return segstruct(int(f))
-	}
-	compostion := func(f segfstruct, g segfstruct) segfstruct {
-		if i == id() {
-			return g
-		}
-		return f
-	}
-
-	lst := newlazysegtree(
-		n,
-		base,
-		op,
-		e,
-		mapping,
-		compostion,
-		id,
-	)
-	lst.applyrange(f, t, segfstruct(v))
-	iv := int(lst.get(i))
-	rv := int(lst.prod(l,r)
-	av := int(t.allprod()))
-*/
 
 func newlazysegtree(
 	n int,
@@ -2585,6 +2195,7 @@ type edge struct {
 	to   int
 	cost int
 	rev  int
+	idx  int
 }
 
 func setDualEdge(edges [][]edge, s, t, c int) {
@@ -2621,8 +2232,6 @@ type graph struct {
 	used         []bool
 	ord          []int
 	low          []int
-	lowlinktree  [][]edge
-	roots        []int
 	articulation []int
 	bridge       []edge
 }

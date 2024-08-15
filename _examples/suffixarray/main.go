@@ -1,4 +1,4 @@
-// abc334_g
+// abc362 g
 package main
 
 import (
@@ -6,6 +6,7 @@ import (
 	"container/heap"
 	"container/list"
 	"fmt"
+	"index/suffixarray"
 	"io/ioutil"
 	"math"
 	"math/bits"
@@ -13,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unsafe"
 )
 
 var sc = bufio.NewScanner(os.Stdin)
@@ -22,127 +24,236 @@ func main() {
 
 	defer flush()
 
-	o := 0
-	h, w := ni2()
-	mp := convidxi2s(nsi2s(h), map[string]int{".": 0, "#": 1})
-	dx := []int{1, 0, -1, 0, 1, 1, -1, -1}
-	dy := []int{0, 1, 0, -1, 1, -1, 1, -1}
-	edges := make([][]edge, h*w)
-	pc := 0
-	for i := 0; i < h; i++ {
-		for j := 0; j < w; j++ {
-			if mp[i][j] == 0 {
-				continue
-			}
+	s := ns()
+	n := len(s)
+	suffixArray := SuffixArray(s)
 
-			pc++
-			for k := 0; k < 4; k++ {
-				ni := i + dx[k]
-				nj := j + dy[k]
-				if ni < 0 || h <= ni || nj < 0 || w <= nj {
-					continue
-				}
-				if mp[ni][nj] == 1 {
-					s := i*w + j
-					t := ni*w + nj
-					edges[s] = append(edges[s], edge{from: s, to: t})
-					edges[t] = append(edges[t], edge{from: t, to: s})
-				}
+	q := ni()
+	for qi := 0; qi < q; qi++ {
+		t := ns()
+		getIdx := func(t string) int {
+			f := func(i int) bool {
+				return s[suffixArray[i]:min(len(s), suffixArray[i]+len(t))] < t
 			}
+			return bs(0, n-1, f)
 		}
+		o := getIdx(t+"~") - getIdx(t)
+		out(o)
 	}
-	graph := newgraph(h*w, edges)
-	_, bridge := graph.lowlink()
-	dbg(bridge)
-	dbg(graph.lowlinktree)
-	roots := []int{}
-	for _, v := range graph.roots {
-		if mp[v/w][v%w] == 1 {
-			roots = append(roots, v)
-		}
-	}
-	dbg(roots)
-	dbg(graph.ord)
-	dbg(graph.low)
-	base := len(roots)
-	sum := 0
-	for _, root := range roots {
-		var dfs func(v, p int)
-		dfs = func(v, p int) {
-			apc := 0
-			for _, nv := range graph.lowlinktree[v] {
-				if nv.to == p {
-					continue
-				}
-				if graph.ord[v] <= graph.low[nv.to] {
-					apc++
-				}
-				dfs(nv.to, v)
-			}
-			t := 0
-			if p == -1 {
-				t = base - 1 + apc
-			} else {
-				t = base + apc
-			}
-			dbg([2]int{v / w, v % w}, t)
-			sum += t
-		}
-		dfs(root, -1)
-	}
-	dbg(sum, pc)
-	o = mdiv(sum, pc)
 
-	out(o)
 }
 
-func (g *graph) lowlink() ([]int, []edge) {
-	g.used = make([]bool, g.size)
-	g.ord = make([]int, g.size)
-	g.low = make([]int, g.size)
-	g.lowlinktree = make([][]edge, g.size)
-	k := 0
-	for i := 0; i < g.size; i++ {
-		if g.used[i] {
-			continue
-		}
-		g.roots = append(g.roots, i)
-		g.lowlinkdfs(k, i, -1)
+func SuffixArray(s string) []int {
+	src := []byte(s)
+	ts := (*struct {
+		_  []byte
+		sa []int32
+	})(unsafe.Pointer(suffixarray.New(src))).sa
+	r := is(len(s), 0)
+	for i, v := range ts {
+		r[i] = int(v)
 	}
-
-	return g.articulation, g.bridge
+	return r
 }
 
-func (g *graph) lowlinkdfs(k, v, p int) int {
-	g.used[v] = true
-	k++
-	g.ord[v] = k
-	g.low[v] = g.ord[v]
-	isArticlulation := false
-	c := 0
-	for _, nv := range g.edges[v] {
-		if !g.used[nv.to] {
-			c++
-			g.lowlinktree[v] = append(g.lowlinktree[v], nv)
-			k = g.lowlinkdfs(k, nv.to, v)
-			mins(&g.low[v], g.low[nv.to])
-			if p != -1 && g.ord[v] <= g.low[nv.to] {
-				isArticlulation = true
-			}
-			if g.ord[v] < g.low[nv.to] {
-				g.bridge = append(g.bridge, nv)
-			}
-		} else if nv.to != p {
-			mins(&g.low[v], g.ord[nv.to])
+type rhsl struct {
+	size  int
+	sl    []int
+	rh    *rh
+	cl    int
+	cr    int
+	clen  int
+	chash int
+}
+
+func newrhsl(sl []int, base int) *rhsl {
+	rhsl := &rhsl{}
+	rhsl.size = len(sl)
+	rhsl.sl = sl
+	rhsl.rh = newrh(rhsl.size, base)
+	return rhsl
+}
+
+func (rhsl *rhsl) getAllHash() int {
+	return rhsl.getHash(0, rhsl.size)
+}
+
+func (rhsl *rhsl) getHash(l, r int) int {
+	return rhsl.rh.getHash(rhsl.sl[l:r])
+}
+
+func (rhsl *rhsl) getNlenHashList(n int) []int {
+	r := make([]int, rhsl.size-n+1)
+	rhsl.setSearchBase(0, n)
+	r[0] = rhsl.chash
+	for i := 1; i < rhsl.size-n+1; i++ {
+		rhsl.moveRight()
+		r[i] = rhsl.chash
+	}
+	return r
+}
+
+func (rhsl *rhsl) setSearchBase(l, r int) {
+	rhsl.cl = l
+	rhsl.cr = r
+	rhsl.clen = r - l
+	rhsl.chash = rhsl.rh.getHash(rhsl.sl[l:r])
+}
+
+func (rhsl *rhsl) moveRight() {
+	rhsl.removeLeft()
+	rhsl.addRight()
+}
+
+func (rhsl *rhsl) moveLeft() {
+	rhsl.removeRight()
+	rhsl.addLeft()
+}
+
+func (rhsl *rhsl) addRight() {
+	rhsl.chash = mulrh(rhsl.chash, rhsl.rh.base)
+	rhsl.chash = addrh(rhsl.chash, rhsl.sl[rhsl.cr])
+	rhsl.cr++
+	rhsl.clen++
+}
+
+func (rhsl *rhsl) addLeft() {
+	rhsl.cl--
+	rhsl.clen++
+	rhsl.chash = addrh(rhsl.chash, mulrh(rhsl.sl[rhsl.cl], rhsl.rh.basepow[rhsl.clen-1]))
+}
+
+func (rhsl *rhsl) removeRight() {
+	rhsl.cr--
+	rhsl.clen--
+	rhsl.chash = addrh(rhsl.chash, -rhsl.sl[rhsl.cr])
+	rhsl.chash = mulrh(rhsl.chash, rhsl.rh.baseinv)
+}
+
+func (rhsl *rhsl) removeLeft() {
+	rhsl.chash = addrh(rhsl.chash, -mulrh(rhsl.sl[rhsl.cl], rhsl.rh.basepow[rhsl.clen-1]))
+	rhsl.cl++
+	rhsl.clen--
+}
+
+type rh struct {
+	maxsize    int
+	base       int
+	baseinv    int
+	basepow    []int
+	baseinvpow []int
+}
+
+func newrh(n int, base int) *rh {
+	rh := &rh{}
+	rh.maxsize = n
+	rh.base = base
+	rh.baseinv = minvfermatrh(base, mod2611)
+	rh.basepow = make([]int, n)
+	rh.baseinvpow = make([]int, n)
+
+	rh.basepow[0] = 1
+	rh.baseinvpow[0] = 1
+	for i := 1; i < rh.maxsize; i++ {
+		rh.basepow[i] = mulrh(rh.basepow[i-1], rh.base)
+		rh.baseinvpow[i] = mulrh(rh.baseinvpow[i-1], rh.baseinv)
+	}
+
+	return rh
+}
+
+func (rh *rh) getHash(sl []int) int {
+	t := 0
+	for i := 0; i < len(sl); i++ {
+		t = calcmodrh(mulrh(t, rh.base) + sl[i])
+	}
+	return t
+}
+
+func (rh *rh) addRightOne(hash int, c int) int {
+	return rh.addRight(hash, []int{c})
+}
+
+func (rh *rh) addRight(hash int, sl []int) int {
+	t := hash
+	for i := 0; i < len(sl); i++ {
+		t = calcmodrh(mulrh(t, rh.base) + sl[i])
+	}
+	return t
+}
+
+func (rh *rh) addLeftOne(hash int, size int, c int) int {
+	return rh.addLeft(hash, size, []int{c})
+}
+
+func (rh *rh) addLeft(hash int, size int, sl []int) int {
+	t := hash
+	for i := len(sl) - 1; i >= 0; i-- {
+		t = addrh(t, mulrh(sl[i], rh.basepow[size]))
+		size++
+	}
+	return t
+}
+
+func (rh *rh) mergeHash(lhash, rhash, rhashsize int) int {
+	return addrh(mulrh(lhash, rh.basepow[rhashsize]), rhash)
+}
+
+const mask30 int = (1 << 30) - 1
+const mask31 int = (1 << 31) - 1
+const mod2611 int = (1 << 61) - 1
+const mask61 int = mod2611
+
+func addrh(a, b int) int {
+	if b < 0 {
+		b += mod2611
+	}
+	return calcmodrh(a + b)
+}
+
+func mulrh(a, b int) int {
+	au := a >> 31
+	ad := a & mask31
+	bu := b >> 31
+	bd := b & mask31
+	mid := ad*bu + au*bd
+	midu := mid >> 30
+	midd := mid & mask30
+	return calcmodrh(au*bu*2 + midu + (midd << 31) + ad*bd)
+}
+
+func calcmodrh(x int) int {
+	xu := x >> 61
+	xd := x & mask61
+	res := xu + xd
+	if res >= mod2611 {
+		res -= mod2611
+	}
+	return res
+}
+
+func minvfermatrh(a, m int) int {
+	return mpowrh(a, m-2, mod2611)
+}
+
+func mpowrh(a, n, m int) int {
+	if v, ok := mpowcache[[3]int{a, n, m}]; ok {
+		return v
+	}
+	fa := a
+	fn := n
+	if m == 1 {
+		return 0
+	}
+	r := 1
+	for n > 0 {
+		if n&1 == 1 {
+			r = mulrh(r, a)
 		}
+		a, n = mulrh(a, a), n>>1
 	}
-	if p == -1 && c > 1 {
-		isArticlulation = true
-	}
-	if isArticlulation {
-		g.articulation = append(g.articulation, v)
-	}
-	return k
+	mpowcache[[3]int{fa, fn, m}] = r
+	return r
 }
 
 // ==================================================
@@ -152,8 +263,8 @@ func (g *graph) lowlinkdfs(k, v, p int) int {
 const inf = math.MaxInt64
 const mod1000000007 = 1000000007
 const mod998244353 = 998244353
-const mod = mod998244353
-const baseRune = 'a'
+const mod = mod1000000007
+const baseRune = 'a' - 1
 const maxlogn = 62
 
 var mpowcache map[[3]int]int
@@ -748,12 +859,7 @@ func mmod(a, m int) int {
 }
 
 func extGcd(a, b int) (int, int, int) {
-	if b == 0 {
-		return 1, 0, a
-	}
-	q, p, d := extGcdSub(b, a%b, 0, 0)
-	q -= a / b * p
-	return p, q, d
+	return extGcdSub(b, a%b, 0, 0)
 }
 
 func extGcdSub(a, b, p, q int) (int, int, int) {
@@ -2618,13 +2724,6 @@ type graph struct {
 	defaultScore int
 	level        []int
 	iter         []int
-	used         []bool
-	ord          []int
-	low          []int
-	lowlinktree  [][]edge
-	roots        []int
-	articulation []int
-	bridge       []edge
 }
 
 func newgraph(size int, edges [][]edge) *graph {
