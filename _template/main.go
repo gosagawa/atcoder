@@ -738,10 +738,18 @@ func madd(a, b int) int {
 	return a
 }
 
+func madds(a *int, b int) {
+	*a = madd(*a, b)
+}
+
 func mmul(a, b int) int {
 	a %= mod
 	b %= mod
 	return a * b % mod
+}
+
+func mmuls(a *int, b int) {
+	*a = mmul(*a, b)
 }
 
 func mdiv(a, b int) int {
@@ -750,6 +758,10 @@ func mdiv(a, b int) int {
 		panic("invalid division")
 	}
 	return a * minvfermat(b, mod) % mod
+}
+
+func mmuls(a *int, b int) {
+	*a = mmul(*a, b)
 }
 
 func mpow(a, n, m int) int {
