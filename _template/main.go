@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"math"
 	"math/bits"
+	"math/rand"
 	"os"
 	"sort"
 	"strconv"
@@ -721,6 +722,10 @@ func matMul(a, b [][]int) [][]int {
 	return r
 }
 
+func randomint(i int) int {
+	return rand.Int() % i
+}
+
 // ==================================================
 // mod
 // ==================================================
@@ -760,8 +765,8 @@ func mdiv(a, b int) int {
 	return a * minvfermat(b, mod) % mod
 }
 
-func mmuls(a *int, b int) {
-	*a = mmul(*a, b)
+func mdivs(a *int, b int) {
+	*a = mdiv(*a, b)
 }
 
 func mpow(a, n, m int) int {
@@ -1408,6 +1413,19 @@ func (iq *IntQueue) shrink(l int) {
 	}
 }
 
+func (iq *IntQueue) popBack() int {
+	v := iq.queue[len(iq.queue)-1]
+	iq.queue = iq.queue[:len(iq.queue)-1]
+	iq.sum -= v
+	//iq.sum = madd(iq.sum, -v)
+	iq.size--
+	return v
+}
+
+func (iq *IntQueue) isEmpty() bool {
+	return iq.size == 0
+}
+
 // ==================================================
 // heap
 // ==================================================
@@ -1622,17 +1640,12 @@ func newcusum(sl []int) *cusum {
 	return c
 }
 
-// get sum f <= i && i <= t
-func (c *cusum) getRange(f, t int) int {
+// get sum f <= i && i < t
+func (c *cusum) get(f, t int) int {
 	if f > t || f >= c.l {
 		return 0
 	}
-	return c.s[t+1] - c.s[f]
-}
-
-// get sum 0 to i
-func (c *cusum) get(i int) int {
-	return c.s[i+1]
+	return c.s[t] - c.s[f]
 }
 
 func (c *cusum) upperBound(i int) int {
