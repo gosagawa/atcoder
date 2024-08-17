@@ -23,14 +23,21 @@ func main() {
 
 	a, b, c := ni3()
 	if b < c {
-		b += 24
-	}
-	if c < a && a < b {
-		out("Yes")
-		return
+		if b < a && a < c {
+			out("No")
+			return
+		} else {
+			out("Yes")
+			return
+		}
 	} else {
-		out("No")
-		return
+		if c < a && a < b {
+			out("Yes")
+			return
+		} else {
+			out("No")
+			return
+		}
 	}
 
 }
