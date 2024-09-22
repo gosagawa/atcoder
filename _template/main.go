@@ -253,6 +253,17 @@ func dbgi2s(sl [][]int) {
 	out("")
 }
 
+func dbglst(n int, lst *lazysegtree) {
+	if !debugFlg {
+		return
+	}
+	sl := make([]segstruct, n)
+	for i := 0; i < n; i++ {
+		sl[i] = lst.get(i)
+	}
+	out(sl)
+}
+
 func outf(f string, v ...interface{}) {
 	out(fmt.Sprintf(f, v...))
 }
@@ -2056,7 +2067,7 @@ type lazysegtree struct {
 		return segstruct(int(f))
 	}
 	compostion := func(f segfstruct, g segfstruct) segfstruct {
-		if i == id() {
+		if f == id() {
 			return g
 		}
 		return f
@@ -2147,13 +2158,13 @@ func (l *lazysegtree) get(p int) segstruct {
 
 func (l *lazysegtree) prod(le, ri int) segstruct {
 	if le < 0 || le > l.n {
-		panic(fmt.Sprintf("invalid le value n=%v ri=%v", l.n, le))
+		panic(fmt.Sprintf("invalid le value n=%v le=%v", l.n, le))
 	}
 	if ri < 0 || ri > l.n {
 		panic(fmt.Sprintf("invalid ri value n=%v ri=%v", l.n, ri))
 	}
 	if ri < le {
-		panic(fmt.Sprintf("invalid le value le=%v ri=%v", le, ri))
+		panic(fmt.Sprintf("invalid ri value le=%v ri=%v", le, ri))
 	}
 	if le == ri {
 		return l.e()
@@ -2213,13 +2224,13 @@ func (l *lazysegtree) apply(p int, f segfstruct) {
 
 func (l *lazysegtree) applyrange(le, ri int, f segfstruct) {
 	if le < 0 || le > l.n {
-		panic(fmt.Sprintf("invalid le value n=%v ri=%v", l.n, le))
+		panic(fmt.Sprintf("invalid le value n=%v le=%v", l.n, le))
 	}
 	if ri < 0 || ri > l.n {
 		panic(fmt.Sprintf("invalid ri value n=%v ri=%v", l.n, ri))
 	}
 	if ri < le {
-		panic(fmt.Sprintf("invalid le value le=%v ri=%v", le, ri))
+		panic(fmt.Sprintf("invalid ri value le=%v ri=%v", le, ri))
 	}
 
 	if le == ri {
