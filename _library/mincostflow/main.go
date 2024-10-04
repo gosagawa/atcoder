@@ -220,7 +220,7 @@ func (pq *McfGraphPQ) Pop() any {
 func (m *McfGraph) dualRef(s, t int) bool {
 	for i := 0; i < m.n; i++ {
 		m.vis[i] = false
-		m.dualDist[i][1] = math.MaxInt32
+		m.dualDist[i][1] = math.MaxInt
 	}
 
 	queMin := []int{}
