@@ -27,20 +27,29 @@ func main() {
 	for i := 0; i < n; i++ {
 		mp[i] = nsis()
 	}
-	for i := 1; i <= n/2; i++ {
-		ts := [][3]int{}
-		for x := i; x <= n+1-i; x++ {
-			for y := i; y <= n+1-i; y++ {
-				ts = append(ts, [3]int{y - 1, n - x, mp[x-1][y-1]})
+	mp1 := rotate(mp)
+	mp2 := rotate(mp1)
+	mp3 := rotate(mp2)
+	rs := i2s(n, n, 0)
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			t := min(min(i, n-1-i), min(j, n-1-j))
+			t %= 4
+			switch t {
+			case 0:
+				rs[i][j] = mp1[i][j]
+			case 1:
+				rs[i][j] = mp2[i][j]
+			case 2:
+				rs[i][j] = mp3[i][j]
+			case 3:
+				rs[i][j] = mp[i][j]
 			}
-		}
-		for _, v := range ts {
-			mp[v[0]][v[1]] = v[2]
 		}
 	}
 
 	for i := 0; i < n; i++ {
-		out(istos(mp[i], baseRune))
+		out(istos(rs[i], baseRune))
 	}
 
 }
