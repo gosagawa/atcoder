@@ -30,11 +30,14 @@ func main() {
 		d := ni()
 		t--
 		q, r := qs[t], rs[t]
-		for i := 0; i < q*2; i++ {
-			if (d+i)%q == r {
-				out(d + i)
-				break
+		if d%q == r {
+			out(d)
+		} else {
+			d1 := d/q*q + r
+			if d1 <= d {
+				d1 += q
 			}
+			out(d1)
 		}
 
 	}
