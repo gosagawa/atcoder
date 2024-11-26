@@ -1318,6 +1318,57 @@ func pointInnerProduct(a, b point) int {
 	return (a.x * b.y) - (b.x * a.y)
 }
 
+type line struct {
+	x int
+	y int
+	c int
+}
+
+func newline(x, y, c int) line {
+	return line{x, y, c}
+}
+
+func isSame(l1, l2 line) bool {
+	return l1.x == l2.x && l1.y == l2.y && l1.c == l2.c
+}
+
+func isParallel(l1, l2 line) bool {
+	return l1.x == l2.x && l1.y == l2.y && l1.c != l2.c
+}
+
+func NewlineByTwoPoint(x1, y1, x2, y2 int) line {
+	l := line{}
+	if x1 == x2 {
+		l = line{1, 0, -x1}
+	} else if y1 == y2 {
+		l = line{0, 1, -y1}
+	} else {
+		l = line{y1 - y2, x2 - x1, -x2*y1 + x1*y1 + y2*x1 - y1*x1}
+	}
+	g := gcd(gcd(abs(l.x), abs(l.y)), abs(l.c))
+	l.x /= g
+	l.y /= g
+	l.c /= g
+	if l.x < 0 {
+		l.x = -l.x
+		l.y = -l.y
+		l.c = -l.c
+	}
+	return l
+}
+func crossPoint(l1, l2 line) (int, int, bool) {
+	x := l1.y*l2.c - l2.y*l1.c
+	y := l2.x*l1.c - l1.x*l2.c
+	d := l1.x*l2.y - l2.x*l1.y
+	if d == 0 {
+		return 0, 0, false
+	}
+	if d == 0 || x%d != 0 || y%d != 0 {
+		return 0, 0, false
+	}
+	return x / d, y / d, true
+}
+
 // ==================================================
 // bfs / dfs
 // ==================================================
