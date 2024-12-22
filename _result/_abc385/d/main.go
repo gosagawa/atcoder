@@ -22,38 +22,104 @@ func main() {
 
 	defer flush()
 
-	h, w, x, y := ni4()
-	x--
-	y--
-	mp := convidxi2s(nsi2s(h), map[string]int{".": 0, "#": 1, "@": 2})
-	s := ns()
-	p := point{x: x, y: y}
-	hmp := make(map[point]bool)
-	for i := 0; i < len(s); i++ {
-		s := string(s[i])
+	n, m, sx, sy := ni4()
+	xs, ys := ni2s(n)
+	hms := make(map[int][]int)
+	wms := make(map[int][]int)
+	hms2 := make(map[int][]int)
+	wms2 := make(map[int][]int)
+	ps := make(map[point]bool)
+	for i := 0; i < n; i++ {
+		x, y := xs[i], ys[i]
+		if _, ok := hms[x]; !ok {
+			hms[x] = []int{}
+		}
+		hms[x] = append(hms[x], y)
+		if _, ok := wms[y]; !ok {
+			wms[y] = []int{}
+		}
+		wms[y] = append(wms[y], x)
+	}
+	for i, v := range hms {
+		sorti(v)
+		hms[i] = v
+		hms2[i] = make([]int, len(v)+1)
+	}
+	for i, v := range wms {
+		sorti(v)
+		wms[i] = v
+		wms2[i] = make([]int, len(v)+1)
+	}
+
+	dbg(hms)
+	dbg(wms)
+	p := point{x: sx, y: sy}
+	for i := 0; i < m; i++ {
+		d, c := ns(), ni()
 		var dx, dy int
-		switch s {
+		switch d {
 		case "U":
-			dx = -1
+			dy = c
 		case "D":
-			dx = 1
+			dy = -c
 		case "L":
-			dy = -1
+			dx = -c
 		case "R":
-			dy = 1
+			dx = c
 		}
 		np := point{x: p.x + dx, y: p.y + dy}
-		dbg(i, np)
-		if !np.isValid(h, w) || mp[np.x][np.y] == 1 {
-			continue
+		dbg(i, p, np, ps)
+
+		if p.x == np.x && hms[p.x] != nil {
+			f, t := np.y, p.y
+			if f > t {
+				f, t = t, f
+			}
+			fi := upperBound(f-1, hms[p.x])
+			ti := lowerBound(t+1, hms[p.x])
+			if fi <= ti {
+				hms2[p.x][fi]++
+				hms2[p.x][ti+1]--
+			}
 		}
-		p.x = np.x
-		p.y = np.y
-		if mp[p.x][p.y] == 2 {
-			hmp[np] = true
+		if p.y == np.y && wms[p.y] != nil {
+			f, t := np.x, p.x
+			if f > t {
+				f, t = t, f
+			}
+			fi := upperBound(f-1, wms[p.y])
+			ti := lowerBound(t+1, wms[p.y])
+			if fi <= ti {
+				wms2[p.y][fi]++
+				wms2[p.y][ti+1]--
+			}
+		}
+		p = np
+	}
+	dbg(hms2)
+	dbg(wms2)
+	for i, v := range hms2 {
+		for j := 0; j < len(v); j++ {
+			if j > 0 {
+				v[j] += v[j-1]
+			}
+			if v[j] > 0 {
+				ps[point{x: i, y: hms[i][j]}] = true
+			}
 		}
 	}
-	outf("%d %d %d", p.x+1, p.y+1, len(hmp))
+	for i, v := range wms2 {
+		for j := 0; j < len(v); j++ {
+			if j > 0 {
+				v[j] += v[j-1]
+			}
+			if v[j] > 0 {
+				ps[point{x: wms[i][j], y: i}] = true
+			}
+		}
+	}
+
+	outf("%v %v %v", p.x, p.y, len(ps))
 }
 
 // ==================================================
