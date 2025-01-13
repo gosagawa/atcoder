@@ -2663,21 +2663,26 @@ func (g *graph) topologicalSort(deg []int) (bool, []int) {
 /*
 v, e := ni2()
 edges := make([][]edge, v)
-edgers := make([][]edge, v)
 
 	for i := 0; i < e; i++ {
 		s, t := ni2()
 		s--
 		t--
 		edges[s] = append(edges[s], edge{to: t})
-		edgers[t] = append(edgers[t], edge{to: s})
 	}
 
-scc := getScc(v, edges, edgers)
+v,edges,roots,groups,mp := getScc(v, edges)
 */
-func getScc(v int, edges, edgers [][]edge) [][]int {
+func getScc(v int, edges [][]edge) (int, [][]edge, []int, [][]int, map[int]int) {
+	edgers := make([][]edge, v)
+	for i, nvs := range edges {
+		for _, nv := range nvs {
+			edgers[nv.to] = append(edgers[nv.to], edge{to: i})
+		}
+	}
 	used := make([]bool, v)
 	scc := [][]int{}
+	sccm := make(map[int]int)
 	vs := []int{}
 
 	var dfs func(i int)
@@ -2695,6 +2700,7 @@ func getScc(v int, edges, edgers [][]edge) [][]int {
 	rdfs = func(i, k int) {
 		used[i] = true
 		scc[k] = append(scc[k], i)
+		sccm[i] = k
 		for _, v := range edgers[i] {
 			if used[v.to] == false {
 				rdfs(v.to, k)
@@ -2716,7 +2722,29 @@ func getScc(v int, edges, edgers [][]edge) [][]int {
 			k++
 		}
 	}
-	return scc
+
+	v = len(scc)
+	edges2 := make([][]edge, v)
+	notroot := make([]bool, v)
+
+	for i, nvs := range edges {
+		for _, nv := range nvs {
+			s := sccm[i]
+			t := sccm[nv.to]
+			if s == t {
+				continue
+			}
+			notroot[t] = true
+			edges2[s] = append(edges2[s], edge{to: t})
+		}
+	}
+	roots := []int{}
+	for i, v := range notroot {
+		if !v {
+			roots = append(roots, i)
+		}
+	}
+	return v, edges2, roots, scc, sccm
 }
 
 /*
