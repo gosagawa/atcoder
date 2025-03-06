@@ -25,31 +25,16 @@ func main() {
 	o := 0
 	n := ni()
 	as := nis(n)
-	ts := []int{}
-	for i := n - 1; i >= 0; i-- {
-		if i == n-1 {
-			ts = append(ts, as[i])
-			continue
-		}
-		if as[i] >= ts[0] {
-			ts[0] = as[i]
-		} else {
-			t := bs(0, len(ts), func(c int) bool {
-				if c == len(ts) {
-					return false
-				}
-				return ts[c] > as[i]
-			}) + 1
-			dbg(t)
-			if t == len(ts) {
-				ts = append(ts, as[i])
-			} else {
-				ts[t] = as[i]
-			}
-		}
-		dbg(ts)
+	ts := is(n, inf)
+	for i := 0; i < n; i++ {
+		t := upperBound(as[i]-1, ts)
+		ts[t] = as[i]
 	}
-	o = len(ts)
+	for i := 0; i < n; i++ {
+		if ts[i] != inf {
+			o = i + 1
+		}
+	}
 	out(o)
 }
 
