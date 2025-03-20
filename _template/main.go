@@ -462,6 +462,33 @@ func ch(cond bool, ok, ng int) int {
 	return ng
 }
 
+func safeadd(arg ...int) int {
+	t := 0
+	for _, v := range arg {
+		dbg(t, v)
+		if v > 0 && t > inf-v {
+			return inf
+		}
+		if v < 0 && t < -inf-v {
+			return -inf
+		}
+		t += v
+	}
+	return t
+}
+
+func safemul(arg ...int) int {
+	t := 1
+	c := 0
+	for _, v := range arg {
+		t, c = mul(t, v)
+		if c != 0 {
+			return inf * c
+		}
+	}
+	return t
+}
+
 func mul(a, b int) (int, int) {
 	if a < 0 {
 		a, b = -a, -b
