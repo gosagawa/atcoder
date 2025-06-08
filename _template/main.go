@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"container/heap"
 	"container/list"
 	"fmt"
 	"io/ioutil"
@@ -1530,39 +1529,27 @@ ih.Push(v)
 */
 type IntHeap struct {
 	sum int
-	pq  *pq
+	pq  *pq[int]
 }
 
 func newIntHeap(order sortOrder) *IntHeap {
 	ih := &IntHeap{}
-	ih.pq = newpq([]compFunc{func(p, q interface{}) int {
-		if p.(int) == q.(int) {
-			return 0
-		}
+
+	ih.pq = newpq[int](func(p, q int) bool {
 		if order == asc {
-			if p.(int) < q.(int) {
-				return -1
-			} else {
-				return 1
-			}
-		} else {
-			if p.(int) > q.(int) {
-				return -1
-			} else {
-				return 1
-			}
+			return p < q
 		}
-	}})
-	heap.Init(ih.pq)
+		return p > q
+	})
 	return ih
 }
 func (ih *IntHeap) Push(x int) {
 	ih.sum += x
-	heap.Push(ih.pq, x)
+	ih.pq.Push(x)
 }
 
 func (ih *IntHeap) Pop() int {
-	v := heap.Pop(ih.pq).(int)
+	v := ih.pq.Pop()
 	ih.sum -= v
 	return v
 }
@@ -1575,142 +1562,100 @@ func (ih *IntHeap) IsEmpty() bool {
 	return ih.pq.Len() == 0
 }
 
-func (ih *IntHeap) GetRoot() int {
-	return ih.pq.GetRoot().(int)
+func (ih *IntHeap) Top() int {
+	return ih.pq.Top()
 }
 
 func (ih *IntHeap) GetSum() int {
 	return ih.sum
 }
 
-/*
-h := &OrgIntHeap{}
-heap.Init(h)
-
-heap.Push(h, v)
-
-	for !h.IsEmpty() {
-		v = heap.Pop(h).(int)
-	}
-*/
-type OrgIntHeap []int
-
-func (h OrgIntHeap) Len() int { return len(h) }
-
-// get from bigger
-// func (h OrgIntHeap) Less(i, j int) bool { return h[i] > h[j] }
-func (h OrgIntHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h OrgIntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *OrgIntHeap) Push(x interface{}) {
-	*h = append(*h, x.(int))
-}
-
-func (h *OrgIntHeap) Pop() interface{} {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
-}
-
-func (h *OrgIntHeap) IsEmpty() bool {
-	return h.Len() == 0
-}
-
-// h.Min().(int)
-func (h *OrgIntHeap) Min() interface{} {
-	return (*h)[0]
+type pq[T any] struct {
+	arr  []T
+	comp func(p, q T) bool
 }
 
 /*
 	type pqst struct {
+		v int
 		x int
 		y int
 	}
 
-	pq := newpq([]compFunc{func(p, q interface{}) int {
-		if p.(pqst).x != q.(pqst).x {
-			// get from bigger
-			// if p.(pqst).x > q.(pqst).x {
-			if p.(pqst).x < q.(pqst).x {
-				return -1
-			} else {
-				return 1
-			}
-		}
-		if p.(pqst).y != q.(pqst).y {
-			// get from bigger
-			// if p.(pqst).y > q.(pqst).y {
-			if p.(pqst).y < q.(pqst).y {
-				return -1
-			} else {
-				return 1
-			}
-		}
-		return 0
-	}})
-	heap.Init(pq)
-	heap.Push(pq, pqst{x: 1, y: 1})
+	pq := newpq[pqst](func(p, q pqst) bool {
+		return p.v < q.v
+	})
+
+pq.Push(pqst{v: 1, x: 1, y: 1})
+
 	for !pq.IsEmpty() {
-		v := heap.Pop(pq).(pqst)
+		v := pq.Pop()
 	}
 */
-
-type pq struct {
-	arr   []interface{}
-	comps []compFunc
-}
-
-type compFunc func(p, q interface{}) int
-
-func newpq(comps []compFunc) *pq {
-	return &pq{
-		comps: comps,
+func newpq[T any](comp func(p, q T) bool) *pq[T] {
+	return &pq[T]{
+		arr:  []T{},
+		comp: comp,
 	}
 }
 
-func (pq pq) Len() int {
+func (pq *pq[T]) Init(base []T) {
+	pq.arr = base
+	n := pq.Len()
+	for i := n/2 - 1; i >= 0; i-- {
+		pq.down(i, n)
+	}
+}
+
+func (pq *pq[T]) Push(value T) {
+	pq.arr = append(pq.arr, value)
+	for leaf := len(pq.arr) - 1; leaf > 0; {
+		parent := (leaf - 1) / 2
+		if pq.comp(pq.arr[parent], pq.arr[leaf]) {
+			break
+		}
+		pq.arr[leaf], pq.arr[parent] = pq.arr[parent], pq.arr[leaf]
+		leaf = parent
+	}
+}
+
+func (pq *pq[T]) Pop() T {
+	val := pq.arr[0]
+	n := len(pq.arr) - 1
+	pq.arr[0] = pq.arr[n]
+	pq.arr = pq.arr[:n]
+	pq.down(0, n)
+	return val
+}
+
+func (pq *pq[T]) Top() T {
+	return pq.arr[0]
+}
+
+func (pq *pq[T]) IsEmpty() bool {
+	return len(pq.arr) == 0
+}
+
+func (pq *pq[T]) Len() int {
 	return len(pq.arr)
 }
 
-func (pq pq) Swap(i, j int) {
-	pq.arr[i], pq.arr[j] = pq.arr[j], pq.arr[i]
-}
-
-func (pq pq) Less(i, j int) bool {
-	for _, comp := range pq.comps {
-		result := comp(pq.arr[i], pq.arr[j])
-		switch result {
-		case -1:
-			return true
-		case 1:
-			return false
-		case 0:
-			continue
+func (pq *pq[T]) down(i, n int) {
+	for {
+		j1 := 2*i + 1
+		if j1 >= n || j1 < 0 { // j1 < 0 after int overflow
+			break
 		}
+		j := j1 // left child
+		if j2 := j1 + 1; j2 < n && pq.comp(pq.arr[j2], pq.arr[j1]) {
+			j = j2 // = 2*i + 2  // right child
+		}
+		if !pq.comp(pq.arr[j], pq.arr[i]) {
+			break
+		}
+		pq.arr[i], pq.arr[j] = pq.arr[j], pq.arr[i]
+		i = j
 	}
-	return true
-}
-
-func (pq *pq) Push(x interface{}) {
-	pq.arr = append(pq.arr, x)
-}
-
-func (pq *pq) Pop() interface{} {
-	n := pq.Len()
-	item := pq.arr[n-1]
-	pq.arr = pq.arr[:n-1]
-	return item
-}
-
-func (pq *pq) IsEmpty() bool {
-	return pq.Len() == 0
-}
-
-// pq.GetRoot().(edge)
-func (pq *pq) GetRoot() interface{} {
-	return pq.arr[0]
 }
 
 // ==================================================
@@ -2615,7 +2560,6 @@ type graph struct {
 	size         int
 	edges        [][]edge
 	starts       []state
-	comps        []compFunc
 	defaultScore int
 	level        []int
 	iter         []int
@@ -2628,16 +2572,6 @@ func newgraph(size int, edges [][]edge) *graph {
 	}
 
 	graph.defaultScore = inf
-	graph.comps = []compFunc{
-		func(p, q interface{}) int {
-			if p.(state).score < q.(state).score {
-				return -1
-			} else if p.(state).score == q.(state).score {
-				return 0
-			}
-			return 1
-		},
-	}
 	return graph
 }
 
@@ -2798,14 +2732,16 @@ func (g *graph) dijkstra(start int) []int {
 	for i := 0; i < g.size; i++ {
 		score[i] = g.defaultScore
 	}
-	que := newpq(g.comps)
+	que := newpq[state](func(p, q state) bool {
+		return p.score > q.score
+	})
 	for _, start := range g.starts {
 		score[start.node] = start.score
-		heap.Push(que, start)
+		que.Push(start)
 	}
 
 	for !que.IsEmpty() {
-		st := heap.Pop(que).(state)
+		st := que.Pop()
 		if st.score > score[st.node] {
 			continue
 		}
@@ -2813,7 +2749,7 @@ func (g *graph) dijkstra(start int) []int {
 			newScore := st.score + edge.cost
 			if score[edge.to] > newScore {
 				score[edge.to] = newScore
-				heap.Push(que, state{score: newScore, node: edge.to})
+				que.Push(state{score: newScore, node: edge.to})
 			}
 		}
 	}
