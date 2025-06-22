@@ -40,34 +40,41 @@ func main() {
 	}
 	q := ni()
 	xs := nis(q)
-	st := is(n, 0)
-	stm := make([][]int, n)
+	uf := newUnionFind(n)
+	sw := is(n, 0)
 	for i := 0; i < n; i++ {
-		st[i] = i
-		stm[i] = []int{i}
+		sw[i] = i
 	}
 	for i := 0; i < q; i++ {
-		u, v := st[us[xs[i]-1]], st[vs[xs[i]-1]]
-		if u == v {
+		dbg(sw)
+		u, v := us[xs[i]-1], vs[xs[i]-1]
+		u = sw[uf.root(u)]
+		v = sw[uf.root(v)]
+		if uf.issame(u, v) {
 			out(ec)
 			continue
 		}
-		if len(stm[u])+len(ms[u]) < len(stm[v])+len(ms[v]) {
-			u, v = v, u
+		uf.unite(u, v)
+		rt := uf.root(u)
+		nu := sw[rt]
+		nv := v
+		if nu == nv {
+			nv = u
 		}
-		for _, nv := range stm[v] {
-			stm[u] = append(stm[u], nv)
-			st[nv] = u
-		}
+		sw[rt] = nu
 
-		for i := range ms[v] {
-			if i == u || ms[u][i] {
+		if len(ms[nu]) < len(ms[nv]) {
+			nu, nv = nv, nu
+			sw[rt] = nu
+		}
+		for i := range ms[nv] {
+			if i == nu || ms[nu][i] {
 				ec--
 			} else {
-				ms[u][i] = true
-				ms[i][u] = true
+				ms[nu][i] = true
+				ms[i][nu] = true
 			}
-			delete(ms[i], v)
+			delete(ms[i], nv)
 		}
 		out(ec)
 	}
