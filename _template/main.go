@@ -1222,14 +1222,17 @@ func upperBound(v int, sl []int) int {
 
 func rotate(sl [][]int) [][]int {
 	n := len(sl)
-	r := i2s(n, n, 0)
-	for i := 0; i < n; i++ {
+	m := len(sl[0])
+	r := i2s(m, n, 0)
+	for i := 0; i < m; i++ {
 		for j := 0; j < n; j++ {
 			r[i][j] = sl[n-1-j][i]
 		}
 	}
 	return r
 }
+
+// ==================================================
 
 // ==================================================
 // matrix
@@ -2733,7 +2736,7 @@ func (g *graph) dijkstra(start int) []int {
 		score[i] = g.defaultScore
 	}
 	que := newpq[state](func(p, q state) bool {
-		return p.score > q.score
+		return p.score < q.score
 	})
 	for _, start := range g.starts {
 		score[start.node] = start.score
