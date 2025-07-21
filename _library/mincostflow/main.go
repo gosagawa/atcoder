@@ -79,6 +79,7 @@ func (m *McfGraph) AddEdge(from, to, cap, cost int) int {
 	m.m = len(m.edges)
 
 	m.edgelists[from] = append(m.edgelists[from], McfGraphEdge{
+		from: from,
 		to:   to,
 		cap:  cap,
 		cost: cost,
@@ -86,6 +87,7 @@ func (m *McfGraph) AddEdge(from, to, cap, cost int) int {
 		rev:  len(m.edgelists[to]),
 	})
 	m.edgelists[to] = append(m.edgelists[to], McfGraphEdge{
+		from: to,
 		to:   from,
 		cap:  0,
 		cost: -cost,
