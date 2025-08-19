@@ -211,6 +211,10 @@ func ctoi(c string) int {
 	return int(rune(c[0]) - baseRune)
 }
 
+func itoc(i int) string {
+	return string(byte(i) + byte(baseRune))
+}
+
 func nsiis() []int {
 	sc.Scan()
 	s := sc.Text()
@@ -464,7 +468,6 @@ func ch(cond bool, ok, ng int) int {
 func safeadd(arg ...int) int {
 	t := 0
 	for _, v := range arg {
-		dbg(t, v)
 		if v > 0 && t > inf-v {
 			return inf
 		}
@@ -2772,7 +2775,7 @@ func (g *graph) floydWarshall() ([][]int, bool) {
 			}
 		}
 		for _, edge := range g.edges[i] {
-			score[i][edge.to] = edge.cost
+			mins(&score[i][edge.to], edge.cost)
 		}
 	}
 	for k := 0; k < g.size; k++ {
