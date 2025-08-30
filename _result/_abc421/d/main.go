@@ -63,6 +63,7 @@ func main() {
 		if apt == bpt {
 			isSame = true
 		}
+		dbg(isSame)
 
 		napt := move(apt, ss[ai], mv)
 		nbpt := move(bpt, ts[bi], mv)
@@ -71,26 +72,20 @@ func main() {
 				o += mv
 			}
 		} else if apt.x == napt.x && napt.x == bpt.x && bpt.x == nbpt.x {
-			x := apt.x
-			y := 0
+			tmv := 0
 			if (apt.y+bpt.y)%2 == 0 {
-				y = (apt.y + bpt.y) / 2
-			}
-			d1 := abs(apt.x-x) + abs(apt.y-y)
-			d2 := abs(bpt.x-x) + abs(bpt.y-y)
-			if d1 == d2 && d1 <= mv {
-				o++
+				tmv = abs(apt.y - (apt.y+bpt.y)/2)
+				if tmv <= mv && move(apt, ss[ai], tmv) == move(bpt, ts[bi], tmv) {
+					o++
+				}
 			}
 		} else if apt.y == napt.y && napt.y == bpt.y && bpt.y == nbpt.y {
-			x := 0
-			y := apt.y
+			tmv := 0
 			if (apt.x+bpt.x)%2 == 0 {
-				x = (apt.x + bpt.x) / 2
-			}
-			d1 := abs(apt.x-x) + abs(apt.y-y)
-			d2 := abs(bpt.x-x) + abs(bpt.y-y)
-			if d1 == d2 && d1 <= mv {
-				o++
+				tmv = abs(apt.x - (apt.x+bpt.x)/2)
+				if tmv <= mv && move(apt, ss[ai], tmv) == move(bpt, ts[bi], tmv) {
+					o++
+				}
 			}
 		} else {
 			l1 := NewlineByTwoPoint(apt.x, apt.y, napt.x, napt.y)
@@ -100,7 +95,9 @@ func main() {
 				d1 := abs(apt.x-x) + abs(apt.y-y)
 				d2 := abs(bpt.x-x) + abs(bpt.y-y)
 				if d1 == d2 && d1 <= mv {
-					o++
+					if move(apt, ss[ai], d1) == move(bpt, ts[bi], d1) {
+						o++
+					}
 				}
 			}
 		}
