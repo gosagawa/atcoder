@@ -38,7 +38,7 @@ func main() {
 					t += mp[np.x][np.y]
 				}
 			}
-			if t%2 == 1 {
+			if t == 0 || t%2 == 1 {
 				out("No")
 				return
 			}
