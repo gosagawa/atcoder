@@ -22,12 +22,19 @@ func main() {
 	defer flush()
 
 	o := 0
-	x, c := ni2()
-	o = bs(0, x, func(cc int) bool {
-		t := cc + cc/1000*c
-		return t <= x
-	})
-	o = o - o%1000
+	n := ni()
+	ls := nis(n)
+	uf := newUnionFind(n + 1)
+	for i, v := range ls {
+		if v == 0 {
+			uf.unite(i, i+1)
+		}
+	}
+	if uf.issame(0, n) {
+		o = 0
+	} else {
+		o = n + 1 - uf.size(0) - uf.size(n)
+	}
 	out(o)
 }
 
