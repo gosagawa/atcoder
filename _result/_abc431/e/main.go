@@ -21,27 +21,98 @@ func main() {
 
 	defer flush()
 
+	t := ni()
+	for ti := 0; ti < t; ti++ {
+		solve()
+	}
+}
+
+func solve() {
+
 	o := 0
-	n := ni()
-	base := 500*500 + 10
-	dp := i2s(2, base*2, -inf)
-	dp[0][base] = 0
-	ws, hs, bs := ni3s(n)
-	for i := 0; i < n; i++ {
-		w, h, b := ws[i], hs[i], bs[i]
-		for j := 0; j < base*2; j++ {
-			dp[(i+1)%2][j] = -inf
-		}
-		for j := 0; j < base*2; j++ {
-			if dp[i%2][j] != -inf {
-				maxs(&dp[(i+1)%2][j-w], dp[i%2][j]+h)
-				maxs(&dp[(i+1)%2][j+w], dp[i%2][j]+b)
+	h, w := ni2()
+	mp := convidxi2s(nsi2s(h), map[string]int{"A": 0, "B": 1, "C": 2})
+	dbg(mp)
+	th, tw := h*2+1, w*2+1
+	dp := i2s(th, tw, inf)
+	dp[1][0] = 0
+	dx := []int{2, 0, -2, 0, 1, 1, -1, -1}
+	dy := []int{0, 2, 0, -2, 1, -1, 1, -1}
+	q := list.New()
+	q.PushBack(point{1, 0})
+	e := q.Front()
+	for e != nil {
+		p := e.Value.(point)
+		for k := 0; k < 8; k++ {
+			if p.x%2 == 0 && dx[k] == 0 {
+				continue
+			}
+			if p.x%2 == 1 && dy[k] == 0 {
+				continue
+			}
+			np := point{p.x + dx[k], p.y + dy[k]}
+			if !np.isValid(th, tw) {
+				continue
+			}
+			stx := min(np.x, p.x) / 2
+			sty := min(np.y, p.y) / 2
+			st := mp[stx][sty]
+			//dbg(p, np, stx, sty, st)
+			switch st {
+			case 0:
+				if k < 4 {
+					if dp[np.x][np.y] > dp[p.x][p.y] {
+						dp[np.x][np.y] = dp[p.x][p.y]
+						q.InsertAfter(np, e)
+					}
+				} else {
+					if dp[np.x][np.y] > dp[p.x][p.y]+1 {
+						dp[np.x][np.y] = dp[p.x][p.y] + 1
+						q.PushBack(np)
+					}
+				}
+			case 1:
+				if k == 4 || k == 7 {
+					if dp[np.x][np.y] > dp[p.x][p.y] {
+						dp[np.x][np.y] = dp[p.x][p.y]
+						q.InsertAfter(np, e)
+					}
+				} else {
+
+					if dp[np.x][np.y] > dp[p.x][p.y]+1 {
+						dp[np.x][np.y] = dp[p.x][p.y] + 1
+						q.PushBack(np)
+					}
+				}
+			case 2:
+				if k == 5 || k == 6 {
+					if dp[np.x][np.y] > dp[p.x][p.y] {
+						dp[np.x][np.y] = dp[p.x][p.y]
+						q.InsertAfter(np, e)
+					}
+				} else {
+					if dp[np.x][np.y] > dp[p.x][p.y]+1 {
+
+						dp[np.x][np.y] = dp[p.x][p.y] + 1
+						q.PushBack(np)
+					}
+				}
+
 			}
 		}
+
+		// Do something
+
+		e = e.Next()
 	}
-	for i := base; i < base*2; i++ {
-		maxs(&o, dp[n%2][i])
-	}
+
+	/*
+		for i := 0; i < th; i++ {
+			dbg(dp[i])
+		}
+	*/
+
+	o = dp[th-2][tw-1]
 	out(o)
 }
 
