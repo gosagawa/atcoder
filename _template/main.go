@@ -517,6 +517,15 @@ func addAngle(a1, a2 float64) float64 {
 	return r
 }
 
+func rotateAngle(x, y, d float64) (float64, float64) {
+	rad := d * math.Pi / 180
+	cos := math.Cos(rad)
+	sin := math.Sin(rad)
+	nx := x*cos - y*sin
+	ny := x*sin + y*cos
+	return nx, ny
+}
+
 func permutation(n int, k int) int {
 	if k > n || k <= 0 {
 		panic(fmt.Sprintf("invalid param n:%v k:%v", n, k))
@@ -1848,7 +1857,7 @@ func (b *bit) sum(i int) int {
 }
 
 // l <= x < r
-func (b *bit) rangesum(l, r int) int {
+func (b *bit) get(l, r int) int {
 	return b.culc(b.sum(r-1), -b.sum(l-1))
 }
 
@@ -2316,7 +2325,7 @@ func (l *lazysegtree) applyrange(le, ri int, f segfstruct) {
 func (l *lazysegtree) maxright(le int, g func(segstruct) bool) int {
 
 	if le < 0 || le > l.n {
-		panic(fmt.Sprintf("invalid le value n=%v ri=%v", l.n, le))
+		panic(fmt.Sprintf("invalid le value n=%v le=%v", l.n, le))
 	}
 	if !g(l.e()) {
 		panic("invalid g func")
