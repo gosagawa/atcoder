@@ -23,7 +23,7 @@ func main() {
 
 	o := 0
 	w, b := ni2()
-	for i := 0; i < 100000; i++ {
+	for i := 0; i <= 1000000; i++ {
 		if i*b > w*1000 {
 			o = i
 			break
