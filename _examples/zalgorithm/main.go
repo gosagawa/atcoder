@@ -41,17 +41,13 @@ func main() {
 func getzs(s string) []int {
 	n := len(s)
 	z := make([]int, n)
+	if n == 0 {
+		return z
+	}
 	z[0] = n
-	var i, j int
-	i = 1
-	for {
-		if i >= n {
-			break
-		}
-		for {
-			if i+j >= n || s[j] != s[i+j] {
-				break
-			}
+	i, j := 1, 0
+	for i < n {
+		for i+j < n && s[j] == s[i+j] {
 			j++
 		}
 		z[i] = j
@@ -60,10 +56,8 @@ func getzs(s string) []int {
 			continue
 		}
 		k := 1
-		for {
-			if k >= j || k+z[k] >= j {
-				break
-			}
+		for k < j && i+k < n && k+z[k] < j {
+			z[i+k] = z[k]
 			k++
 		}
 		i += k
@@ -319,7 +313,7 @@ func permutation(n int, k int) int {
 }
 
 /*
-	for {
+for {
 
 		// Do something
 
@@ -834,14 +828,14 @@ func pointfDist(a, b pointf) float64 {
 // ==================================================
 
 /*
-	h := &IntHeap{}
-	heap.Init(h)
-	heap.Push(h, 2)
-	heap.Push(h, 3)
-	out(heap.Pop(h).(int))
-	out(h.Min().(int))
-	heap.Pop(h)
-	out(h.Len())
+h := &IntHeap{}
+heap.Init(h)
+heap.Push(h, 2)
+heap.Push(h, 3)
+out(heap.Pop(h).(int))
+out(h.Min().(int))
+heap.Pop(h)
+out(h.Len())
 */
 type IntHeap []int
 
@@ -883,13 +877,14 @@ type pq struct {
 		}
 		return 1
 	}})
-	heap.Init(pq)
-	heap.Push(pq, edge{from: 3, to: 3, cost: 2})
-	heap.Push(pq, edge{from: 2, to: 2, cost: 3})
-	out(heap.Pop(pq).(edge))
-	out(pq.Min().(edge))
-	heap.Pop(pq)
-	out(pq.Len())
+
+heap.Init(pq)
+heap.Push(pq, edge{from: 3, to: 3, cost: 2})
+heap.Push(pq, edge{from: 2, to: 2, cost: 3})
+out(heap.Pop(pq).(edge))
+out(pq.Min().(edge))
+heap.Pop(pq)
+out(pq.Len())
 */
 type compFunc func(p, q interface{}) int
 
@@ -1481,8 +1476,9 @@ type tree struct {
 }
 
 /*
-	n := ni()
-	edges := make([][]edge, n)
+n := ni()
+edges := make([][]edge, n)
+
 	for i := 0; i < n-1; i++ {
 		s, t := ni2()
 		s--
@@ -1490,8 +1486,9 @@ type tree struct {
 		edges[s] = append(edges[s], edge{to: t})
 		edges[t] = append(edges[t], edge{to: s})
 	}
-	tree := newtree(n, 0, edges)
-	tree.init()
+
+tree := newtree(n, 0, edges)
+tree.init()
 */
 func newtree(size int, root int, edges [][]edge) *tree {
 	parentsize := int(math.Log2(float64(size))) + 1
@@ -1619,9 +1616,10 @@ func newgraph(size int, edges [][]edge) *graph {
 }
 
 /*
-	v, e := ni2()
-	edges := make([][]edge, v)
-	deg := make([]int, v)
+v, e := ni2()
+edges := make([][]edge, v)
+deg := make([]int, v)
+
 	for i := 0; i < e; i++ {
 		s, t, c := ni3()
 		s--
@@ -1629,8 +1627,9 @@ func newgraph(size int, edges [][]edge) *graph {
 		edges[s] = append(edges[s], edge{to: t, cost: c})
 		deg[t]++
 	}
-	graph := newgraph(v, edges)
-	isdag, r := graph.topologicalSort(deg)
+
+graph := newgraph(v, edges)
+isdag, r := graph.topologicalSort(deg)
 */
 func (g *graph) topologicalSort(deg []int) (bool, []int) {
 
@@ -1745,18 +1744,18 @@ func (g *graph) floydWarshall() ([][]int, bool) {
 }
 
 /*
-	v, e := ni2()
-	edges := make([][]edge, 1)
-	edges[0] = make([]edge, e)
+v, e := ni2()
+edges := make([][]edge, 1)
+edges[0] = make([]edge, e)
 
 	for i := 0; i < e; i++ {
 		s, t, d := ni3()
 		edges[0][i] = edge{from: s, to: t, cost: d}
 	}
 
-	graph := newgraph(v, edges)
+graph := newgraph(v, edges)
 
-	o = graph.kruskal()
+o = graph.kruskal()
 */
 func (g *graph) kruskal() int {
 
