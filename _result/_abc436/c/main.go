@@ -22,29 +22,9 @@ func main() {
 	defer flush()
 
 	o := 0
-	_, m := ni2()
-	mp := make(map[point]bool)
-	for i := 0; i < m; i++ {
-		x, y := ni2()
-		if mp[point{x, y}] {
-			continue
-		}
-		if mp[point{x + 1, y}] {
-			continue
-		}
-		if mp[point{x, y + 1}] {
-			continue
-		}
-		if mp[point{x + 1, y + 1}] {
-			continue
-		}
-
-		mp[point{x, y}] = true
-		mp[point{x + 1, y}] = true
-		mp[point{x, y + 1}] = true
-		mp[point{x + 1, y + 1}] = true
-	}
-	o = len(mp) / 4
+	n := ni()
+	as := nis(n)
+	dbg(n, as)
 	out(o)
 }
 
