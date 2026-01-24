@@ -38,7 +38,6 @@ func main() {
 	for i := 0; i < n; i++ {
 		t := n - len(mp[i]) - 1
 		if t < 3 {
-			out(0)
 			continue
 		}
 		rs[i] = t * (t - 1) * (t - 2) / 6
