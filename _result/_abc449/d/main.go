@@ -23,33 +23,26 @@ func main() {
 
 	o := 0
 	l, r, d, u := ni4()
+	ct2 := func(i, j int) int {
+		t := (min(i, j) + 1) * ((i + 1) % 2)
+		if j > i {
+			t += (j+2)/2 - (i+2)/2
+		}
+		return t
+	}
 	ct := func(i, f, t int) int {
 		i = abs(i)
-
-		t1 := 0
-		if t >= -i && f <= i {
-			t1 = min(t, i) - max(f, -i) + 1
-			t1 *= (i + 1) % 2
-		}
-
-		t2 := 0
-		if t > i {
-			if max(i, f-1)%2 == 0 {
-				t2 = (t - max(i, f-1)) / 2
-			} else {
-				t2 = (t - max(i, f-1) + 1) / 2
+		if f*t < 0 {
+			return ct2(i, t) + ct2(i, -f) - (i+1)%2
+		} else {
+			if f < 0 {
+				f, t = -t, -f
 			}
-		}
-		t3 := 0
-		if f < -i {
-			if -min(t+1, -i)%2 == 0 {
-				t3 = (min(t+1, -i) - f) / 2
-			} else {
-				t3 = (min(t+1, -i) - f + 1) / 2
+			if f == 0 {
+				return ct2(i, t)
 			}
+			return ct2(i, t) - ct2(i, f-1)
 		}
-
-		return t1 + t2 + t3
 	}
 
 	for i := l; i <= r; i++ {
