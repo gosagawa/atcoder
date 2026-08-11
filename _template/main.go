@@ -1923,6 +1923,10 @@ func newstree(n int, minmax streeculctype) *stree {
 			return min(i, j)
 		}
 	case stmax:
+		s.def = -inf
+		for i := 0; i < 2*tn-1; i++ {
+			s.b[i] = s.def
+		}
 		s.cmp = func(i, j int) int {
 			return max(i, j)
 		}
